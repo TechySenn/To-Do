@@ -1,57 +1,37 @@
-// netlify/functions/get-tasks.js
-const { createClient } = require('@supabase/supabase-js');
-
-// Ensure environment variables are loaded (Netlify does this automatically)
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_KEY; // Use service key for backend
-
-// Check if environment variables are set
-if (!supabaseUrl || !supabaseKey) {
-    console.error('Supabase URL or Service Key is missing.');
-    // Return an error response immediately if config is missing
-    return {
-        statusCode: 500,
-        body: JSON.stringify({ error: 'Server configuration error: Supabase credentials missing.' }),
-    };
-}
-
-const supabase = createClient(supabaseUrl, supabaseKey);
+// netlify/functions/get-tasks.js (Simplified for Testing)
 
 exports.handler = async function(event, context) {
-    // Only allow GET requests for fetching tasks
+    console.log("Simplified get-tasks function invoked."); // Add a log
+
+    // Only allow GET requests
     if (event.httpMethod !== 'GET') {
         return {
-            statusCode: 405, // Method Not Allowed
+            statusCode: 405,
             body: JSON.stringify({ error: 'Method Not Allowed' }),
             headers: { 'Allow': 'GET' },
         };
     }
 
     try {
-        console.log("Fetching tasks from Supabase...");
-        const { data, error } = await supabase
-            .from('tasks') // Make sure 'tasks' matches your table name
-            .select('*'); // Fetch all columns
+        // Return hardcoded dummy data instead of calling Supabase
+        const dummyTasks = [
+            { id: 'dummy-1', created_at: new Date().toISOString(), text: 'Test Task 1 (Dummy)', name: 'Tester', priority: 'High', notes: 'Note 1', status: 'todo' },
+            { id: 'dummy-2', created_at: new Date().toISOString(), text: 'Test Task 2 (Dummy)', name: 'Tester', priority: 'Medium', notes: '', status: 'inprogress' }
+        ];
 
-        if (error) {
-            console.error('Supabase fetch error:', error);
-            return {
-                statusCode: 500,
-                body: JSON.stringify({ error: 'Failed to fetch tasks', details: error.message }),
-            };
-        }
-
-        console.log(`Successfully fetched ${data.length} tasks.`);
+        console.log("Returning dummy task data.");
         return {
             statusCode: 200,
-            body: JSON.stringify(data), // Send the array of tasks back
+            body: JSON.stringify(dummyTasks), // Send dummy array
             headers: { 'Content-Type': 'application/json' },
         };
+
     } catch (err) {
-        console.error('Function execution error:', err);
+        // This catch block might not even be reached if the error is very basic
+        console.error('Simplified function execution error:', err);
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: 'Internal Server Error', details: err.message }),
+            body: JSON.stringify({ error: 'Internal Server Error in simplified function', details: err.message }),
         };
     }
 };
