@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanban Task Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+        /* Basic styling for draggable elements */
+        .task.dragging {
+            opacity: 0.5;
+            border: 2px dashed #ccc;
+        }
+        /* Ensure columns take up height */
+        .kanban-column {
+            min-height: 300px; /* Adjust as needed */
+        }
+        /* Style for the confetti canvas */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Allows clicks to go through */
+            z-index: 9999;
+        }
+        /* Custom scrollbar for task lists (optional) */
+        .tasks-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .tasks-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .tasks-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        .tasks-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        /* Styling for inline edit input */
+        .task-edit-input {
+            width: calc(100% - 80px); /* Adjust based on button widths */
+            padding: 2px 4px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 5px;
+        }
+        /* Hide elements smoothly */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans p-4 md:p-8">
+
+    <div class="container mx-auto max-w-6xl">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">My Kanban Board</h1>
+
+        <div class="mb-8 p-4 bg-white rounded-lg shadow flex items-center space-x-4">
+            <input type="text" id="newTaskInput" placeholder="Enter new task..." class="flex-grow p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button id="addTaskBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out">
+                Add Task
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="kanbanBoard">
+
+            <div id="todo" class="kanban-column bg-white rounded-lg shadow p-4" ondragover="allowDrop(event)" ondrop="drop(event)">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">To Do</h2>
+                <div class="tasks-container space-y-3 min-h-[200px] max-h-[60vh] overflow-y-auto p-1">
+                    </div>
+            </div>
+
+            <div id="inprogress" class="kanban-column bg-white rounded-lg shadow p-4" ondragover="allowDrop(event)" ondrop="drop(event)">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">In Progress</h2>
+                <div class="tasks-container space-y-3 min-h-[200px] max-h-[60vh] overflow-y-auto p-1">
+                    </div>
+            </div>
+
+            <div id="done" class="kanban-column bg-white rounded-lg shadow p-4" ondragover="allowDrop(event)" ondrop="drop(event)">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">Done</h2>
+                <div class="tasks-container space-y-3 min-h-[200px] max-h-[60vh] overflow-y-auto p-1">
+                    </div>
+            </div>
+
+        </div>
+    </div>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <script>
+        // --- DOM Elements ---
+        const newTaskInput = document.getElementById('newTaskInput');
+        const addTaskBtn = document.getElementById('addTaskBtn');
+        const kanbanBoard = document.getElementById('kanbanBoard');
+        const columns = document.querySelectorAll('.kanban-column .tasks-container');
+        const confettiCanvas = document.getElementById('confetti-canvas');
+        const myConfetti = confetti.create(confettiCanvas, {
+            resize: true,
+            useWorker: true
+        });
+
+        // --- State ---
+        let tasks = {}; // Object to hold tasks by column { todo: [], inprogress: [], done: [] }
+        let draggedTask = null; // Reference to the task element being dragged
+        let currentlyEditingTaskId = null; // Track which task is being edited
+
+        // --- Functions ---
+
+        /**
+         * Generates a unique ID for tasks.
+         * @returns {string} A unique ID string.
+         */
+        function generateId() {
+            return 'task_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        /**
+         * Creates the HTML element for a task. Handles both display and edit modes.
+         * @param {object} task - The task object { id: string, text: string }.
+         * @returns {HTMLElement} The task card element.
+         */
+        function createTaskElement(task) {
+            const div = document.createElement('div');
+            div.id = task.id;
+            div.className = 'task bg-gray-100 p-3 rounded-md shadow-sm border border-gray-200 flex justify-between items-center';
+            div.draggable = true; // Make draggable by default
+
+            // Task content area
+            const contentSpan = document.createElement('span');
+            contentSpan.className = 'task-text flex-grow mr-2'; // Takes up available space
+            contentSpan.textContent = task.text;
+
+            // Edit input area (initially hidden)
+            const editInput = document.createElement('input');
+            editInput.type = 'text';
+            editInput.className = 'task-edit-input hidden'; // Initially hidden
+            editInput.value = task.text;
+            editInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    saveTaskEdit(task.id);
+                }
+            });
+
+
+            // Button container
+            const buttonContainer = document.createElement('div');
+            buttonContainer.className = 'task-buttons flex-shrink-0'; // Prevent buttons from wrapping
+
+            // --- Standard Buttons ---
+            const editBtn = document.createElement('button');
+            editBtn.innerHTML = '✏️'; // Edit Emoji Icon
+            editBtn.className = 'text-blue-500 hover:text-blue-700 font-bold ml-1 px-1 text-sm';
+            editBtn.title = 'Edit Task';
+            editBtn.onclick = () => startEditTask(task.id);
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = '×'; // Simple delete icon
+            deleteBtn.className = 'text-red-500 hover:text-red-700 font-bold ml-1 px-1 text-lg leading-none';
+            deleteBtn.title = 'Delete Task';
+            deleteBtn.onclick = () => deleteTask(task.id);
+
+            // --- Edit Mode Buttons (initially hidden) ---
+            const saveBtn = document.createElement('button');
+            saveBtn.innerHTML = '💾'; // Save Emoji Icon
+            saveBtn.className = 'text-green-500 hover:text-green-700 font-bold ml-1 px-1 text-sm hidden';
+            saveBtn.title = 'Save Changes';
+            saveBtn.onclick = () => saveTaskEdit(task.id);
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.textContent = '❌'; // Cancel Emoji Icon
+            cancelBtn.className = 'text-gray-500 hover:text-gray-700 font-bold ml-1 px-1 text-sm hidden';
+            cancelBtn.title = 'Cancel Edit';
+            cancelBtn.onclick = () => cancelTaskEdit(task.id);
+
+
+            buttonContainer.appendChild(editBtn);
+            buttonContainer.appendChild(deleteBtn);
+            buttonContainer.appendChild(saveBtn);
+            buttonContainer.appendChild(cancelBtn);
+
+            div.appendChild(contentSpan);
+            div.appendChild(editInput); // Add input, but keep it hidden initially
+            div.appendChild(buttonContainer);
+
+
+            // Add drag event listeners only if NOT editing
+             if (currentlyEditingTaskId !== task.id) {
+                div.addEventListener('dragstart', dragStart);
+                div.addEventListener('dragend', dragEnd);
+             } else {
+                 div.draggable = false; // Disable dragging while editing
+                 // Show edit elements, hide standard ones
+                 contentSpan.classList.add('hidden');
+                 editInput.classList.remove('hidden');
+                 editBtn.classList.add('hidden');
+                 deleteBtn.classList.add('hidden');
+                 saveBtn.classList.remove('hidden');
+                 cancelBtn.classList.remove('hidden');
+                 // Set focus shortly after element is added to DOM
+                 setTimeout(() => editInput.focus(), 0);
+             }
+
+
+            return div;
+        }
+
+        /**
+         * Renders all tasks onto the board based on the current state.
+         */
+        function renderBoard() {
+            // Clear existing tasks from columns
+            columns.forEach(colContainer => colContainer.innerHTML = '');
+
+            // Render tasks for each column
+            for (const columnId in tasks) {
+                if (tasks.hasOwnProperty(columnId)) { // Ensure it's a direct property
+                    const columnElement = document.getElementById(columnId)?.querySelector('.tasks-container'); // Optional chaining for safety
+                    if (columnElement) {
+                        tasks[columnId].forEach(task => {
+                            const taskElement = createTaskElement(task);
+                            columnElement.appendChild(taskElement);
+                        });
+                    } else {
+                        console.error(`Column element not found for ID: ${columnId}`);
+                    }
+                }
+            }
+        }
+
+
+        /**
+         * Adds a new task to the "To Do" column.
+         */
+        function addTask() {
+            const taskText = newTaskInput.value.trim();
+            if (taskText === '') {
+                // Replace alert with a less intrusive message if desired
+                // For now, keeping alert for simplicity
+                alert('Please enter a task description.');
+                return;
+            }
+
+            // Ensure 'todo' array exists
+            if (!tasks.todo) {
+                tasks.todo = [];
+            }
+
+            const newTask = {
+                id: generateId(),
+                text: taskText
+            };
+
+            tasks.todo.push(newTask);
+
+            newTaskInput.value = '';
+            saveTasks();
+            renderBoard();
+        }
+
+        /**
+         * Deletes a task from the board.
+         * @param {string} taskId - The ID of the task to delete.
+         */
+        function deleteTask(taskId) {
+            // Prevent deletion while editing the same task
+            if (currentlyEditingTaskId === taskId) return;
+
+            if (!confirm('Are you sure you want to delete this task?')) {
+                return;
+            }
+
+            for (const columnId in tasks) {
+                tasks[columnId] = tasks[columnId].filter(task => task.id !== taskId);
+            }
+
+            saveTasks();
+            renderBoard();
+        }
+
+        /**
+         * Starts the editing mode for a specific task.
+         * @param {string} taskId - The ID of the task to edit.
+         */
+        function startEditTask(taskId) {
+            // If another task is being edited, cancel that first (optional, could also prevent)
+            if (currentlyEditingTaskId && currentlyEditingTaskId !== taskId) {
+                 cancelTaskEdit(currentlyEditingTaskId);
+            }
+
+            currentlyEditingTaskId = taskId;
+            renderBoard(); // Re-render the board to show the edit UI for this task
+        }
+
+        /**
+         * Saves the edited task text.
+         * @param {string} taskId - The ID of the task being saved.
+         */
+        function saveTaskEdit(taskId) {
+            const taskElement = document.getElementById(taskId);
+            if (!taskElement) return;
+
+            const inputElement = taskElement.querySelector('.task-edit-input');
+            const newText = inputElement.value.trim();
+
+            if (newText === '') {
+                alert('Task description cannot be empty.');
+                inputElement.focus(); // Keep focus on input
+                return;
+            }
+
+            // Find the task in the state and update its text
+            let taskFound = false;
+            for (const columnId in tasks) {
+                const taskIndex = tasks[columnId].findIndex(task => task.id === taskId);
+                if (taskIndex > -1) {
+                    tasks[columnId][taskIndex].text = newText;
+                    taskFound = true;
+                    break;
+                }
+            }
+
+            if (taskFound) {
+                currentlyEditingTaskId = null; // Exit edit mode
+                saveTasks();
+                renderBoard(); // Re-render to show updated text and normal buttons
+            } else {
+                console.error("Could not find task to save:", taskId);
+                // Optionally cancel edit mode anyway
+                currentlyEditingTaskId = null;
+                renderBoard();
+            }
+        }
+
+        /**
+         * Cancels the editing mode for a task.
+         * @param {string} taskId - The ID of the task whose edit is being canceled.
+         */
+        function cancelTaskEdit(taskId) {
+            currentlyEditingTaskId = null; // Just exit edit mode state
+            renderBoard(); // Re-render the board, which will display the original text
+        }
+
+
+        /**
+         * Saves the current task state to localStorage.
+         */
+        function saveTasks() {
+            try {
+                 localStorage.setItem('kanbanTasks', JSON.stringify(tasks));
+            } catch (e) {
+                 console.error("Error saving tasks to localStorage:", e);
+                 // Handle potential storage errors (e.g., quota exceeded)
+                 alert("Could not save tasks. Local storage might be full or disabled.");
+            }
+        }
+
+        /**
+         * Loads tasks from localStorage.
+         */
+        function loadTasks() {
+            const savedTasks = localStorage.getItem('kanbanTasks');
+            if (savedTasks) {
+                try {
+                    tasks = JSON.parse(savedTasks);
+                    // Basic validation: ensure structure is correct
+                    if (typeof tasks !== 'object' || tasks === null) throw new Error("Invalid data format");
+                    ['todo', 'inprogress', 'done'].forEach(col => {
+                         if (!Array.isArray(tasks[col])) {
+                             tasks[col] = []; // Initialize if missing or wrong type
+                         }
+                    });
+
+                } catch (e) {
+                     console.error("Error loading tasks from localStorage:", e);
+                     // Reset to default if loading fails
+                     tasks = { todo: [], inprogress: [], done: [] };
+                     localStorage.removeItem('kanbanTasks'); // Clear corrupted data
+                }
+            } else {
+                // Initialize with empty arrays if nothing is saved
+                tasks = {
+                    todo: [],
+                    inprogress: [],
+                    done: []
+                };
+            }
+             currentlyEditingTaskId = null; // Ensure not starting in edit mode on load
+            renderBoard(); // Render the loaded tasks
+        }
+
+        // --- Drag and Drop Event Handlers ---
+
+        /**
+         * Called when dragging starts.
+         * @param {DragEvent} event - The drag event object.
+         */
+        function dragStart(event) {
+             // Prevent dragging if any task is being edited
+            if (currentlyEditingTaskId) {
+                event.preventDefault();
+                return;
+            }
+            draggedTask = event.target; // Store the element being dragged
+            event.dataTransfer.setData('text/plain', event.target.id); // Necessary for Firefox
+            setTimeout(() => {
+                // Check if draggedTask still exists before adding class
+                if(draggedTask) draggedTask.classList.add('dragging');
+            }, 0);
+        }
+
+        /**
+         * Called when dragging ends (whether dropped successfully or not).
+         * @param {DragEvent} event - The drag event object.
+         */
+        function dragEnd(event) {
+            // Check if draggedTask exists before removing class
+            if (draggedTask) {
+                draggedTask.classList.remove('dragging');
+            }
+            draggedTask = null; // Clear the reference
+        }
+
+        /**
+         * Allows an element to be dropped onto the target column.
+         * @param {DragEvent} event - The drag event object.
+         */
+        function allowDrop(event) {
+            // Prevent dropping if any task is being edited
+            if (currentlyEditingTaskId) {
+                 return;
+            }
+            event.preventDefault(); // Necessary to allow dropping
+        }
+
+        /**
+         * Handles the drop event when a task is dropped onto a column.
+         * @param {DragEvent} event - The drag event object.
+         */
+        function drop(event) {
+            event.preventDefault();
+             // Prevent dropping if any task is being edited or if no task is being dragged
+            if (currentlyEditingTaskId || !draggedTask) return;
+
+            const targetColumnElement = event.target.closest('.kanban-column');
+            if (!targetColumnElement) return; // Ensure drop is within a column
+
+            const targetColumnId = targetColumnElement.id;
+            const taskId = draggedTask.id;
+
+            // Avoid dropping onto the same column it came from (optional)
+            // const sourceColumnId = draggedTask.closest('.kanban-column')?.id;
+            // if (sourceColumnId === targetColumnId) return;
+
+            // Find the task in the current state and move it
+            let taskToMove = null;
+            let originalSourceColumnId = null; // Store the original column ID
+
+            for (const colId in tasks) {
+                const taskIndex = tasks[colId].findIndex(task => task.id === taskId);
+                if (taskIndex > -1) {
+                    taskToMove = tasks[colId].splice(taskIndex, 1)[0]; // Remove from source array
+                    originalSourceColumnId = colId; // Record where it came from
+                    break;
+                }
+            }
+
+            if (taskToMove) {
+                 // Ensure target column array exists
+                 if (!tasks[targetColumnId]) {
+                     tasks[targetColumnId] = [];
+                 }
+                // Add to the target column's array in the state
+                tasks[targetColumnId].push(taskToMove);
+
+                // Check if dropped in "Done" column FROM a different column
+                if (targetColumnId === 'done' && originalSourceColumnId !== 'done') {
+                    triggerConfetti();
+                }
+
+                saveTasks(); // Save the new state
+                renderBoard(); // Re-render the entire board
+            } else {
+                 console.error("Could not find task to move during drop:", taskId);
+                 // Clean up dragging state even if task wasn't found in state (shouldn't happen)
+                 if (draggedTask) draggedTask.classList.remove('dragging');
+            }
+
+            draggedTask = null; // Clear reference after drop attempt
+        }
+
+        /**
+         * Triggers the confetti animation.
+         */
+        function triggerConfetti() {
+            console.log("Confetti triggered!"); // Debug log
+            myConfetti({
+                particleCount: 150, // More particles
+                spread: 90,       // Wider spread
+                origin: { y: 0.6 } // Start confetti slightly lower
+            });
+        }
+
+        // --- Initialization ---
+        addTaskBtn.addEventListener('click', addTask);
+        newTaskInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                addTask();
+            }
+        });
+
+        // Load tasks from localStorage when the page loads
+        document.addEventListener('DOMContentLoaded', loadTasks);
+
+    </script>
+
+</body>
+</html>
