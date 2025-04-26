@@ -1,68 +1,69 @@
-// netlify/functions/get-tasks.js
+// netlify/functions/add-task.js
 const { createClient } = require('@supabase/supabase-js');
 
-// Ensure environment variables are loaded (Netlify does this automatically)
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_KEY; // Use service key for backend
-
-// Check if environment variables are set
-if (!supabaseUrl || !supabaseKey) {
-    console.error('Supabase URL or Service Key is missing.');
-    // Return an error response immediately if config is missing
-    // Use return inside handler, or handle differently outside if needed
-    // For simplicity in handler structure, we check inside:
-    // exports.handler = async ... { if (!supabaseUrl || !supabaseKey) return { ... } }
-    // But having it here ensures client isn't created with undefined values if check fails early.
-    // A better pattern might be to initialize supabase inside the handler after checking env vars.
-}
-
-// Initialize Supabase client (might be null if vars are missing)
-const supabase = (supabaseUrl && supabaseKey) ? createClient(supabaseUrl, supabaseKey) : null;
-
 exports.handler = async function(event, context) {
-    // Check for missing Supabase client due to missing env vars
-    if (!supabase) {
-         console.error('Supabase client could not be initialized. Check environment variables.');
-         return {
-             statusCode: 500,
-             body: JSON.stringify({ error: 'Server configuration error: Supabase credentials missing or invalid.' }),
-         };
+    // --- Check Environment Variables and Initialize Client INSIDE Handler ---
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+        console.error('Supabase URL or Service Key environment variable is missing.');
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: 'Server configuration error: Missing Supabase credentials.' })
+        };
     }
 
-    // Only allow GET requests for fetching tasks
-    if (event.httpMethod !== 'GET') {
-        return {
-            statusCode: 405, // Method Not Allowed
-            body: JSON.stringify({ error: 'Method Not Allowed' }),
-            headers: { 'Allow': 'GET' },
-        };
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    // --- End Check and Initialization ---
+
+    // Only allow POST requests
+    if (event.httpMethod !== 'POST') {
+        return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }), headers: { 'Allow': 'POST' } };
     }
 
     try {
-        console.log("Fetching tasks from Supabase...");
-        const { data, error } = await supabase
-            .from('tasks') // Make sure 'tasks' matches your table name
-            .select('*'); // Fetch all columns
+        const taskData = JSON.parse(event.body);
+        console.log("Received task data:", taskData);
 
-        if (error) {
-            console.error('Supabase fetch error:', error);
-            return {
-                statusCode: 500,
-                body: JSON.stringify({ error: 'Failed to fetch tasks', details: error.message }),
-            };
+        // Validate required fields
+        if (!taskData || !taskData.text || !taskData.name || !taskData.priority || !taskData.status) {
+             console.error("Validation Error: Missing required task fields.");
+             return { statusCode: 400, body: JSON.stringify({ error: 'Missing required task fields (text, name, priority, status).' }) };
         }
 
-        console.log(`Successfully fetched ${data.length} tasks.`);
+        const newTask = {
+            text: taskData.text,
+            name: taskData.name,
+            priority: taskData.priority,
+            notes: taskData.notes || '',
+            status: taskData.status,
+        };
+
+        console.log("Inserting new task:", newTask);
+        // Using .select().single() again, assuming RLS/connection is okay now that get-tasks works
+        const { data, error } = await supabase
+            .from('tasks')
+            .insert([newTask])
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Supabase insert error:', error);
+            return { statusCode: 500, body: JSON.stringify({ error: 'Failed to add task', details: error.message }) };
+        }
+
+        console.log("Task added successfully:", data);
         return {
-            statusCode: 200,
-            body: JSON.stringify(data), // Send the array of tasks back
+            statusCode: 201, // 201 Created
+            body: JSON.stringify(data), // Send the newly created task back
             headers: { 'Content-Type': 'application/json' },
         };
     } catch (err) {
-        console.error('Function execution error:', err);
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ error: 'Internal Server Error', details: err.message }),
-        };
+         console.error('Function execution error:', err);
+         if (err instanceof SyntaxError) {
+             return { statusCode: 400, body: JSON.stringify({ error: 'Invalid JSON format in request body.' }) };
+         }
+        return { statusCode: 500, body: JSON.stringify({ error: 'Internal Server Error', details: err.message }) };
     }
 };
