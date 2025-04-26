@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs');
 exports.handler = async function(event, context) {
     // --- Check Environment Variables and Initialize Client INSIDE Handler ---
     const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_KEY; // Use service key for backend operations
+    const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
         console.error('CHECK-PIN: Supabase URL or Service Key environment variable is missing.');
@@ -30,34 +30,32 @@ exports.handler = async function(event, context) {
         }
 
         console.log("CHECK-PIN: Fetching stored pin hash...");
-        // Fetch the hash from the settings table (assuming only one row with id=1)
         const { data, error: fetchError } = await supabase
-            .from('settings') // Your settings table name
+            .from('settings')
             .select('pin_hash')
-            .eq('id', 1) // Assuming your settings row has id 1
+            .eq('id', 1)
             .single();
 
         if (fetchError || !data || !data.pin_hash) {
             console.error('CHECK-PIN: Error fetching pin hash or hash not found:', fetchError);
-            // If the settings row/hash doesn't exist, treat pin as invalid
             return {
-                 statusCode: 200, // Still a valid request, just invalid pin
+                 statusCode: 200, // Treat as invalid pin, not server error
                  body: JSON.stringify({ valid: false, error: 'Security settings not found or invalid.' })
             };
-            // Alternatively, return 500 if this is considered a server error:
-            // return { statusCode: 500, body: JSON.stringify({ error: 'Could not retrieve security settings.' }) };
         }
 
         const storedHash = data.pin_hash;
-        console.log("CHECK-PIN: Comparing entered pin with stored hash...");
+        // *** ADDED LOGGING HERE ***
+        console.log(`CHECK-PIN: Hash fetched from DB: ${storedHash}`);
+        // **************************
 
-        // Compare the entered pin with the stored hash
+        console.log("CHECK-PIN: Comparing entered pin with stored hash...");
         const isValid = await bcrypt.compare(enteredPin, storedHash);
 
         console.log(`CHECK-PIN: Pin validation result: ${isValid}`);
         return {
             statusCode: 200,
-            body: JSON.stringify({ valid: isValid }), // Return true or false
+            body: JSON.stringify({ valid: isValid }),
             headers: { 'Content-Type': 'application/json' },
         };
 
