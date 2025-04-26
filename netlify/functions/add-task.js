@@ -1,17 +1,22 @@
 // netlify/functions/add-task.js
 const { createClient } = require('@supabase/supabase-js');
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
-
-if (!supabaseUrl || !supabaseKey) {
-    console.error('Supabase URL or Service Key is missing.');
-    return { statusCode: 500, body: JSON.stringify({ error: 'Server configuration error.' }) };
-}
-
-const supabase = createClient(supabaseUrl, supabaseKey);
-
 exports.handler = async function(event, context) {
+    // --- Check Environment Variables and Initialize Client INSIDE Handler ---
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+        console.error('Supabase URL or Service Key environment variable is missing.');
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: 'Server configuration error: Missing Supabase credentials.' })
+        };
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    // --- End Check and Initialization ---
+
     // Only allow POST requests
     if (event.httpMethod !== 'POST') {
         return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }), headers: { 'Allow': 'POST' } };
@@ -21,28 +26,27 @@ exports.handler = async function(event, context) {
         const taskData = JSON.parse(event.body);
         console.log("Received task data:", taskData);
 
-        // Validate required fields (add more checks as needed)
+        // Validate required fields
         if (!taskData || !taskData.text || !taskData.name || !taskData.priority || !taskData.status) {
              console.error("Validation Error: Missing required task fields.");
              return { statusCode: 400, body: JSON.stringify({ error: 'Missing required task fields (text, name, priority, status).' }) };
         }
 
-        // Prepare data for Supabase (match column names)
         const newTask = {
             text: taskData.text,
             name: taskData.name,
             priority: taskData.priority,
-            notes: taskData.notes || '', // Handle optional notes
+            notes: taskData.notes || '',
             status: taskData.status,
-            // Supabase handles 'id' and 'created_at' automatically if configured
         };
 
         console.log("Inserting new task:", newTask);
+        // Using .select().single() again, assuming RLS/connection is okay now that get-tasks works
         const { data, error } = await supabase
-            .from('tasks') // Your table name
+            .from('tasks')
             .insert([newTask])
-            .select() // Select the newly inserted row to return it
-            .single(); // Expecting only one row back
+            .select()
+            .single();
 
         if (error) {
             console.error('Supabase insert error:', error);
@@ -57,7 +61,6 @@ exports.handler = async function(event, context) {
         };
     } catch (err) {
          console.error('Function execution error:', err);
-         // Handle JSON parsing errors specifically
          if (err instanceof SyntaxError) {
              return { statusCode: 400, body: JSON.stringify({ error: 'Invalid JSON format in request body.' }) };
          }

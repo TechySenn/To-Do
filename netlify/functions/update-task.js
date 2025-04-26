@@ -1,17 +1,22 @@
 // netlify/functions/update-task.js
 const { createClient } = require('@supabase/supabase-js');
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
-
-if (!supabaseUrl || !supabaseKey) {
-    console.error('Supabase URL or Service Key is missing.');
-    return { statusCode: 500, body: JSON.stringify({ error: 'Server configuration error.' }) };
-}
-
-const supabase = createClient(supabaseUrl, supabaseKey);
-
 exports.handler = async function(event, context) {
+    // --- Check Environment Variables and Initialize Client INSIDE Handler ---
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+        console.error('Supabase URL or Service Key environment variable is missing.');
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: 'Server configuration error: Missing Supabase credentials.' })
+        };
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    // --- End Check and Initialization ---
+
     // Only allow POST requests (or PUT/PATCH if preferred)
     if (event.httpMethod !== 'POST') {
         return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }), headers: { 'Allow': 'POST' } };
@@ -26,9 +31,8 @@ exports.handler = async function(event, context) {
             return { statusCode: 400, body: JSON.stringify({ error: 'Missing task ID or updates data.' }) };
         }
 
-        // Optional: Validate the fields being updated if necessary
-        // e.g., ensure status is one of 'todo', 'inprogress', 'done'
-        // e.g., ensure priority is one of the allowed values
+        // Optional: Add more specific validation for 'updates' content here
+        // For example, check if 'status' is one of the allowed values if present
 
         console.log(`Updating task ${id} with:`, updates);
         const { data, error } = await supabase
@@ -40,18 +44,19 @@ exports.handler = async function(event, context) {
 
         if (error) {
             console.error('Supabase update error:', error);
-            // Handle specific errors like task not found (e.g., error.code === 'PGRST116')
              if (error.code === 'PGRST116') { // PostgREST code for "Resource Not Found"
                  return { statusCode: 404, body: JSON.stringify({ error: 'Task not found', id: id }) };
              }
             return { statusCode: 500, body: JSON.stringify({ error: 'Failed to update task', details: error.message }) };
         }
 
+        // Supabase returns the updated data in the 'data' variable if .select() is used
         if (!data) {
-             console.warn(`Update successful but no data returned for task ${id}. Might indicate task was already deleted.`);
-             return { statusCode: 404, body: JSON.stringify({ error: 'Task not found after update attempt', id: id }) };
+             // This case might occur if RLS prevents seeing the updated row even after successful update
+             console.warn(`Update might have succeeded but no data returned for task ${id}. Check RLS.`);
+             // Returning 200 but with a warning might be better than 404 if the update likely worked
+             return { statusCode: 200, body: JSON.stringify({ message: 'Update successful but no data returned', id: id }) };
         }
-
 
         console.log("Task updated successfully:", data);
         return {

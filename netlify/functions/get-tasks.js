@@ -9,15 +9,26 @@ const supabaseKey = process.env.SUPABASE_SERVICE_KEY; // Use service key for bac
 if (!supabaseUrl || !supabaseKey) {
     console.error('Supabase URL or Service Key is missing.');
     // Return an error response immediately if config is missing
-    return {
-        statusCode: 500,
-        body: JSON.stringify({ error: 'Server configuration error: Supabase credentials missing.' }),
-    };
+    // Use return inside handler, or handle differently outside if needed
+    // For simplicity in handler structure, we check inside:
+    // exports.handler = async ... { if (!supabaseUrl || !supabaseKey) return { ... } }
+    // But having it here ensures client isn't created with undefined values if check fails early.
+    // A better pattern might be to initialize supabase inside the handler after checking env vars.
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+// Initialize Supabase client (might be null if vars are missing)
+const supabase = (supabaseUrl && supabaseKey) ? createClient(supabaseUrl, supabaseKey) : null;
 
 exports.handler = async function(event, context) {
+    // Check for missing Supabase client due to missing env vars
+    if (!supabase) {
+         console.error('Supabase client could not be initialized. Check environment variables.');
+         return {
+             statusCode: 500,
+             body: JSON.stringify({ error: 'Server configuration error: Supabase credentials missing or invalid.' }),
+         };
+    }
+
     // Only allow GET requests for fetching tasks
     if (event.httpMethod !== 'GET') {
         return {
