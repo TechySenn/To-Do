@@ -69,12 +69,21 @@
          #mainHeader {
              position: relative;
              padding-bottom: 1rem;
+             display: flex; /* Use flexbox for alignment */
+             align-items: flex-start; /* Align items to the top */
+             justify-content: center; /* Center title by default */
          }
          #taskSummaryContainerBoard {
-             position: absolute;
-             top: 0;
-             left: 0;
+             /* Removed absolute positioning */
+             /* Positioned by flexbox */
+             margin-right: auto; /* Push title to center/right */
          }
+         #mainTitle {
+             /* Removed text-center as flexbox handles centering */
+             flex-grow: 1; /* Allow title to take space */
+             text-align: center; /* Ensure title text itself is centered */
+         }
+
 
     </style>
 </head>
@@ -85,7 +94,8 @@
              <div id="taskSummaryContainerBoard" class="hidden">
                  <div id="taskSummaryBoard" class="flex items-center space-x-2"></div>
              </div>
-             <h1 class="text-3xl font-bold text-center text-gray-800">Jay's To Do List</h1>
+             <h1 id="mainTitle" class="text-3xl font-bold text-gray-800">Jay's To Do List</h1>
+             <button id="changePinBtn" class="action-btn text-sm text-blue-600 hover:text-blue-800 underline ml-auto hidden">Change Pin</button>
         </div>
         <div class="text-center mb-6 space-x-4">
             <button id="showInputPageBtn" class="nav-button bg-blue-500 hover:bg-blue-600 text-white">Add New Task</button>
@@ -142,13 +152,12 @@
 
     <script>
         // --- Constants ---
-        const REQUIRED_PIN = "4529";
+        // const REQUIRED_PIN = "4529"; // Removed - Pin check handled by backend
         const COOLDOWN_SECONDS = 5;
         const MAX_TODO_TASKS = 50;
         const PRIORITIES = ["New", "High", "Medium", "Low"];
         const DEFAULT_PRIORITY = "New";
         const PRIORITY_VALUES = { "New": 4, "High": 3, "Medium": 2, "Low": 1 };
-        // Netlify Function base path
         const FUNCTION_BASE_PATH = '/.netlify/functions/';
 
         // --- DOM Elements ---
@@ -167,9 +176,10 @@
         const boardPage = document.getElementById('boardPage');
         const showInputPageBtn = document.getElementById('showInputPageBtn');
         const showBoardPageBtn = document.getElementById('showBoardPageBtn');
+        const changePinBtn = document.getElementById('changePinBtn'); // Change Pin button
 
         // --- State ---
-        let tasks = { todo: [], inprogress: [], done: [] }; // Initialize state
+        let tasks = { todo: [], inprogress: [], done: [] };
         let draggedTask = null;
         let currentlyEditingTaskId = null;
         let cooldownTimer = null;
@@ -177,39 +187,28 @@
 
         // --- Generic Fetch Helper ---
         async function apiCall(endpoint, method = 'GET', body = null) {
-            const options = {
-                method,
-                headers: {}
-            };
+            const options = { method, headers: {} };
             if (body) {
                 options.headers['Content-Type'] = 'application/json';
                 options.body = JSON.stringify(body);
             }
-
             try {
                 const response = await fetch(`${FUNCTION_BASE_PATH}${endpoint}`, options);
+                const isJson = response.headers.get('content-type')?.includes('application/json');
+                const data = isJson ? await response.json() : null; // Parse JSON only if header indicates it
+
                 if (!response.ok) {
-                    let errorMsg = `HTTP error! status: ${response.status}`;
-                    try {
-                        const errorData = await response.json();
-                        errorMsg = errorData.error || errorData.message || errorMsg;
-                    } catch (e) { /* Ignore if response is not JSON */ }
-                    throw new Error(errorMsg);
+                    const error = (data && data.error) || `HTTP error! status: ${response.status}`;
+                    console.error(`API Error (${endpoint}):`, error, data?.details);
+                    throw new Error(error); // Throw error to be caught by calling function
                 }
-                // Handle cases where response might be empty (e.g., DELETE)
-                const contentType = response.headers.get("content-type");
-                if (contentType && contentType.indexOf("application/json") !== -1) {
-                    return await response.json();
-                } else {
-                    return null; // Or handle text response if needed
-                }
+                return data; // Return parsed data or null
             } catch (error) {
-                console.error(`API call to ${endpoint} failed:`, error);
+                console.error(`API Call Failed (${endpoint}):`, error);
                 alert(`Operation failed: ${error.message}. Please check console or try again.`);
-                throw error; // Re-throw to be caught by calling function
+                throw error; // Re-throw
             }
         }
-
 
         // --- Functions ---
 
@@ -251,7 +250,8 @@
                 boardPage.classList.add('hidden');
                 taskSummaryBoardContainer.classList.add('hidden');
                 taskSummaryInputContainer.classList.remove('hidden');
-                updateTaskSummary(); // Update summary when switching
+                changePinBtn.classList.add('hidden'); // Hide change pin btn
+                updateTaskSummary();
                 showInputPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500');
                 showInputPageBtn.classList.replace('hover:bg-indigo-600', 'hover:bg-blue-600');
                 showBoardPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500');
@@ -261,7 +261,8 @@
                 boardPage.classList.remove('hidden');
                 taskSummaryInputContainer.classList.add('hidden');
                 taskSummaryBoardContainer.classList.remove('hidden');
-                loadTasks(); // Reload tasks from backend when switching to board
+                changePinBtn.classList.remove('hidden'); // Show change pin btn
+                loadTasks(); // Reload tasks when showing board
                 showInputPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500');
                 showInputPageBtn.classList.replace('hover:bg-blue-600', 'hover:bg-indigo-600');
                 showBoardPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500');
@@ -269,34 +270,57 @@
             }
         }
 
-        function validatePin() {
-            const enteredPin = prompt("Please enter the pin code to view the board:");
-            if (enteredPin === null) return false;
-            if (enteredPin === REQUIRED_PIN) return true;
-            alert("Incorrect pin code.");
-            return false;
+        // Removed validatePin function - check happens via backend
+
+        /**
+         * Handles changing the pin code via backend function.
+         */
+        async function changePinCode() {
+            const currentPin = prompt("Enter the CURRENT pin code:");
+            if (currentPin === null) return; // User cancelled
+
+            const newPin1 = prompt("Enter the NEW pin code:");
+            if (newPin1 === null) return;
+             if (!newPin1 || newPin1.trim().length === 0) {
+                 alert("New pin cannot be empty."); return;
+            }
+
+            const newPin2 = prompt("Confirm the NEW pin code:");
+            if (newPin2 === null) return;
+
+            if (newPin1 !== newPin2) {
+                alert("New pin codes do not match. Pin not changed.");
+                return;
+            }
+
+            try {
+                // Call the backend function to update the pin
+                 const result = await apiCall('update-pin', 'POST', {
+                     currentPin: currentPin,
+                     newPin: newPin1
+                 });
+                 alert(result.message || "Pin update processed."); // Show success message from backend
+            } catch (error) {
+                 // Error already alerted by apiCall helper
+                 console.error("Failed to update pin:", error);
+            }
         }
 
-        function generateId() { // Keep for potential client-side fallback or unique key generation if needed
+
+        function generateId() {
             return 'task_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         }
 
         async function updateTaskPriority(taskId, newPriority) {
-            try {
-                await apiCall('update-task', 'POST', { id: taskId, updates: { priority: newPriority } });
-                // Find task locally and update for immediate UI change before re-render
-                for (const colId in tasks) {
-                    const task = tasks[colId].find(t => t.id === taskId);
-                    if (task) {
-                        task.priority = newPriority;
-                        break;
-                    }
-                }
-                renderBoard(); // Re-render to apply sorting
-            } catch (error) {
-                // Error already alerted by apiCall
-                // Optionally revert local state change here if needed
-            }
+             try {
+                 await apiCall('update-task', 'POST', { id: taskId, updates: { priority: newPriority } });
+                 // Find task locally and update for immediate UI change before re-render
+                 for (const colId in tasks) {
+                     const task = tasks[colId].find(t => t.id === taskId);
+                     if (task) { task.priority = newPriority; break; }
+                 }
+                 renderBoard(); // Re-render to apply sorting
+             } catch (error) { /* Error handled by apiCall */ }
         }
 
         async function editTaskNotes(taskId) {
@@ -312,18 +336,14 @@
                 }
             }
             if (!taskFound) { console.error("Could not find task to edit notes:", taskId); return; }
-
             const newNotes = prompt("Enter/Edit notes for this task:", currentNotes);
-
             if (newNotes !== null) {
                 const trimmedNotes = newNotes.trim();
                 try {
                     await apiCall('update-task', 'POST', { id: taskId, updates: { notes: trimmedNotes } });
                     taskRef.notes = trimmedNotes; // Update local state on success
                     renderBoard(); // Re-render to update hover display
-                } catch (error) {
-                    // Error handled by apiCall
-                }
+                } catch (error) { /* Error handled by apiCall */ }
             }
         }
 
@@ -427,10 +447,10 @@
         }
 
         function renderBoard() {
-             if (boardPage.classList.contains('hidden')) return; // Don't render if board isn't visible
+             if (boardPage.classList.contains('hidden')) return;
 
             const taskContainers = document.querySelectorAll('.tasks-container');
-            taskContainers.forEach(colContainer => colContainer.innerHTML = ''); // Clear columns
+            taskContainers.forEach(colContainer => colContainer.innerHTML = '');
 
             for (const columnId in tasks) {
                 if (tasks.hasOwnProperty(columnId)) {
@@ -443,7 +463,6 @@
                             return (a.createdAt || 0) - (b.createdAt || 0);
                         });
                         sortedTasks.forEach(task => {
-                            // Ensure defaults (already done in loadTasks, but good safety)
                             task.name = task.name || '';
                             task.createdAt = task.createdAt || 0;
                             task.priority = task.priority || DEFAULT_PRIORITY;
@@ -460,51 +479,37 @@
 
         async function addTask() {
             if (addTaskBtn.disabled) return;
-
             if (tasks.todo && tasks.todo.length >= MAX_TODO_TASKS) {
                 alert(`Cannot add more tasks. The 'To Do' column limit (${MAX_TODO_TASKS}) has been reached.`);
                 return;
             }
-
             const taskText = newTaskInput.value.trim();
             const taskName = newTaskNameInput.value.trim();
             if (taskText === '' || taskName === '') {
                 alert('Please enter both task description and your name.');
-                (taskText === '' ? newTaskInput : newTaskNameInput).focus();
-                return;
+                (taskText === '' ? newTaskInput : newTaskNameInput).focus(); return;
             }
-
             const newTaskData = {
                 text: taskText, name: taskName,
                 priority: DEFAULT_PRIORITY, notes: '', status: 'todo'
             };
-
             addTaskBtn.disabled = true;
             addTaskMessage.textContent = 'Adding task...';
-            addTaskMessage.classList.remove('text-green-600', 'text-gray-500', 'text-red-500'); // Clear colors
-
+            addTaskMessage.classList.remove('text-green-600', 'text-gray-500', 'text-red-500');
             try {
                 const addedTask = await apiCall('add-task', 'POST', newTaskData);
-
-                // --- Update local state with data returned from backend ---
                 if (addedTask && addedTask.id) {
                      if (!tasks.todo) tasks.todo = [];
-                     // Convert DB timestamp before adding to local state
                      addedTask.createdAt = new Date(addedTask.created_at).getTime();
                      addedTask.priority = addedTask.priority || DEFAULT_PRIORITY;
                      addedTask.notes = addedTask.notes || '';
                      tasks.todo.push(addedTask);
                      updateTaskSummary();
-                     // No need to render board here unless switching view
+                     if (!boardPage.classList.contains('hidden')) renderBoard();
                 } else {
-                     console.warn("Add task response did not contain expected data. Fetching all tasks to sync.");
-                     await loadTasks(); // Fallback: reload all tasks if response is weird
+                     await loadTasks(); // Fallback
                 }
-                 // --- End Update local state ---
-
-                // Show success message & start cooldown
-                clearTimeout(successMessageTimeout);
-                clearInterval(cooldownTimer);
+                clearTimeout(successMessageTimeout); clearInterval(cooldownTimer);
                 addTaskMessage.textContent = `Task added: "${addedTask.text || taskText}"`;
                 addTaskMessage.classList.add('text-green-600');
                 let secondsRemaining = COOLDOWN_SECONDS;
@@ -524,35 +529,27 @@
                          }, 1000);
                      }
                 }, 1500);
-
             } catch (error) {
-                // Error already alerted by apiCall
-                addTaskBtn.disabled = false; // Re-enable on error
+                addTaskBtn.disabled = false;
                 addTaskMessage.textContent = 'Error adding task.';
                 addTaskMessage.classList.add('text-red-500');
             } finally {
-                 newTaskInput.value = '';
-                 newTaskNameInput.value = '';
+                 newTaskInput.value = ''; newTaskNameInput.value = '';
                  newTaskInput.focus();
             }
         }
 
-
         async function deleteTask(taskId) {
             if (currentlyEditingTaskId === taskId) return;
             if (!confirm('Are you sure you want to delete this task?')) return;
-
             try {
                 await apiCall('delete-task', 'POST', { id: taskId });
-                // Remove from local state on success
                 for (const columnId in tasks) {
                     tasks[columnId] = tasks[columnId].filter(task => task.id !== taskId);
                 }
                 renderBoard();
                 updateTaskSummary();
-            } catch (error) {
-                 // Error handled by apiCall
-            }
+            } catch (error) { /* Handled by apiCall */ }
         }
 
         function startEditTask(taskId) {
@@ -569,24 +566,16 @@
             const inputElement = taskElement.querySelector('.task-edit-input');
             const newText = inputElement.value.trim();
             if (newText === '') { alert('Task description cannot be empty.'); inputElement.focus(); return; }
-
             try {
                  await apiCall('update-task', 'POST', { id: taskId, updates: { text: newText } });
-                 // Update local state on success
                  for (const columnId in tasks) {
                     const task = tasks[columnId].find(t => t.id === taskId);
-                    if (task) {
-                        task.text = newText;
-                        break;
-                    }
+                    if (task) { task.text = newText; break; }
                  }
                  currentlyEditingTaskId = null;
-                 renderBoard(); // Re-render to show changes and hide input
-            } catch (error) {
-                 // Error handled by apiCall
-                 // Optionally keep edit mode open on error
-                 currentlyEditingTaskId = null; // Exit edit mode even on error for now
                  renderBoard();
+            } catch (error) {
+                 currentlyEditingTaskId = null; renderBoard(); // Exit edit mode even on error
             }
         }
 
@@ -595,54 +584,31 @@
             renderBoard();
         }
 
-        // Removed saveTasks function as it used localStorage
+        // Removed saveTasks (localStorage)
 
         async function loadTasks() {
             console.log("Loading tasks...");
             try {
-                const fetchedTasks = await apiCall('get-tasks'); // Fetch from backend
-
-                // Reset local tasks object
-                tasks = { todo: [], inprogress: [], done: [] };
-
-                // Populate tasks object based on fetched status
+                const fetchedTasks = await apiCall('get-tasks');
+                tasks = { todo: [], inprogress: [], done: [] }; // Reset
                 fetchedTasks.forEach(task => {
                     task.priority = task.priority || DEFAULT_PRIORITY;
                     task.notes = task.notes || '';
-                    // Convert DB timestamp string to JS timestamp number
                     task.createdAt = task.created_at ? new Date(task.created_at).getTime() : 0;
-
-                    const status = task.status || 'todo'; // Default to 'todo' if status is missing
-                    if (tasks[status]) {
-                         tasks[status].push(task);
-                    } else {
-                         console.warn(`Unknown task status "${status}" for task ID ${task.id}. Placing in 'todo'.`);
-                         tasks.todo.push(task); // Fallback to todo
-                    }
+                    const status = task.status || 'todo';
+                    if (tasks[status]) { tasks[status].push(task); }
+                    else { tasks.todo.push(task); }
                 });
-
                 console.log("Tasks loaded and processed:", tasks);
-
             } catch (error) {
                 console.error("Error loading tasks from backend:", error);
-                // Keep tasks empty on error
-                tasks = { todo: [], inprogress: [], done: [] };
+                tasks = { todo: [], inprogress: [], done: [] }; // Reset on error
             } finally {
                  currentlyEditingTaskId = null;
-                 // Decide initial page (e.g., input page)
-                 // Ensure the correct summary container is visible based on the initial page
-                 if (inputPage.classList.contains('hidden')) {
-                     taskSummaryInputContainer.classList.add('hidden');
-                     taskSummaryBoardContainer.classList.remove('hidden');
-                 } else {
-                      taskSummaryInputContainer.classList.remove('hidden');
-                      taskSummaryBoardContainer.classList.add('hidden');
-                 }
                  updateTaskSummary();
-                 renderBoard(); // Render board with fetched/processed tasks
+                 renderBoard(); // Render board with fetched/processed/empty tasks
             }
         }
-
 
         // --- Drag and Drop Event Handlers ---
         function dragStart(event) {
@@ -672,73 +638,48 @@
             event.preventDefault();
             if (!draggedTask) return;
             if (event.target.closest('.task')) return;
-
             const targetColumnElement = event.currentTarget;
             const targetColumnId = targetColumnElement.id;
             handleDropLogic(targetColumnId, draggedTask);
         }
 
-        async function handleDropLogic(targetColumnId, taskElement) { // Make async
+        async function handleDropLogic(targetColumnId, taskElement) {
              const taskId = taskElement.id;
              const sourceColumnId = taskElement.closest('.kanban-column')?.id;
              if (!sourceColumnId || sourceColumnId === targetColumnId) return;
-
-             // Find the task data locally first to display optimistically
              let taskToMove = null;
              let originalIndex = -1;
              let originalColumnId = '';
-
              for (const colId in tasks) {
                  originalIndex = tasks[colId].findIndex(task => task.id === taskId);
                  if (originalIndex > -1) {
                      originalColumnId = colId;
-                     // Don't remove yet, just get reference
-                     taskToMove = tasks[colId][originalIndex];
-                     break;
+                     taskToMove = tasks[colId][originalIndex]; break;
                  }
              }
-
-             if (!taskToMove) {
-                  console.error("Could not find task in local state during drop:", taskId);
-                  return; // Cannot proceed without task data
-             }
-
-             // --- Optimistic UI Update (Optional but improves perceived performance) ---
-             // 1. Remove from old column locally
+             if (!taskToMove) { console.error("Could not find task in local state during drop:", taskId); return; }
+             // Optimistic UI Update
              tasks[originalColumnId].splice(originalIndex, 1);
-             // 2. Add to new column locally
              if (!tasks[targetColumnId]) tasks[targetColumnId] = [];
              tasks[targetColumnId].push(taskToMove);
-             // 3. Update status locally before sending to backend
              taskToMove.status = targetColumnId;
-             renderBoard(); // Re-render immediately
-             updateTaskSummary();
-             // --- End Optimistic Update ---
-
+             renderBoard(); updateTaskSummary();
+             // Backend Update
              try {
-                 // Update the status in the backend
                  await apiCall('update-task', 'POST', { id: taskId, updates: { status: targetColumnId } });
-                 console.log(`Task ${taskId} status updated to ${targetColumnId} in backend.`);
-                 // Trigger confetti only after successful backend update
                  if (targetColumnId === 'done' && sourceColumnId !== 'done') triggerConfetti();
-
              } catch (error) {
                   console.error(`Failed to update task ${taskId} status in backend:`, error);
-                  // --- Rollback UI on error ---
                   alert("Failed to move task. Reverting.");
-                  // 1. Remove from new column locally
+                  // Rollback UI
                   const newIndex = tasks[targetColumnId].findIndex(task => task.id === taskId);
                   if (newIndex > -1) tasks[targetColumnId].splice(newIndex, 1);
-                  // 2. Add back to original column locally (at original position if possible)
-                  taskToMove.status = originalColumnId; // Revert status
+                  taskToMove.status = originalColumnId;
                   if (!tasks[originalColumnId]) tasks[originalColumnId] = [];
-                  tasks[originalColumnId].splice(originalIndex, 0, taskToMove); // Insert back
-                  renderBoard(); // Re-render to show rollback
-                  updateTaskSummary();
-                  // --- End Rollback ---
+                  tasks[originalColumnId].splice(originalIndex, 0, taskToMove);
+                  renderBoard(); updateTaskSummary();
              }
         }
-
 
         function triggerConfetti() {
             console.log("Confetti triggered!");
@@ -750,16 +691,30 @@
         newTaskInput.addEventListener('keypress', (event) => { if (event.key === 'Enter') addTask(); });
         newTaskNameInput.addEventListener('keypress', (event) => { if (event.key === 'Enter') addTask(); });
         showInputPageBtn.addEventListener('click', () => showPage('inputPage'));
-        showBoardPageBtn.addEventListener('click', () => {
-            if (validatePin()) {
-                showPage('boardPage');
+        showBoardPageBtn.addEventListener('click', async () => { // Make async
+            // Check pin via backend
+            const pinInput = prompt("Please enter the pin code to view the board:");
+            if (pinInput === null) return; // User cancelled
+
+            try {
+                 const result = await apiCall('check-pin', 'POST', { enteredPin: pinInput });
+                 if (result && result.valid) {
+                     showPage('boardPage'); // Show board if pin is valid
+                 } else {
+                     alert("Incorrect pin code.");
+                 }
+            } catch (error) {
+                 // Error already alerted by apiCall
+                 console.error("Pin check failed:", error);
             }
         });
+        // Add listener for the change pin button
+        changePinBtn.addEventListener('click', changePinCode);
 
         document.addEventListener('DOMContentLoaded', () => {
              showPage('inputPage'); // Start on input page
-             // Load initial tasks *after* setting the initial page
-             loadTasks();
+             // Initial load doesn't require tasks immediately if board is hidden
+             // loadTasks(); // Load tasks only when board page is shown
         });
 
     </script>
