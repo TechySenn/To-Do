@@ -69,21 +69,24 @@
          #mainHeader {
              position: relative;
              padding-bottom: 1rem;
-             display: flex; /* Use flexbox for alignment */
-             align-items: flex-start; /* Align items to the top */
-             justify-content: center; /* Center title by default */
+             display: flex;
+             align-items: flex-start;
+             justify-content: center;
          }
          #taskSummaryContainerBoard {
-             /* Removed absolute positioning */
-             /* Positioned by flexbox */
-             margin-right: auto; /* Push title to center/right */
+             position: absolute;
+             top: 0;
+             left: 0;
          }
          #mainTitle {
-             /* Removed text-center as flexbox handles centering */
-             flex-grow: 1; /* Allow title to take space */
-             text-align: center; /* Ensure title text itself is centered */
+             flex-grow: 1;
+             text-align: center;
          }
-
+         #changePinBtn { /* Position change pin button */
+             position: absolute;
+             top: 0;
+             right: 0;
+         }
 
     </style>
 </head>
@@ -95,7 +98,7 @@
                  <div id="taskSummaryBoard" class="flex items-center space-x-2"></div>
              </div>
              <h1 id="mainTitle" class="text-3xl font-bold text-gray-800">Jay's To Do List</h1>
-             <button id="changePinBtn" class="action-btn text-sm text-blue-600 hover:text-blue-800 underline ml-auto hidden">Change Pin</button>
+             <button id="changePinBtn" class="action-btn text-sm text-blue-600 hover:text-blue-800 underline hidden">Change Pin</button>
         </div>
         <div class="text-center mb-6 space-x-4">
             <button id="showInputPageBtn" class="nav-button bg-blue-500 hover:bg-blue-600 text-white">Add New Task</button>
@@ -152,7 +155,7 @@
 
     <script>
         // --- Constants ---
-        // const REQUIRED_PIN = "4529"; // Removed - Pin check handled by backend
+        // const REQUIRED_PIN = "4529"; // Pin check handled by backend
         const COOLDOWN_SECONDS = 5;
         const MAX_TODO_TASKS = 50;
         const PRIORITIES = ["New", "High", "Medium", "Low"];
@@ -176,7 +179,7 @@
         const boardPage = document.getElementById('boardPage');
         const showInputPageBtn = document.getElementById('showInputPageBtn');
         const showBoardPageBtn = document.getElementById('showBoardPageBtn');
-        const changePinBtn = document.getElementById('changePinBtn'); // Change Pin button
+        const changePinBtn = document.getElementById('changePinBtn');
 
         // --- State ---
         let tasks = { todo: [], inprogress: [], done: [] };
@@ -195,18 +198,17 @@
             try {
                 const response = await fetch(`${FUNCTION_BASE_PATH}${endpoint}`, options);
                 const isJson = response.headers.get('content-type')?.includes('application/json');
-                const data = isJson ? await response.json() : null; // Parse JSON only if header indicates it
-
+                const data = isJson ? await response.json() : null;
                 if (!response.ok) {
                     const error = (data && data.error) || `HTTP error! status: ${response.status}`;
                     console.error(`API Error (${endpoint}):`, error, data?.details);
-                    throw new Error(error); // Throw error to be caught by calling function
+                    throw new Error(error);
                 }
-                return data; // Return parsed data or null
+                return data;
             } catch (error) {
                 console.error(`API Call Failed (${endpoint}):`, error);
                 alert(`Operation failed: ${error.message}. Please check console or try again.`);
-                throw error; // Re-throw
+                throw error;
             }
         }
 
@@ -250,8 +252,8 @@
                 boardPage.classList.add('hidden');
                 taskSummaryBoardContainer.classList.add('hidden');
                 taskSummaryInputContainer.classList.remove('hidden');
-                changePinBtn.classList.add('hidden'); // Hide change pin btn
-                updateTaskSummary();
+                changePinBtn.classList.add('hidden');
+                // Summary updated by loadTasks on initial load or by actions
                 showInputPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500');
                 showInputPageBtn.classList.replace('hover:bg-indigo-600', 'hover:bg-blue-600');
                 showBoardPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500');
@@ -261,8 +263,9 @@
                 boardPage.classList.remove('hidden');
                 taskSummaryInputContainer.classList.add('hidden');
                 taskSummaryBoardContainer.classList.remove('hidden');
-                changePinBtn.classList.remove('hidden'); // Show change pin btn
-                loadTasks(); // Reload tasks when showing board
+                changePinBtn.classList.remove('hidden');
+                renderBoard(); // Render board with currently loaded tasks
+                updateTaskSummary(); // Ensure summary is up-to-date
                 showInputPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500');
                 showInputPageBtn.classList.replace('hover:bg-blue-600', 'hover:bg-indigo-600');
                 showBoardPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500');
@@ -270,70 +273,39 @@
             }
         }
 
-        // Removed validatePin function - check happens via backend
-
-        /**
-         * Handles changing the pin code via backend function.
-         */
         async function changePinCode() {
             const currentPin = prompt("Enter the CURRENT pin code:");
-            if (currentPin === null) return; // User cancelled
-
+            if (currentPin === null) return;
             const newPin1 = prompt("Enter the NEW pin code:");
             if (newPin1 === null) return;
-             if (!newPin1 || newPin1.trim().length === 0) {
-                 alert("New pin cannot be empty."); return;
-            }
-
+             if (!newPin1 || newPin1.trim().length === 0) { alert("New pin cannot be empty."); return; }
             const newPin2 = prompt("Confirm the NEW pin code:");
             if (newPin2 === null) return;
-
-            if (newPin1 !== newPin2) {
-                alert("New pin codes do not match. Pin not changed.");
-                return;
-            }
-
+            if (newPin1 !== newPin2) { alert("New pin codes do not match. Pin not changed."); return; }
             try {
-                // Call the backend function to update the pin
-                 const result = await apiCall('update-pin', 'POST', {
-                     currentPin: currentPin,
-                     newPin: newPin1
-                 });
-                 alert(result.message || "Pin update processed."); // Show success message from backend
-            } catch (error) {
-                 // Error already alerted by apiCall helper
-                 console.error("Failed to update pin:", error);
-            }
+                 const result = await apiCall('update-pin', 'POST', { currentPin: currentPin, newPin: newPin1 });
+                 alert(result.message || "Pin update processed.");
+            } catch (error) { /* Handled by apiCall */ }
         }
 
-
-        function generateId() {
-            return 'task_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        }
+        function generateId() { return 'task_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9); }
 
         async function updateTaskPriority(taskId, newPriority) {
              try {
                  await apiCall('update-task', 'POST', { id: taskId, updates: { priority: newPriority } });
-                 // Find task locally and update for immediate UI change before re-render
                  for (const colId in tasks) {
                      const task = tasks[colId].find(t => t.id === taskId);
                      if (task) { task.priority = newPriority; break; }
                  }
-                 renderBoard(); // Re-render to apply sorting
-             } catch (error) { /* Error handled by apiCall */ }
+                 renderBoard();
+             } catch (error) { /* Handled by apiCall */ }
         }
 
         async function editTaskNotes(taskId) {
-            let taskFound = false;
-            let currentNotes = '';
-            let taskRef = null;
+            let taskFound = false; let currentNotes = ''; let taskRef = null;
             for (const columnId in tasks) {
                 const taskIndex = tasks[columnId].findIndex(task => task.id === taskId);
-                if (taskIndex > -1) {
-                    taskRef = tasks[columnId][taskIndex];
-                    currentNotes = taskRef.notes || '';
-                    taskFound = true; break;
-                }
+                if (taskIndex > -1) { taskRef = tasks[columnId][taskIndex]; currentNotes = taskRef.notes || ''; taskFound = true; break; }
             }
             if (!taskFound) { console.error("Could not find task to edit notes:", taskId); return; }
             const newNotes = prompt("Enter/Edit notes for this task:", currentNotes);
@@ -341,12 +313,11 @@
                 const trimmedNotes = newNotes.trim();
                 try {
                     await apiCall('update-task', 'POST', { id: taskId, updates: { notes: trimmedNotes } });
-                    taskRef.notes = trimmedNotes; // Update local state on success
-                    renderBoard(); // Re-render to update hover display
-                } catch (error) { /* Error handled by apiCall */ }
+                    taskRef.notes = trimmedNotes;
+                    renderBoard();
+                } catch (error) { /* Handled by apiCall */ }
             }
         }
-
 
         function createTaskElement(task) {
             const div = document.createElement('div');
@@ -392,7 +363,7 @@
             textContainer.appendChild(editInput);
 
             const buttonContainer = document.createElement('div');
-            buttonContainer.className = 'task-buttons'; // Vertical layout
+            buttonContainer.className = 'task-buttons';
             const editBtn = document.createElement('button');
             editBtn.innerHTML = '✏️';
             editBtn.className = 'action-btn text-blue-600 hover:text-blue-800';
@@ -448,10 +419,8 @@
 
         function renderBoard() {
              if (boardPage.classList.contains('hidden')) return;
-
             const taskContainers = document.querySelectorAll('.tasks-container');
             taskContainers.forEach(colContainer => colContainer.innerHTML = '');
-
             for (const columnId in tasks) {
                 if (tasks.hasOwnProperty(columnId)) {
                     const columnElement = document.getElementById(columnId)?.querySelector('.tasks-container');
@@ -470,9 +439,7 @@
                             const taskElement = createTaskElement(task);
                             columnElement.appendChild(taskElement);
                         });
-                    } else {
-                        console.error(`Column element not found for ID: ${columnId}`);
-                    }
+                    } else { console.error(`Column element not found for ID: ${columnId}`); }
                 }
             }
         }
@@ -480,8 +447,7 @@
         async function addTask() {
             if (addTaskBtn.disabled) return;
             if (tasks.todo && tasks.todo.length >= MAX_TODO_TASKS) {
-                alert(`Cannot add more tasks. The 'To Do' column limit (${MAX_TODO_TASKS}) has been reached.`);
-                return;
+                alert(`Cannot add more tasks. The 'To Do' column limit (${MAX_TODO_TASKS}) has been reached.`); return;
             }
             const taskText = newTaskInput.value.trim();
             const taskName = newTaskNameInput.value.trim();
@@ -489,10 +455,7 @@
                 alert('Please enter both task description and your name.');
                 (taskText === '' ? newTaskInput : newTaskNameInput).focus(); return;
             }
-            const newTaskData = {
-                text: taskText, name: taskName,
-                priority: DEFAULT_PRIORITY, notes: '', status: 'todo'
-            };
+            const newTaskData = { text: taskText, name: taskName, priority: DEFAULT_PRIORITY, notes: '', status: 'todo' };
             addTaskBtn.disabled = true;
             addTaskMessage.textContent = 'Adding task...';
             addTaskMessage.classList.remove('text-green-600', 'text-gray-500', 'text-red-500');
@@ -506,9 +469,7 @@
                      tasks.todo.push(addedTask);
                      updateTaskSummary();
                      if (!boardPage.classList.contains('hidden')) renderBoard();
-                } else {
-                     await loadTasks(); // Fallback
-                }
+                } else { await loadTasks(); } // Fallback reload
                 clearTimeout(successMessageTimeout); clearInterval(cooldownTimer);
                 addTaskMessage.textContent = `Task added: "${addedTask.text || taskText}"`;
                 addTaskMessage.classList.add('text-green-600');
@@ -520,22 +481,15 @@
                          addTaskMessage.textContent = `Please wait ${secondsRemaining} seconds...`;
                          cooldownTimer = setInterval(() => {
                              secondsRemaining--;
-                             if (secondsRemaining > 0) {
-                                 addTaskMessage.textContent = `Please wait ${secondsRemaining} seconds...`;
-                             } else {
-                                 clearInterval(cooldownTimer); cooldownTimer = null;
-                                 addTaskBtn.disabled = false; addTaskMessage.textContent = '';
-                             }
+                             if (secondsRemaining > 0) { addTaskMessage.textContent = `Please wait ${secondsRemaining} seconds...`; }
+                             else { clearInterval(cooldownTimer); cooldownTimer = null; addTaskBtn.disabled = false; addTaskMessage.textContent = ''; }
                          }, 1000);
                      }
                 }, 1500);
             } catch (error) {
-                addTaskBtn.disabled = false;
-                addTaskMessage.textContent = 'Error adding task.';
-                addTaskMessage.classList.add('text-red-500');
+                addTaskBtn.disabled = false; addTaskMessage.textContent = 'Error adding task.'; addTaskMessage.classList.add('text-red-500');
             } finally {
-                 newTaskInput.value = ''; newTaskNameInput.value = '';
-                 newTaskInput.focus();
+                 newTaskInput.value = ''; newTaskNameInput.value = ''; newTaskInput.focus();
             }
         }
 
@@ -544,20 +498,14 @@
             if (!confirm('Are you sure you want to delete this task?')) return;
             try {
                 await apiCall('delete-task', 'POST', { id: taskId });
-                for (const columnId in tasks) {
-                    tasks[columnId] = tasks[columnId].filter(task => task.id !== taskId);
-                }
-                renderBoard();
-                updateTaskSummary();
+                for (const columnId in tasks) { tasks[columnId] = tasks[columnId].filter(task => task.id !== taskId); }
+                renderBoard(); updateTaskSummary();
             } catch (error) { /* Handled by apiCall */ }
         }
 
         function startEditTask(taskId) {
-            if (currentlyEditingTaskId && currentlyEditingTaskId !== taskId) {
-                 cancelTaskEdit(currentlyEditingTaskId);
-            }
-            currentlyEditingTaskId = taskId;
-            renderBoard();
+            if (currentlyEditingTaskId && currentlyEditingTaskId !== taskId) { cancelTaskEdit(currentlyEditingTaskId); }
+            currentlyEditingTaskId = taskId; renderBoard();
         }
 
         async function saveTaskEdit(taskId) {
@@ -572,17 +520,11 @@
                     const task = tasks[columnId].find(t => t.id === taskId);
                     if (task) { task.text = newText; break; }
                  }
-                 currentlyEditingTaskId = null;
-                 renderBoard();
-            } catch (error) {
-                 currentlyEditingTaskId = null; renderBoard(); // Exit edit mode even on error
-            }
+                 currentlyEditingTaskId = null; renderBoard();
+            } catch (error) { currentlyEditingTaskId = null; renderBoard(); }
         }
 
-        function cancelTaskEdit(taskId) {
-            currentlyEditingTaskId = null;
-            renderBoard();
-        }
+        function cancelTaskEdit(taskId) { currentlyEditingTaskId = null; renderBoard(); }
 
         // Removed saveTasks (localStorage)
 
@@ -605,8 +547,11 @@
                 tasks = { todo: [], inprogress: [], done: [] }; // Reset on error
             } finally {
                  currentlyEditingTaskId = null;
-                 updateTaskSummary();
-                 renderBoard(); // Render board with fetched/processed/empty tasks
+                 updateTaskSummary(); // Update summary after loading
+                 // Render board only if it's supposed to be visible
+                 if (!boardPage.classList.contains('hidden')) {
+                    renderBoard();
+                 }
             }
         }
 
@@ -647,15 +592,10 @@
              const taskId = taskElement.id;
              const sourceColumnId = taskElement.closest('.kanban-column')?.id;
              if (!sourceColumnId || sourceColumnId === targetColumnId) return;
-             let taskToMove = null;
-             let originalIndex = -1;
-             let originalColumnId = '';
+             let taskToMove = null; let originalIndex = -1; let originalColumnId = '';
              for (const colId in tasks) {
                  originalIndex = tasks[colId].findIndex(task => task.id === taskId);
-                 if (originalIndex > -1) {
-                     originalColumnId = colId;
-                     taskToMove = tasks[colId][originalIndex]; break;
-                 }
+                 if (originalIndex > -1) { originalColumnId = colId; taskToMove = tasks[colId][originalIndex]; break; }
              }
              if (!taskToMove) { console.error("Could not find task in local state during drop:", taskId); return; }
              // Optimistic UI Update
@@ -691,11 +631,9 @@
         newTaskInput.addEventListener('keypress', (event) => { if (event.key === 'Enter') addTask(); });
         newTaskNameInput.addEventListener('keypress', (event) => { if (event.key === 'Enter') addTask(); });
         showInputPageBtn.addEventListener('click', () => showPage('inputPage'));
-        showBoardPageBtn.addEventListener('click', async () => { // Make async
-            // Check pin via backend
+        showBoardPageBtn.addEventListener('click', async () => {
             const pinInput = prompt("Please enter the pin code to view the board:");
-            if (pinInput === null) return; // User cancelled
-
+            if (pinInput === null) return;
             try {
                  const result = await apiCall('check-pin', 'POST', { enteredPin: pinInput });
                  if (result && result.valid) {
@@ -703,18 +641,13 @@
                  } else {
                      alert("Incorrect pin code.");
                  }
-            } catch (error) {
-                 // Error already alerted by apiCall
-                 console.error("Pin check failed:", error);
-            }
+            } catch (error) { /* Error handled by apiCall */ }
         });
-        // Add listener for the change pin button
         changePinBtn.addEventListener('click', changePinCode);
 
-        document.addEventListener('DOMContentLoaded', () => {
-             showPage('inputPage'); // Start on input page
-             // Initial load doesn't require tasks immediately if board is hidden
-             // loadTasks(); // Load tasks only when board page is shown
+        document.addEventListener('DOMContentLoaded', async () => { // Make async
+             showPage('inputPage'); // Show input page first
+             await loadTasks(); // Load tasks immediately on page load
         });
 
     </script>
