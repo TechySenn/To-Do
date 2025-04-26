@@ -1,0 +1,21 @@
+{
+  "name": "jay-todo-list-backend",
+  "version": "1.0.0",
+  "description": "Netlify functions for Supabase Kanban board",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "netlify",
+    "serverless",
+    "supabase",
+    "kanban"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@netlify/functions": "^3.1.2",
+    "@supabase/supabase-js": "^2.0.0"
+  }
+}

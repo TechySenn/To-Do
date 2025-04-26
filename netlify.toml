@@ -1,0 +1,11 @@
+# netlify.toml
+# This file explicitly tells Netlify where to find functions.
+
+[functions]
+  # Specifies the directory where your serverless functions are located.
+  directory = "netlify/functions"
+
+# Optional: Specify build settings if needed, but likely not for drag-and-drop
+# [build]
+#   command = "" # No build command needed for simple static site + functions
+#   publish = "." # Publish the root directory
