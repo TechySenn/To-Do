@@ -3,15 +3,20 @@ const { createClient } = require('@supabase/supabase-js');
 const bcrypt = require('bcryptjs');
 
 exports.handler = async function(event, context) {
-    // --- Initialize Supabase Client ---
+    // --- Check Environment Variables and Initialize Client INSIDE Handler ---
     const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
+    const supabaseKey = process.env.SUPABASE_SERVICE_KEY; // Use service key for backend operations
+
     if (!supabaseUrl || !supabaseKey) {
-        console.error('CHECK-PIN: Missing Supabase credentials.');
-        return { statusCode: 500, body: JSON.stringify({ error: 'Server configuration error.' }) };
+        console.error('CHECK-PIN: Supabase URL or Service Key environment variable is missing.');
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: 'Server configuration error: Missing Supabase credentials.' })
+        };
     }
+
     const supabase = createClient(supabaseUrl, supabaseKey);
-    // --- End Initialization ---
+    // --- End Check and Initialization ---
 
     if (event.httpMethod !== 'POST') {
         return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }), headers: { 'Allow': 'POST' } };
@@ -20,6 +25,7 @@ exports.handler = async function(event, context) {
     try {
         const { enteredPin } = JSON.parse(event.body);
         if (!enteredPin) {
+             console.error("CHECK-PIN: Missing enteredPin in request body.");
             return { statusCode: 400, body: JSON.stringify({ error: 'Missing enteredPin.' }) };
         }
 
@@ -33,7 +39,13 @@ exports.handler = async function(event, context) {
 
         if (fetchError || !data || !data.pin_hash) {
             console.error('CHECK-PIN: Error fetching pin hash or hash not found:', fetchError);
-            return { statusCode: 500, body: JSON.stringify({ error: 'Could not retrieve security settings.' }) };
+            // If the settings row/hash doesn't exist, treat pin as invalid
+            return {
+                 statusCode: 200, // Still a valid request, just invalid pin
+                 body: JSON.stringify({ valid: false, error: 'Security settings not found or invalid.' })
+            };
+            // Alternatively, return 500 if this is considered a server error:
+            // return { statusCode: 500, body: JSON.stringify({ error: 'Could not retrieve security settings.' }) };
         }
 
         const storedHash = data.pin_hash;
