@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jay's To Do List</title>
-    <link rel="icon" href="/favicon.ico" sizes="any"> <link rel="icon" href="/favicon.svg" type="image/svg+xml"> <link rel="apple-touch-icon" href="/apple-touch-icon.png"> <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <style>
         /* Basic styling for draggable elements */
@@ -60,7 +63,7 @@
         .action-btn { background: none; border: none; padding: 0; cursor: pointer; font-size: 0.9rem; line-height: 1; display: flex; align-items: center;}
          /* Container for action buttons in the meta row */
         .task-actions { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
-        /* Style for save/cancel buttons in edit mode */
+         /* Style for save/cancel buttons in edit mode */
          .edit-mode-buttons { display: flex; gap: 4px; }
          /* Ensure task content and buttons align nicely */
          .task { align-items: flex-start; flex-direction: column; }
@@ -75,6 +78,15 @@
          #taskSummaryContainerBoard { position: absolute; top: 0; left: 0; }
          #mainTitle { flex-grow: 1; text-align: center; }
          #changePinBtn { position: absolute; top: 0; right: 0; }
+
+         /* Priority specific background colors */
+         .task-priority-New { background-color: #fecaca; border-color: #fca5a5; } /* red-200 / red-300 */
+         .task-priority-High { background-color: #bfdbfe; border-color: #93c5fd; } /* blue-200 / blue-300 */
+         .task-priority-Medium { background-color: #bfdbfe; border-color: #93c5fd; } /* blue-200 / blue-300 */
+         .task-priority-Low { background-color: #bfdbfe; border-color: #93c5fd; } /* blue-200 / blue-300 */
+         /* Default/Fallback */
+         .task-priority-Default { background-color: #dbeafe; border-color: #bfdbfe; } /* blue-100 / blue-200 */
+
 
     </style>
 </head>
@@ -284,18 +296,26 @@
             } catch (error) { /* Handled by apiCall */ }
         }
 
-        // Removed generateId function
-
         async function updateTaskPriority(taskId, newPriority) {
              try {
+                 // Update backend first
                  await apiCall('update-task', 'POST', { id: taskId, updates: { priority: newPriority } });
+                 // Update local state for immediate UI feedback
                  for (const colId in tasks) {
                      const task = tasks[colId].find(t => t.id === taskId);
-                     if (task) { task.priority = newPriority; break; }
+                     if (task) {
+                         task.priority = newPriority;
+                         break;
+                     }
                  }
-                 renderBoard();
-             } catch (error) { /* Handled by apiCall */ }
+                 renderBoard(); // Re-render to apply sorting and potential color changes
+             } catch (error) {
+                 // If backend update fails, alert is shown by apiCall.
+                 // Optionally, revert local state change here if needed.
+                 console.error("Failed to update priority in backend.");
+             }
         }
+
 
         async function editTaskNotes(taskId) {
             let taskFound = false; let currentNotes = ''; let taskRef = null;
@@ -346,17 +366,37 @@
              }
         }
 
+        /**
+         * Creates the HTML element for a task with conditional background color.
+         * @param {object} task - The task object { id, text, name, createdAt, priority, notes }.
+         * @returns {HTMLElement} The task card element.
+         */
         function createTaskElement(task) {
             const div = document.createElement('div');
-            div.id = task.id;
-            div.className = 'task relative bg-blue-200 p-3 rounded-md shadow-sm border border-blue-300 flex flex-col';
+            div.id = task.id; // Use the ID from the database
+
+            // --- Determine Background/Border based on Priority ---
+            let bgColorClass = 'bg-blue-200'; // Default blue
+            let borderColorClass = 'border-blue-300';
+            if (task.priority === 'New') {
+                bgColorClass = 'bg-red-200'; // Red for New
+                borderColorClass = 'border-red-300';
+            } else if (task.priority === 'High') {
+                 bgColorClass = 'bg-orange-200'; // Example: Orange for High
+                 borderColorClass = 'border-orange-300';
+            } // Add more else if for Medium/Low if desired, otherwise they use default blue
+
+            // Combine base classes with priority-specific classes
+            div.className = `task relative ${bgColorClass} p-3 rounded-md shadow-sm border ${borderColorClass} flex flex-col`;
+            // --- End Color Logic ---
+
             div.draggable = true;
             div.addEventListener('dragstart', dragStart);
             div.addEventListener('dragend', dragEnd);
 
             const topSection = document.createElement('div');
             const contentSpan = document.createElement('span');
-            contentSpan.className = 'task-text block text-gray-800';
+            contentSpan.className = 'task-text block text-gray-800'; // Keep text dark for contrast on light backgrounds
             contentSpan.textContent = task.text;
             const editInput = document.createElement('input');
             editInput.type = 'text';
@@ -449,6 +489,7 @@
             }
             return div;
         }
+
 
         function renderBoard() {
              if (boardPage.classList.contains('hidden')) return;
