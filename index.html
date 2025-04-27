@@ -77,16 +77,7 @@
          }
          #taskSummaryContainerBoard { position: absolute; top: 0; left: 0; }
          #mainTitle { flex-grow: 1; text-align: center; }
-         #changePinBtn { position: absolute; top: 0; right: 0; }
-
-         /* Priority specific background colors */
-         .task-priority-New { background-color: #fecaca; border-color: #fca5a5; } /* red-200 / red-300 */
-         .task-priority-High { background-color: #bfdbfe; border-color: #93c5fd; } /* blue-200 / blue-300 */
-         .task-priority-Medium { background-color: #bfdbfe; border-color: #93c5fd; } /* blue-200 / blue-300 */
-         .task-priority-Low { background-color: #bfdbfe; border-color: #93c5fd; } /* blue-200 / blue-300 */
-         /* Default/Fallback */
-         .task-priority-Default { background-color: #dbeafe; border-color: #bfdbfe; } /* blue-100 / blue-200 */
-
+         /* Removed #changePinBtn absolute positioning */
 
     </style>
 </head>
@@ -98,8 +89,7 @@
                  <div id="taskSummaryBoard" class="flex items-center space-x-2"></div>
              </div>
              <h1 id="mainTitle" class="text-3xl font-bold text-gray-800">Jay's To Do List</h1>
-             <button id="changePinBtn" class="action-btn text-sm text-blue-600 hover:text-blue-800 underline hidden">Change Pin</button>
-        </div>
+             </div>
         <div class="text-center mb-6 space-x-4">
             <button id="showInputPageBtn" class="nav-button bg-blue-500 hover:bg-blue-600 text-white">Add New Task</button>
             <button id="showBoardPageBtn" class="nav-button bg-indigo-500 hover:bg-indigo-600 text-white">View Board</button>
@@ -183,7 +173,7 @@
         const boardPage = document.getElementById('boardPage');
         const showInputPageBtn = document.getElementById('showInputPageBtn');
         const showBoardPageBtn = document.getElementById('showBoardPageBtn');
-        const changePinBtn = document.getElementById('changePinBtn');
+        // const changePinBtn = document.getElementById('changePinBtn'); // Removed variable
 
         // --- State ---
         let tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };
@@ -261,7 +251,7 @@
                 boardPage.classList.add('hidden');
                 taskSummaryBoardContainer.classList.add('hidden');
                 taskSummaryInputContainer.classList.remove('hidden');
-                changePinBtn.classList.add('hidden');
+                // changePinBtn.classList.add('hidden'); // Removed line
                 showInputPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500');
                 showInputPageBtn.classList.replace('hover:bg-indigo-600', 'hover:bg-blue-600');
                 showBoardPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500');
@@ -271,7 +261,7 @@
                 boardPage.classList.remove('hidden');
                 taskSummaryInputContainer.classList.add('hidden');
                 taskSummaryBoardContainer.classList.remove('hidden');
-                changePinBtn.classList.remove('hidden');
+                // changePinBtn.classList.remove('hidden'); // Removed line
                 renderBoard();
                 updateTaskSummary();
                 showInputPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500');
@@ -281,41 +271,21 @@
             }
         }
 
-        async function changePinCode() {
-            const currentPin = prompt("Enter the CURRENT pin code:");
-            if (currentPin === null) return;
-            const newPin1 = prompt("Enter the NEW pin code:");
-            if (newPin1 === null) return;
-             if (!newPin1 || newPin1.trim().length === 0) { alert("New pin cannot be empty."); return; }
-            const newPin2 = prompt("Confirm the NEW pin code:");
-            if (newPin2 === null) return;
-            if (newPin1 !== newPin2) { alert("New pin codes do not match. Pin not changed."); return; }
-            try {
-                 const result = await apiCall('update-pin', 'POST', { currentPin: currentPin, newPin: newPin1 });
-                 alert(result.message || "Pin update processed.");
-            } catch (error) { /* Handled by apiCall */ }
-        }
+        // Removed changePinCode function
+        // async function changePinCode() { ... }
+
+        // Removed generateId function
 
         async function updateTaskPriority(taskId, newPriority) {
              try {
-                 // Update backend first
                  await apiCall('update-task', 'POST', { id: taskId, updates: { priority: newPriority } });
-                 // Update local state for immediate UI feedback
                  for (const colId in tasks) {
                      const task = tasks[colId].find(t => t.id === taskId);
-                     if (task) {
-                         task.priority = newPriority;
-                         break;
-                     }
+                     if (task) { task.priority = newPriority; break; }
                  }
-                 renderBoard(); // Re-render to apply sorting and potential color changes
-             } catch (error) {
-                 // If backend update fails, alert is shown by apiCall.
-                 // Optionally, revert local state change here if needed.
-                 console.error("Failed to update priority in backend.");
-             }
+                 renderBoard();
+             } catch (error) { /* Handled by apiCall */ }
         }
-
 
         async function editTaskNotes(taskId) {
             let taskFound = false; let currentNotes = ''; let taskRef = null;
@@ -366,37 +336,20 @@
              }
         }
 
-        /**
-         * Creates the HTML element for a task with conditional background color.
-         * @param {object} task - The task object { id, text, name, createdAt, priority, notes }.
-         * @returns {HTMLElement} The task card element.
-         */
         function createTaskElement(task) {
             const div = document.createElement('div');
-            div.id = task.id; // Use the ID from the database
-
-            // --- Determine Background/Border based on Priority ---
-            let bgColorClass = 'bg-blue-200'; // Default blue
-            let borderColorClass = 'border-blue-300';
-            if (task.priority === 'New') {
-                bgColorClass = 'bg-red-200'; // Red for New
-                borderColorClass = 'border-red-300';
-            } else if (task.priority === 'High') {
-                 bgColorClass = 'bg-orange-200'; // Example: Orange for High
-                 borderColorClass = 'border-orange-300';
-            } // Add more else if for Medium/Low if desired, otherwise they use default blue
-
-            // Combine base classes with priority-specific classes
+            div.id = task.id;
+            let bgColorClass = 'bg-blue-200'; let borderColorClass = 'border-blue-300';
+            if (task.priority === 'New') { bgColorClass = 'bg-red-200'; borderColorClass = 'border-red-300'; }
+            else if (task.priority === 'High') { bgColorClass = 'bg-orange-200'; borderColorClass = 'border-orange-300'; }
             div.className = `task relative ${bgColorClass} p-3 rounded-md shadow-sm border ${borderColorClass} flex flex-col`;
-            // --- End Color Logic ---
-
             div.draggable = true;
             div.addEventListener('dragstart', dragStart);
             div.addEventListener('dragend', dragEnd);
 
             const topSection = document.createElement('div');
             const contentSpan = document.createElement('span');
-            contentSpan.className = 'task-text block text-gray-800'; // Keep text dark for contrast on light backgrounds
+            contentSpan.className = 'task-text block text-gray-800';
             contentSpan.textContent = task.text;
             const editInput = document.createElement('input');
             editInput.type = 'text';
@@ -489,7 +442,6 @@
             }
             return div;
         }
-
 
         function renderBoard() {
              if (boardPage.classList.contains('hidden')) return;
