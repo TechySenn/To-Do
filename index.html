@@ -112,7 +112,7 @@
             <div class="p-6 bg-white rounded-lg shadow flex flex-col items-center space-y-4 max-w-lg mx-auto mb-6">
                 <div class="w-full">
                     <label for="newTaskInput" class="block text-sm font-medium text-gray-700 mb-1">Task Description:</label>
-                    <input type="text" id="newTaskInput" placeholder="Enter new task..." class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <textarea id="newTaskInput" placeholder="Enter new task..." rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                 </div>
                 <div class="w-full">
                     <label for="newTaskNameInput" class="block text-sm font-medium text-gray-700 mb-1">Your Name:</label>
@@ -163,7 +163,7 @@
         const FUNCTION_BASE_PATH = '/.netlify/functions/';
 
         // --- DOM Elements ---
-        const newTaskInput = document.getElementById('newTaskInput');
+        const newTaskInput = document.getElementById('newTaskInput'); // Now a textarea
         const newTaskNameInput = document.getElementById('newTaskNameInput');
         const addTaskBtn = document.getElementById('addTaskBtn');
         const addTaskMessage = document.getElementById('addTaskMessage');
@@ -285,8 +285,6 @@
                  alert(result.message || "Pin update processed.");
             } catch (error) { /* Handled by apiCall */ }
         }
-
-        // Removed generateId function
 
         async function updateTaskPriority(taskId, newPriority) {
              try {
@@ -441,18 +439,14 @@
                 div.draggable = false;
                 contentSpan.classList.add('hidden');
                 editInput.classList.remove('hidden');
-                bottomSection.classList.add('hidden'); // Hide entire bottom row
+                bottomSection.classList.add('hidden');
                 buttonContainer.classList.add('hidden');
-                editModeButtonContainer.classList.remove('hidden'); // Show save/cancel
-                 // Need to re-append editModeButtonContainer outside bottomSection if bottom is hidden
-                 // Let's adjust: keep bottomSection, hide elements inside it
+                editModeButtonContainer.classList.remove('hidden');
                  metaInfoSpan.classList.add('hidden');
                  prioritySelect.classList.add('hidden');
                  buttonContainer.classList.add('hidden');
                  editModeButtonContainer.classList.remove('hidden');
-                 // Ensure bottom section itself isn't hidden by mistake
-                 bottomSection.classList.remove('hidden');
-
+                 bottomSection.classList.remove('hidden'); // Keep bottom visible but hide contents
 
                 setTimeout(() => editInput.focus(), 0);
             }
@@ -665,7 +659,7 @@
 
         // --- Initialization ---
         addTaskBtn.addEventListener('click', addTask);
-        newTaskInput.addEventListener('keypress', (event) => { if (event.key === 'Enter') addTask(); });
+        newTaskInput.addEventListener('keypress', (event) => { if (event.key === 'Enter') addTask(); }); // Removed listener from task input
         newTaskNameInput.addEventListener('keypress', (event) => { if (event.key === 'Enter') addTask(); });
         showInputPageBtn.addEventListener('click', () => showPage('inputPage'));
         showBoardPageBtn.addEventListener('click', async () => {
