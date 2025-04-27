@@ -252,7 +252,6 @@
                 taskSummaryBoardContainer.classList.add('hidden');
                 taskSummaryInputContainer.classList.remove('hidden');
                 changePinBtn.classList.add('hidden');
-                // Summary updated by loadTasks on initial load or by actions
                 showInputPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500');
                 showInputPageBtn.classList.replace('hover:bg-indigo-600', 'hover:bg-blue-600');
                 showBoardPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500');
@@ -263,8 +262,8 @@
                 taskSummaryInputContainer.classList.add('hidden');
                 taskSummaryBoardContainer.classList.remove('hidden');
                 changePinBtn.classList.remove('hidden');
-                renderBoard(); // Render board with currently loaded tasks
-                updateTaskSummary(); // Ensure summary is up-to-date
+                renderBoard();
+                updateTaskSummary();
                 showInputPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500');
                 showInputPageBtn.classList.replace('hover:bg-blue-600', 'hover:bg-indigo-600');
                 showBoardPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500');
@@ -287,7 +286,8 @@
             } catch (error) { /* Handled by apiCall */ }
         }
 
-        function generateId() { return 'task_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9); }
+        // Removed generateId function
+        // function generateId() { return 'task_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9); }
 
         async function updateTaskPriority(taskId, newPriority) {
              try {
@@ -320,7 +320,7 @@
 
         function createTaskElement(task) {
             const div = document.createElement('div');
-            div.id = task.id;
+            div.id = task.id; // Use the ID from the database
             div.className = 'task relative bg-blue-200 p-3 rounded-md shadow-sm border border-blue-300 flex justify-between items-start';
             div.draggable = true;
             div.addEventListener('dragstart', dragStart);
@@ -432,7 +432,7 @@
                         });
                         sortedTasks.forEach(task => {
                             task.name = task.name || '';
-                            task.createdAt = task.createdAt || 0;
+                            task.createdAt = task.createdAt || 0; // Already a number from loadTasks
                             task.priority = task.priority || DEFAULT_PRIORITY;
                             task.notes = task.notes || '';
                             const taskElement = createTaskElement(task);
@@ -462,10 +462,10 @@
                 const addedTask = await apiCall('add-task', 'POST', newTaskData);
                 if (addedTask && addedTask.id) {
                      if (!tasks.todo) tasks.todo = [];
-                     addedTask.createdAt = new Date(addedTask.created_at).getTime();
+                     addedTask.createdAt = new Date(addedTask.created_at).getTime(); // Convert DB timestamp
                      addedTask.priority = addedTask.priority || DEFAULT_PRIORITY;
                      addedTask.notes = addedTask.notes || '';
-                     tasks.todo.push(addedTask);
+                     tasks.todo.push(addedTask); // Add the full task object returned from backend
                      updateTaskSummary();
                      if (!boardPage.classList.contains('hidden')) renderBoard();
                 } else { await loadTasks(); } // Fallback reload
@@ -524,8 +524,6 @@
         }
 
         function cancelTaskEdit(taskId) { currentlyEditingTaskId = null; renderBoard(); }
-
-        // Removed saveTasks (localStorage)
 
         async function loadTasks() {
             console.log("Loading tasks...");
