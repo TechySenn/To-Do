@@ -77,7 +77,6 @@
          }
          #taskSummaryContainerBoard { position: absolute; top: 0; left: 0; }
          #mainTitle { flex-grow: 1; text-align: center; }
-         /* Removed #changePinBtn absolute positioning */
 
     </style>
 </head>
@@ -150,6 +149,7 @@
     <script>
         // --- Constants ---
         const COOLDOWN_SECONDS = 5;
+        const PIN_COOLDOWN_SECONDS = 5; // New constant for pin cooldown
         const MAX_TODO_TASKS = 50;
         const PRIORITIES = ["New", "High", "Medium", "Low"];
         const DEFAULT_PRIORITY = "New";
@@ -174,7 +174,6 @@
         const showInputPageBtn = document.getElementById('showInputPageBtn');
         const showBoardPageBtn = document.getElementById('showBoardPageBtn');
         // Removed changePinBtn variable
-        // const changePinBtn = document.getElementById('changePinBtn');
 
         // --- State ---
         let tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };
@@ -182,6 +181,7 @@
         let currentlyEditingTaskId = null;
         let cooldownTimer = null;
         let successMessageTimeout = null;
+        let isPinCooldownActive = false; // State for pin cooldown
 
         // --- Generic Fetch Helper ---
         async function apiCall(endpoint, method = 'GET', body = null) {
@@ -273,8 +273,6 @@
         }
 
         // Removed changePinCode function
-
-        // Removed generateId function
 
         async function updateTaskPriority(taskId, newPriority) {
              try {
@@ -659,6 +657,11 @@
         newTaskNameInput.addEventListener('keypress', (event) => { if (event.key === 'Enter') addTask(); });
         showInputPageBtn.addEventListener('click', () => showPage('inputPage'));
         showBoardPageBtn.addEventListener('click', async () => {
+            // Check if cooldown is active
+            if (isPinCooldownActive) {
+                alert("Please wait before trying the pin again.");
+                return;
+            }
             const pinInput = prompt("Please enter the pin code to view the board:");
             if (pinInput === null) return;
             try {
@@ -667,6 +670,15 @@
                      showPage('boardPage');
                  } else {
                      alert("Incorrect pin code.");
+                     // Start cooldown on incorrect pin
+                     isPinCooldownActive = true;
+                     showBoardPageBtn.disabled = true; // Disable button
+                     console.log(`Pin cooldown started for ${PIN_COOLDOWN_SECONDS} seconds.`);
+                     setTimeout(() => {
+                         isPinCooldownActive = false;
+                         showBoardPageBtn.disabled = false; // Re-enable button
+                         console.log("Pin cooldown finished.");
+                     }, PIN_COOLDOWN_SECONDS * 1000);
                  }
             } catch (error) { /* Handled by apiCall */ }
         });
