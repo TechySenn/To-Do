@@ -1,13 +1,17 @@
 // netlify/functions/update-task.js
 const { createClient } = require('@supabase/supabase-js');
 
+// Define valid statuses here as well for validation
+const VALID_STATUSES = ['todo', 'inprogress', 'nonurgent', 'done'];
+const PRIORITIES = ["New", "High", "Medium", "Low"]; // Keep for priority validation
+
 exports.handler = async function(event, context) {
     // --- Check Environment Variables and Initialize Client INSIDE Handler ---
     const supabaseUrl = process.env.SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
-        console.error('Supabase URL or Service Key environment variable is missing.');
+        console.error('UPDATE-TASK: Supabase URL or Service Key environment variable is missing.');
         return {
             statusCode: 500,
             body: JSON.stringify({ error: 'Server configuration error: Missing Supabase credentials.' })
@@ -17,55 +21,61 @@ exports.handler = async function(event, context) {
     const supabase = createClient(supabaseUrl, supabaseKey);
     // --- End Check and Initialization ---
 
-    // Only allow POST requests (or PUT/PATCH if preferred)
     if (event.httpMethod !== 'POST') {
         return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }), headers: { 'Allow': 'POST' } };
     }
 
     try {
         const { id, updates } = JSON.parse(event.body);
-        console.log(`Received update request for task ID: ${id}`, updates);
+        console.log(`UPDATE-TASK: Received request for ID: ${id}`, updates);
 
         if (!id || !updates || typeof updates !== 'object' || Object.keys(updates).length === 0) {
-            console.error("Validation Error: Missing task ID or updates object.");
+            console.error("UPDATE-TASK: Validation Error: Missing task ID or updates object.");
             return { statusCode: 400, body: JSON.stringify({ error: 'Missing task ID or updates data.' }) };
         }
 
-        // Optional: Add more specific validation for 'updates' content here
-        // For example, check if 'status' is one of the allowed values if present
+        // --- Validate specific updates ---
+        if (updates.status && !VALID_STATUSES.includes(updates.status)) {
+             console.error(`UPDATE-TASK: Invalid status value: ${updates.status}`);
+             return { statusCode: 400, body: JSON.stringify({ error: `Invalid status value: ${updates.status}` }) };
+        }
+         if (updates.priority && !PRIORITIES.includes(updates.priority)) {
+             console.error(`UPDATE-TASK: Invalid priority value: ${updates.priority}`);
+             return { statusCode: 400, body: JSON.stringify({ error: `Invalid priority value: ${updates.priority}` }) };
+         }
+         // Add other validation as needed (e.g., for notes length, text format etc.)
+         // --- End Validation ---
 
-        console.log(`Updating task ${id} with:`, updates);
+
+        console.log(`UPDATE-TASK: Updating task ${id} with:`, updates);
         const { data, error } = await supabase
-            .from('tasks') // Your table name
+            .from('tasks')
             .update(updates)
-            .eq('id', id) // Specify which task to update
-            .select() // Select the updated row
-            .single(); // Expecting one row back
+            .eq('id', id)
+            .select()
+            .single();
 
         if (error) {
-            console.error('Supabase update error:', error);
-             if (error.code === 'PGRST116') { // PostgREST code for "Resource Not Found"
+            console.error('UPDATE-TASK: Supabase update error:', error);
+             if (error.code === 'PGRST116') {
                  return { statusCode: 404, body: JSON.stringify({ error: 'Task not found', id: id }) };
              }
-            return { statusCode: 500, body: JSON.stringify({ error: 'Failed to update task', details: error.message }) };
+            return { statusCode: 500, body: JSON.stringify({ error: 'Failed to update task in database', details: error.message, code: error.code }) };
         }
 
-        // Supabase returns the updated data in the 'data' variable if .select() is used
         if (!data) {
-             // This case might occur if RLS prevents seeing the updated row even after successful update
-             console.warn(`Update might have succeeded but no data returned for task ${id}. Check RLS.`);
-             // Returning 200 but with a warning might be better than 404 if the update likely worked
+             console.warn(`UPDATE-TASK: Update successful but no data returned for task ${id}. Check RLS.`);
              return { statusCode: 200, body: JSON.stringify({ message: 'Update successful but no data returned', id: id }) };
         }
 
-        console.log("Task updated successfully:", data);
+        console.log("UPDATE-TASK: Task updated successfully:", data);
         return {
             statusCode: 200,
-            body: JSON.stringify(data), // Send the updated task back
+            body: JSON.stringify(data),
             headers: { 'Content-Type': 'application/json' },
         };
     } catch (err) {
-        console.error('Function execution error:', err);
+        console.error('UPDATE-TASK: Function execution error:', err);
          if (err instanceof SyntaxError) {
              return { statusCode: 400, body: JSON.stringify({ error: 'Invalid JSON format in request body.' }) };
          }
