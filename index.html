@@ -27,47 +27,12 @@
         .task-edit-input { padding: 2px 4px; border: 1px solid #93c5fd; border-radius: 4px; margin-right: 5px; background-color: #eff6ff; }
         /* Hide elements */
         .hidden { display: none; }
-
-        /* --- Task Card Metadata and Actions Row --- */
-        .task-meta-row {
-            display: flex;
-            flex-wrap: wrap; /* Allow wrapping on very small screens */
-            align-items: center; /* Align items vertically */
-            justify-content: space-between; /* Distribute space */
-            margin-top: 6px; /* Space above this row */
-            gap: 6px; /* Space between items */
-        }
-        .task-meta-info { /* Added by/on text */
-             font-size: 0.75rem; color: #4b5563;
-             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-             flex-shrink: 1; /* Allow shrinking */
-             margin-right: auto; /* Push buttons to the right */
-        }
-        .task-priority-select {
-            font-size: 0.7rem; padding: 0px 2px; border-radius: 4px;
-            border: 1px solid #9ca3af; background-color: #f9fafb;
-            flex-shrink: 0; /* Don't shrink priority select */
-        }
-        .task-actions { /* Container for all action buttons */
-            display: flex;
-            align-items: center;
-            gap: 4px; /* Space between buttons */
-            flex-shrink: 0; /* Don't shrink button group */
-        }
-        .action-btn { /* Individual action button style */
-             background: none; border: none; padding: 0; cursor: pointer;
-             font-size: 0.9rem; line-height: 1;
-             display: flex; /* Needed for vertical alignment if needed */
-             align-items: center;
-        }
-        .edit-mode-buttons { /* Container for save/cancel */
-            display: flex; gap: 4px;
-        }
-         /* --- End Task Card Styles --- */
-
+        /* Style for task metadata */
+        .task-meta-row { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; gap: 8px; }
+        .task-meta-info { font-size: 0.75rem; color: #4b5563; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 1; }
+        .task-priority-select { font-size: 0.7rem; padding: 0px 2px; border-radius: 4px; border: 1px solid #9ca3af; background-color: #f9fafb; flex-shrink: 0; }
         /* Task text style */
-        .task-text { color: #1f2937; display: block; margin-bottom: 4px;} /* Ensure block display */
-
+        .task-text { color: #1f2937; }
         /* Style for navigation buttons */
         .nav-button { padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; transition: background-color 0.15s ease-in-out; cursor: pointer; }
         /* Style for confirmation/cooldown message */
@@ -91,14 +56,37 @@
         .task:hover .task-notes { opacity: 1; visibility: visible; }
         /* --- End Hover Notes Styles --- */
 
+        /* Style for action buttons (individual) */
+        .action-btn { background: none; border: none; padding: 0; cursor: pointer; font-size: 0.9rem; line-height: 1; }
+         /* Container for buttons - vertical */
+        .task-buttons { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        /* Style for save/cancel buttons in edit mode */
+         .edit-mode-buttons { display: flex; flex-direction: row; gap: 4px; margin-top: 4px; }
+         /* Ensure task content and buttons align nicely */
+         .task { align-items: flex-start; }
+
          /* Header Layout */
          #mainHeader {
-             position: relative; padding-bottom: 1rem; display: flex;
-             align-items: flex-start; justify-content: center;
+             position: relative;
+             padding-bottom: 1rem;
+             display: flex;
+             align-items: flex-start;
+             justify-content: center;
          }
-         #taskSummaryContainerBoard { position: absolute; top: 0; left: 0; }
-         #mainTitle { flex-grow: 1; text-align: center; }
-         #changePinBtn { position: absolute; top: 0; right: 0; }
+         #taskSummaryContainerBoard {
+             position: absolute;
+             top: 0;
+             left: 0;
+         }
+         #mainTitle {
+             flex-grow: 1;
+             text-align: center;
+         }
+         #changePinBtn { /* Position change pin button */
+             position: absolute;
+             top: 0;
+             right: 0;
+         }
 
     </style>
 </head>
@@ -298,6 +286,8 @@
             } catch (error) { /* Handled by apiCall */ }
         }
 
+        // Removed generateId function
+
         async function updateTaskPriority(taskId, newPriority) {
              try {
                  await apiCall('update-task', 'POST', { id: taskId, updates: { priority: newPriority } });
@@ -327,75 +317,45 @@
             }
         }
 
-        /**
-         * Moves a task directly to the 'Done' column.
-         * @param {string} taskId - The ID of the task to mark as done.
-         */
         async function markTaskDone(taskId) {
              console.log(`Marking task ${taskId} as done.`);
-             let taskToMove = null;
-             let originalColumnId = '';
-             let originalIndex = -1;
-
-             // Find the task and its original location
+             let taskToMove = null; let originalColumnId = ''; let originalIndex = -1;
              for (const colId in tasks) {
                  originalIndex = tasks[colId].findIndex(task => task.id === taskId);
-                 if (originalIndex > -1) {
-                     originalColumnId = colId;
-                     taskToMove = tasks[colId][originalIndex];
-                     break;
-                 }
+                 if (originalIndex > -1) { originalColumnId = colId; taskToMove = tasks[colId][originalIndex]; break; }
              }
-
-             if (!taskToMove || originalColumnId === 'done') {
-                 console.log("Task not found or already in Done column.");
-                 return; // Task not found or already done
-             }
-
-             // --- Optimistic UI Update ---
-             tasks[originalColumnId].splice(originalIndex, 1); // Remove from old column
-             if (!tasks.done) tasks.done = []; // Ensure 'done' array exists
-             taskToMove.status = 'done'; // Update status locally
-             tasks.done.push(taskToMove); // Add to 'done' column locally
-             renderBoard(); // Re-render immediately
-             updateTaskSummary();
-             triggerConfetti(); // Show confetti optimistically
-             // --- End Optimistic Update ---
-
-             // --- Backend Update ---
+             if (!taskToMove || originalColumnId === 'done') { console.log("Task not found or already in Done column."); return; }
+             // Optimistic UI Update
+             tasks[originalColumnId].splice(originalIndex, 1);
+             if (!tasks.done) tasks.done = [];
+             taskToMove.status = 'done';
+             tasks.done.push(taskToMove);
+             renderBoard(); updateTaskSummary(); triggerConfetti();
+             // Backend Update
              try {
                  await apiCall('update-task', 'POST', { id: taskId, updates: { status: 'done' } });
                  console.log(`Task ${taskId} status updated to done in backend.`);
              } catch (error) {
                   console.error(`Failed to update task ${taskId} status to done in backend:`, error);
                   alert("Failed to mark task as done. Reverting.");
-                  // --- Rollback UI on error ---
+                  // Rollback UI
                   const newIndex = tasks.done.findIndex(task => task.id === taskId);
-                  if (newIndex > -1) tasks.done.splice(newIndex, 1); // Remove from 'done'
-                  taskToMove.status = originalColumnId; // Revert status
+                  if (newIndex > -1) tasks.done.splice(newIndex, 1);
+                  taskToMove.status = originalColumnId;
                   if (!tasks[originalColumnId]) tasks[originalColumnId] = [];
-                  tasks[originalColumnId].splice(originalIndex, 0, taskToMove); // Insert back
-                  renderBoard(); // Re-render to show rollback
-                  updateTaskSummary();
-                  // --- End Rollback ---
+                  tasks[originalColumnId].splice(originalIndex, 0, taskToMove);
+                  renderBoard(); updateTaskSummary();
              }
         }
 
-
-        /**
-         * Creates the HTML element for a task with updated horizontal actions row.
-         * @param {object} task - The task object { id, text, name, createdAt, priority, notes }.
-         * @returns {HTMLElement} The task card element.
-         */
         function createTaskElement(task) {
             const div = document.createElement('div');
             div.id = task.id;
-            div.className = 'task relative bg-blue-200 p-3 rounded-md shadow-sm border border-blue-300 flex flex-col'; // Use flex-col for main layout
+            div.className = 'task relative bg-blue-200 p-3 rounded-md shadow-sm border border-blue-300 flex flex-col';
             div.draggable = true;
             div.addEventListener('dragstart', dragStart);
             div.addEventListener('dragend', dragEnd);
 
-            // --- Top section: Text and Edit Input ---
             const topSection = document.createElement('div');
             const contentSpan = document.createElement('span');
             contentSpan.className = 'task-text block text-gray-800';
@@ -406,20 +366,16 @@
             editInput.value = task.text;
             editInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') saveTaskEdit(task.id); });
             topSection.appendChild(contentSpan);
-            topSection.appendChild(editInput); // Edit input is part of the text flow
-            // --- End Top section ---
+            topSection.appendChild(editInput);
 
-            // --- Bottom section: Meta Info and Actions ---
             const bottomSection = document.createElement('div');
-            bottomSection.className = 'task-meta-row mt-2'; // Use flex row, add margin-top
-
+            bottomSection.className = 'task-meta-row mt-2';
             const metaInfoSpan = document.createElement('span');
-            metaInfoSpan.className = 'task-meta-info'; // Takes available space on left
+            metaInfoSpan.className = 'task-meta-info';
             metaInfoSpan.textContent = `Added by: ${task.name || 'Unknown'} on ${formatDate(task.createdAt)}`;
-
             const prioritySelect = document.createElement('select');
             prioritySelect.id = `priority-${task.id}`;
-            prioritySelect.className = 'task-priority-select'; // Styles the select
+            prioritySelect.className = 'task-priority-select';
             prioritySelect.onchange = (event) => updateTaskPriority(task.id, event.target.value);
             PRIORITIES.forEach(p => {
                 const option = document.createElement('option');
@@ -427,48 +383,34 @@
                 if (p === task.priority) option.selected = true;
                 prioritySelect.appendChild(option);
             });
-
-            // --- Action Buttons Group ---
             const buttonContainer = document.createElement('div');
-            buttonContainer.className = 'task-actions'; // Flex row for buttons
-
+            buttonContainer.className = 'task-actions';
             const editBtn = document.createElement('button');
             editBtn.innerHTML = '✏️';
             editBtn.className = 'action-btn text-blue-600 hover:text-blue-800';
             editBtn.title = 'Edit Task Description';
             editBtn.onclick = () => startEditTask(task.id);
-
             const noteBtn = document.createElement('button');
             noteBtn.innerHTML = '📝';
             noteBtn.className = 'action-btn text-purple-600 hover:text-purple-800';
             noteBtn.title = task.notes ? 'Edit Note' : 'Add Note';
             noteBtn.onclick = () => editTaskNotes(task.id);
-
             const deleteBtn = document.createElement('button');
             deleteBtn.textContent = '×';
             deleteBtn.className = 'action-btn text-red-500 hover:text-red-700 font-bold text-lg leading-none';
             deleteBtn.title = 'Delete Task';
             deleteBtn.onclick = () => deleteTask(task.id);
-
-            const doneBtn = document.createElement('button'); // New Done Button
-            doneBtn.innerHTML = '✅'; // Checkmark icon
+            const doneBtn = document.createElement('button');
+            doneBtn.innerHTML = '✅';
             doneBtn.className = 'action-btn text-green-600 hover:text-green-800';
             doneBtn.title = 'Mark as Done';
             doneBtn.onclick = () => markTaskDone(task.id);
-
-            // Append standard buttons
             buttonContainer.appendChild(editBtn);
             buttonContainer.appendChild(noteBtn);
             buttonContainer.appendChild(deleteBtn);
-            // Append Done button only if task is not already in 'done' column
-            if (task.status !== 'done') {
-                buttonContainer.appendChild(doneBtn);
-            }
-            // --- End Action Buttons Group ---
-
-            // --- Edit Mode Buttons (Save/Cancel) ---
+            if (task.status !== 'done') { buttonContainer.appendChild(doneBtn); }
             const editModeButtonContainer = document.createElement('div');
-            editModeButtonContainer.className = 'edit-mode-buttons hidden'; // Initially hidden
+            editModeButtonContainer.className = 'edit-mode-buttons hidden';
             const saveBtn = document.createElement('button');
             saveBtn.innerHTML = '💾';
             saveBtn.className = 'action-btn text-blue-600 hover:text-blue-800';
@@ -481,52 +423,41 @@
             cancelBtn.onclick = () => cancelTaskEdit(task.id);
             editModeButtonContainer.appendChild(saveBtn);
             editModeButtonContainer.appendChild(cancelBtn);
-            // --- End Edit Mode Buttons ---
-
-
-            // Assemble the bottom row
             bottomSection.appendChild(metaInfoSpan);
             bottomSection.appendChild(prioritySelect);
-            bottomSection.appendChild(buttonContainer); // Add the container with standard buttons
-            bottomSection.appendChild(editModeButtonContainer); // Add the container for edit mode buttons
+            bottomSection.appendChild(buttonContainer);
+            bottomSection.appendChild(editModeButtonContainer);
 
-            // --- Hover Notes Element ---
             const notesDiv = document.createElement('div');
             notesDiv.className = 'task-notes';
             notesDiv.textContent = task.notes || '';
             if (!task.notes) notesDiv.classList.add('hidden');
-            // --- End Hover Notes Element ---
 
-
-            // Assemble the main task card
             div.appendChild(topSection);
             div.appendChild(bottomSection);
-            div.appendChild(notesDiv); // Notes div is positioned absolutely relative to main div
+            div.appendChild(notesDiv);
 
-            // Handle visibility for edit mode
             if (currentlyEditingTaskId === task.id) {
                 div.draggable = false;
                 contentSpan.classList.add('hidden');
                 editInput.classList.remove('hidden');
-                // Hide the entire bottom row during text edit
-                bottomSection.classList.add('hidden');
-                // Ensure edit mode buttons are shown (they are inside bottomSection, but we'll handle visibility separately)
-                // We need to show save/cancel *instead* of the normal buttons
-                buttonContainer.classList.add('hidden'); // Hide standard buttons container
-                editModeButtonContainer.classList.remove('hidden'); // Show save/cancel container
-                // Since editModeButtonContainer is inside bottomSection which is hidden,
-                // we need to append it directly to the task div during edit mode.
-                // Let's rethink: Keep bottomSection visible, hide elements *within* it.
+                bottomSection.classList.add('hidden'); // Hide entire bottom row
+                buttonContainer.classList.add('hidden');
+                editModeButtonContainer.classList.remove('hidden'); // Show save/cancel
+                 // Need to re-append editModeButtonContainer outside bottomSection if bottom is hidden
+                 // Let's adjust: keep bottomSection, hide elements inside it
                  metaInfoSpan.classList.add('hidden');
                  prioritySelect.classList.add('hidden');
-                 buttonContainer.classList.add('hidden'); // Hide standard action buttons
-                 editModeButtonContainer.classList.remove('hidden'); // Show save/cancel
+                 buttonContainer.classList.add('hidden');
+                 editModeButtonContainer.classList.remove('hidden');
+                 // Ensure bottom section itself isn't hidden by mistake
+                 bottomSection.classList.remove('hidden');
+
 
                 setTimeout(() => editInput.focus(), 0);
             }
             return div;
         }
-
 
         function renderBoard() {
              if (boardPage.classList.contains('hidden')) return;
