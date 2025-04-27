@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jay's To Do List</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="/favicon.ico" sizes="any"> <link rel="icon" href="/favicon.svg" type="image/svg+xml"> <link rel="apple-touch-icon" href="/apple-touch-icon.png"> <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <style>
         /* Basic styling for draggable elements */
@@ -57,30 +57,11 @@
         /* --- End Hover Notes Styles --- */
 
         /* Style for action buttons (individual) */
-        .action-btn {
-            background: none; border: none; padding: 0; cursor: pointer;
-            font-size: 0.9rem; line-height: 1; display: flex; align-items: center;
-            /* --- Hide buttons by default --- */
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
-        }
-         /* --- Show buttons on task hover --- */
-        .task:hover .task-actions > .action-btn {
-            opacity: 1;
-            visibility: visible;
-        }
-        /* --- End Hover Button Styles --- */
-
+        .action-btn { background: none; border: none; padding: 0; cursor: pointer; font-size: 0.9rem; line-height: 1; display: flex; align-items: center;}
          /* Container for action buttons in the meta row */
         .task-actions { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
         /* Style for save/cancel buttons in edit mode */
          .edit-mode-buttons { display: flex; gap: 4px; }
-         /* Ensure save/cancel buttons in edit mode are always visible when not hidden by JS */
-         .task .edit-mode-buttons .action-btn {
-             opacity: 1;
-             visibility: visible;
-         }
          /* Ensure task content and buttons align nicely */
          .task { align-items: flex-start; flex-direction: column; }
          .task > div:first-child { width: 100%; }
@@ -303,6 +284,8 @@
             } catch (error) { /* Handled by apiCall */ }
         }
 
+        // Removed generateId function
+
         async function updateTaskPriority(taskId, newPriority) {
              try {
                  await apiCall('update-task', 'POST', { id: taskId, updates: { priority: newPriority } });
@@ -398,46 +381,34 @@
                 if (p === task.priority) option.selected = true;
                 prioritySelect.appendChild(option);
             });
-
-            // Container for action buttons (Edit, Note, Delete, Done)
             const buttonContainer = document.createElement('div');
-            buttonContainer.className = 'task-actions'; // Uses flex
-
+            buttonContainer.className = 'task-actions';
             const editBtn = document.createElement('button');
             editBtn.innerHTML = '✏️';
             editBtn.className = 'action-btn text-blue-600 hover:text-blue-800';
             editBtn.title = 'Edit Task Description';
             editBtn.onclick = () => startEditTask(task.id);
-
             const noteBtn = document.createElement('button');
             noteBtn.innerHTML = '📝';
             noteBtn.className = 'action-btn text-purple-600 hover:text-purple-800';
             noteBtn.title = task.notes ? 'Edit Note' : 'Add Note';
             noteBtn.onclick = () => editTaskNotes(task.id);
-
             const deleteBtn = document.createElement('button');
             deleteBtn.textContent = '×';
             deleteBtn.className = 'action-btn text-red-500 hover:text-red-700 font-bold text-lg leading-none';
             deleteBtn.title = 'Delete Task';
             deleteBtn.onclick = () => deleteTask(task.id);
-
             const doneBtn = document.createElement('button');
             doneBtn.innerHTML = '✅';
             doneBtn.className = 'action-btn text-green-600 hover:text-green-800';
             doneBtn.title = 'Mark as Done';
             doneBtn.onclick = () => markTaskDone(task.id);
-
-            // Append standard buttons to their container
             buttonContainer.appendChild(editBtn);
             buttonContainer.appendChild(noteBtn);
             buttonContainer.appendChild(deleteBtn);
-            if (task.status !== 'done') { // Show Done tick unless already done
-                buttonContainer.appendChild(doneBtn);
-            }
-
-            // Container for Save/Cancel buttons (only shown in edit mode)
+            if (task.status !== 'done') { buttonContainer.appendChild(doneBtn); }
             const editModeButtonContainer = document.createElement('div');
-            editModeButtonContainer.className = 'edit-mode-buttons hidden'; // Start hidden
+            editModeButtonContainer.className = 'edit-mode-buttons hidden';
             const saveBtn = document.createElement('button');
             saveBtn.innerHTML = '💾';
             saveBtn.className = 'action-btn text-blue-600 hover:text-blue-800';
@@ -450,12 +421,10 @@
             cancelBtn.onclick = () => cancelTaskEdit(task.id);
             editModeButtonContainer.appendChild(saveBtn);
             editModeButtonContainer.appendChild(cancelBtn);
-
-            // Assemble the bottom row
             bottomSection.appendChild(metaInfoSpan);
             bottomSection.appendChild(prioritySelect);
-            bottomSection.appendChild(buttonContainer); // Add standard buttons
-            bottomSection.appendChild(editModeButtonContainer); // Add hidden save/cancel buttons
+            bottomSection.appendChild(buttonContainer);
+            bottomSection.appendChild(editModeButtonContainer);
 
             const notesDiv = document.createElement('div');
             notesDiv.className = 'task-notes';
@@ -466,21 +435,20 @@
             div.appendChild(bottomSection);
             div.appendChild(notesDiv);
 
-            // Handle visibility for edit mode
             if (currentlyEditingTaskId === task.id) {
                 div.draggable = false;
                 contentSpan.classList.add('hidden');
                 editInput.classList.remove('hidden');
-                metaInfoSpan.classList.add('hidden');
-                prioritySelect.classList.add('hidden');
-                buttonContainer.classList.add('hidden'); // Hide standard buttons
-                editModeButtonContainer.classList.remove('hidden'); // Show save/cancel
-                bottomSection.classList.remove('hidden'); // Ensure bottom row stays visible
+                 metaInfoSpan.classList.add('hidden');
+                 prioritySelect.classList.add('hidden');
+                 buttonContainer.classList.add('hidden');
+                 editModeButtonContainer.classList.remove('hidden');
+                 bottomSection.classList.remove('hidden');
+
                 setTimeout(() => editInput.focus(), 0);
             }
             return div;
         }
-
 
         function renderBoard() {
              if (boardPage.classList.contains('hidden')) return;
