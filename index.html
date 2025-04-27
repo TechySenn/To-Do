@@ -77,7 +77,7 @@
          }
          #taskSummaryContainerBoard { position: absolute; top: 0; left: 0; }
          #mainTitle { flex-grow: 1; text-align: center; }
-         #changePinBtn { position: absolute; top: 0; right: 0; }
+         /* Removed #changePinBtn absolute positioning */
 
     </style>
 </head>
@@ -89,8 +89,7 @@
                  <div id="taskSummaryBoard" class="flex items-center space-x-2"></div>
              </div>
              <h1 id="mainTitle" class="text-3xl font-bold text-gray-800">Jay's To Do List</h1>
-             <button id="changePinBtn" class="action-btn text-sm text-blue-600 hover:text-blue-800 underline hidden">Change Pin</button>
-        </div>
+             </div>
         <div class="text-center mb-6 space-x-4">
             <button id="showInputPageBtn" class="nav-button bg-blue-500 hover:bg-blue-600 text-white">Add New Task</button>
             <button id="showBoardPageBtn" class="nav-button bg-indigo-500 hover:bg-indigo-600 text-white">View Board</button>
@@ -174,7 +173,8 @@
         const boardPage = document.getElementById('boardPage');
         const showInputPageBtn = document.getElementById('showInputPageBtn');
         const showBoardPageBtn = document.getElementById('showBoardPageBtn');
-        const changePinBtn = document.getElementById('changePinBtn');
+        // Removed changePinBtn variable
+        // const changePinBtn = document.getElementById('changePinBtn');
 
         // --- State ---
         let tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };
@@ -252,7 +252,7 @@
                 boardPage.classList.add('hidden');
                 taskSummaryBoardContainer.classList.add('hidden');
                 taskSummaryInputContainer.classList.remove('hidden');
-                changePinBtn.classList.add('hidden');
+                // changePinBtn.classList.add('hidden'); // Removed
                 showInputPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500');
                 showInputPageBtn.classList.replace('hover:bg-indigo-600', 'hover:bg-blue-600');
                 showBoardPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500');
@@ -262,7 +262,7 @@
                 boardPage.classList.remove('hidden');
                 taskSummaryInputContainer.classList.add('hidden');
                 taskSummaryBoardContainer.classList.remove('hidden');
-                changePinBtn.classList.remove('hidden');
+                // changePinBtn.classList.remove('hidden'); // Removed
                 renderBoard();
                 updateTaskSummary();
                 showInputPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500');
@@ -272,23 +272,9 @@
             }
         }
 
-        async function changePinCode() {
-            const currentPin = prompt("Enter the CURRENT pin code:");
-            if (currentPin === null) return;
-            const newPin1 = prompt("Enter the NEW pin code:");
-            if (newPin1 === null) return;
-             if (!newPin1 || newPin1.trim().length === 0) { alert("New pin cannot be empty."); return; }
-            const newPin2 = prompt("Confirm the NEW pin code:");
-            if (newPin2 === null) return;
-            if (newPin1 !== newPin2) { alert("New pin codes do not match. Pin not changed."); return; }
-            try {
-                 const result = await apiCall('update-pin', 'POST', { currentPin: currentPin, newPin: newPin1 });
-                 alert(result.message || "Pin update processed.");
-            } catch (error) { /* Handled by apiCall */ }
-        }
+        // Removed changePinCode function
 
         // Removed generateId function
-        // Removed validatePin function
 
         async function updateTaskPriority(taskId, newPriority) {
              try {
@@ -684,7 +670,7 @@
                  }
             } catch (error) { /* Handled by apiCall */ }
         });
-        changePinBtn.addEventListener('click', changePinCode);
+        // Removed event listener for changePinBtn
 
         document.addEventListener('DOMContentLoaded', async () => {
              showPage('inputPage');
