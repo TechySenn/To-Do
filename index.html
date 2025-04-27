@@ -13,8 +13,8 @@
         }
         /* Ensure columns take up height */
         .kanban-column .tasks-container {
-             min-height: 400px; /* Adjusted height for 2x2 layout */
-             max-height: 65vh; /* Adjusted height */
+             min-height: 500px;
+             max-height: 75vh;
         }
         /* Style for the confetti canvas */
         #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
@@ -28,7 +28,7 @@
         /* Hide elements */
         .hidden { display: none; }
         /* Style for task metadata */
-        .task-meta-row { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; gap: 6px; flex-wrap: wrap; } /* Added wrap */
+        .task-meta-row { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; gap: 6px; flex-wrap: wrap; }
         .task-meta-info { font-size: 0.75rem; color: #4b5563; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 1; margin-right: auto;}
         .task-priority-select { font-size: 0.7rem; padding: 0px 2px; border-radius: 4px; border: 1px solid #9ca3af; background-color: #f9fafb; flex-shrink: 0; }
         /* Task text style */
@@ -61,10 +61,10 @@
          /* Container for action buttons in the meta row */
         .task-actions { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
         /* Style for save/cancel buttons in edit mode */
-         .edit-mode-buttons { display: flex; gap: 4px; } /* Kept horizontal */
+         .edit-mode-buttons { display: flex; gap: 4px; }
          /* Ensure task content and buttons align nicely */
-         .task { align-items: flex-start; flex-direction: column; } /* Main task layout: vertical */
-         .task > div:first-child { width: 100%; } /* Ensure text container takes full width */
+         .task { align-items: flex-start; flex-direction: column; }
+         .task > div:first-child { width: 100%; }
 
 
          /* Header Layout */
@@ -96,6 +96,7 @@
         <div id="inputPage" class="">
             <h2 class="text-2xl font-semibold text-center text-blue-800 mb-2">Add a New Task</h2>
             <p class="text-center text-sm text-gray-600 mb-4">Please advise below what you require, this will be added to Jay's To-Do list.</p>
+
             <div class="p-6 bg-white rounded-lg shadow flex flex-col items-center space-y-4 max-w-lg mx-auto mb-6">
                 <div class="w-full">
                     <label for="newTaskInput" class="block text-sm font-medium text-gray-700 mb-1">Task Description:</label>
@@ -110,31 +111,35 @@
                 </button>
                  <p id="addTaskMessage" class="text-gray-500 text-sm mt-2 h-5 text-center"></p>
              </div>
+
              <div id="taskSummaryContainerInput" class="text-center mb-4">
                  <div id="taskSummaryInput"></div>
             </div>
         </div>
 
         <div id="boardPage" class="hidden">
-             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 <div id="todo" class="kanban-column bg-blue-100 rounded-lg shadow p-4" ondragover="allowDrop(event)" ondrop="drop(event)">
-                    <h2 class="text-xl font-semibold text-blue-800 mb-4 border-b border-blue-300 pb-2">To Do</h2>
-                    <div class="tasks-container space-y-3 overflow-y-auto p-1"></div>
-                 </div>
-                 <div id="inprogress" class="kanban-column bg-blue-100 rounded-lg shadow p-4" ondragover="allowDrop(event)" ondrop="drop(event)">
-                    <h2 class="text-xl font-semibold text-blue-800 mb-4 border-b border-blue-300 pb-2">In Progress</h2>
-                    <div class="tasks-container space-y-3 overflow-y-auto p-1"></div>
-                 </div>
-                 <div id="nonurgent" class="kanban-column bg-gray-100 rounded-lg shadow p-4" ondragover="allowDrop(event)" ondrop="drop(event)"> {/* Added new column */}
-                    <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b border-gray-300 pb-2">Non Urgent</h2> {/* Styled differently */}
-                    <div class="tasks-container space-y-3 overflow-y-auto p-1"></div>
-                 </div>
-                 <div id="done" class="kanban-column bg-green-100 rounded-lg shadow p-4" ondragover="allowDrop(event)" ondrop="drop(event)"> {/* Changed color slightly */}
-                    <h2 class="text-xl font-semibold text-green-800 mb-4 border-b border-green-300 pb-2">Done</h2>
-                    <div class="tasks-container space-y-3 overflow-y-auto p-1"></div>
-                 </div>
-             </div>
-             </div>
+             <div class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="kanbanBoardTopRow">
+                    <div id="todo" class="kanban-column bg-blue-100 rounded-lg shadow p-4" ondragover="allowDrop(event)" ondrop="drop(event)">
+                        <h2 class="text-xl font-semibold text-blue-800 mb-4 border-b border-blue-300 pb-2">To Do</h2>
+                        <div class="tasks-container space-y-3 overflow-y-auto p-1"></div>
+                    </div>
+                    <div id="inprogress" class="kanban-column bg-blue-100 rounded-lg shadow p-4" ondragover="allowDrop(event)" ondrop="drop(event)">
+                        <h2 class="text-xl font-semibold text-blue-800 mb-4 border-b border-blue-300 pb-2">In Progress</h2>
+                        <div class="tasks-container space-y-3 overflow-y-auto p-1"></div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="kanbanBoardBottomRow"> <div id="nonurgent" class="kanban-column bg-gray-100 rounded-lg shadow p-4" ondragover="allowDrop(event)" ondrop="drop(event)">
+                        <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b border-gray-300 pb-2">Non Urgent</h2>
+                        <div class="tasks-container space-y-3 overflow-y-auto p-1"></div>
+                     </div>
+                     <div id="done" class="kanban-column bg-green-100 rounded-lg shadow p-4" ondragover="allowDrop(event)" ondrop="drop(event)">
+                        <h2 class="text-xl font-semibold text-green-800 mb-4 border-b border-green-300 pb-2">Done</h2>
+                        <div class="tasks-container space-y-3 overflow-y-auto p-1"></div>
+                     </div>
+                </div>
+            </div>
+            </div>
     </div>
 
     <canvas id="confetti-canvas"></canvas>
@@ -147,7 +152,6 @@
         const DEFAULT_PRIORITY = "New";
         const PRIORITY_VALUES = { "New": 4, "High": 3, "Medium": 2, "Low": 1 };
         const FUNCTION_BASE_PATH = '/.netlify/functions/';
-        // Add 'nonurgent' to valid statuses
         const VALID_STATUSES = ['todo', 'inprogress', 'nonurgent', 'done'];
 
         // --- DOM Elements ---
@@ -159,7 +163,7 @@
         const taskSummaryInput = document.getElementById('taskSummaryInput');
         const taskSummaryBoardContainer = document.getElementById('taskSummaryContainerBoard');
         const taskSummaryBoard = document.getElementById('taskSummaryBoard');
-        const columns = document.querySelectorAll('.kanban-column .tasks-container'); // Keep for clearing/rendering
+        const columns = document.querySelectorAll('.kanban-column .tasks-container');
         const confettiCanvas = document.getElementById('confetti-canvas');
         const myConfetti = confetti.create(confettiCanvas, { resize: true, useWorker: true });
         const inputPage = document.getElementById('inputPage');
@@ -169,7 +173,6 @@
         const changePinBtn = document.getElementById('changePinBtn');
 
         // --- State ---
-        // Initialize state with the new column
         let tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };
         let draggedTask = null;
         let currentlyEditingTaskId = null;
@@ -211,11 +214,15 @@
             return `${day}/${month}/${year}`;
         }
 
-        // Update summary - still only shows To Do / In Progress unless changed
+        /**
+         * Updates the task count summary, now including Non Urgent.
+         */
         function updateTaskSummary() {
             const todoCount = tasks.todo?.length || 0;
             const inProgressCount = tasks.inprogress?.length || 0;
-            // Optionally add nonUrgentCount = tasks.nonurgent?.length || 0;
+            const nonUrgentCount = tasks.nonurgent?.length || 0; // Get Non Urgent count
+
+            // HTML for the badges
             const summaryBadgesHTML = `
                 <div class="text-center">
                     <span class="summary-count bg-blue-200 text-blue-800">${todoCount}</span>
@@ -225,7 +232,12 @@
                     <span class="summary-count bg-blue-200 text-blue-800">${inProgressCount}</span>
                     <span class="block text-xs text-gray-500 mt-1">In Progress</span>
                 </div>
-                 `;
+                <div class="text-center"> {/* Added Non Urgent Badge */}
+                    <span class="summary-count bg-gray-200 text-gray-700">${nonUrgentCount}</span>
+                    <span class="block text-xs text-gray-500 mt-1">Non Urgent</span>
+                </div>
+            `;
+             // HTML for input page summary (includes heading)
              const summaryInputHTML = `
                 <h3 class="text-lg font-medium text-gray-700 mb-2">Current Task Summary</h3>
                 <div class="flex justify-center items-center space-x-4">
@@ -233,8 +245,9 @@
                 </div>
             `;
             if (taskSummaryInputContainer) taskSummaryInputContainer.innerHTML = summaryInputHTML;
-            if (taskSummaryBoard) taskSummaryBoard.innerHTML = summaryBadgesHTML;
+            if (taskSummaryBoard) taskSummaryBoard.innerHTML = summaryBadgesHTML; // Update board summary content
         }
+
 
         function showPage(pageToShowId) {
             if (pageToShowId === 'inputPage') {
@@ -337,11 +350,6 @@
              }
         }
 
-        /**
-         * Creates the HTML element for a task with updated horizontal actions row.
-         * @param {object} task - The task object { id, text, name, createdAt, priority, notes }.
-         * @returns {HTMLElement} The task card element.
-         */
         function createTaskElement(task) {
             const div = document.createElement('div');
             div.id = task.id;
@@ -363,12 +371,10 @@
             topSection.appendChild(editInput);
 
             const bottomSection = document.createElement('div');
-            bottomSection.className = 'task-meta-row mt-2'; // Flex row for meta + actions
-
+            bottomSection.className = 'task-meta-row mt-2';
             const metaInfoSpan = document.createElement('span');
             metaInfoSpan.className = 'task-meta-info';
             metaInfoSpan.textContent = `Added by: ${task.name || 'Unknown'} on ${formatDate(task.createdAt)}`;
-
             const prioritySelect = document.createElement('select');
             prioritySelect.id = `priority-${task.id}`;
             prioritySelect.className = 'task-priority-select';
@@ -379,45 +385,35 @@
                 if (p === task.priority) option.selected = true;
                 prioritySelect.appendChild(option);
             });
-
-            // --- Action Buttons Group ---
             const buttonContainer = document.createElement('div');
-            buttonContainer.className = 'task-actions'; // Flex row for buttons
-
+            buttonContainer.className = 'task-actions';
             const editBtn = document.createElement('button');
             editBtn.innerHTML = '✏️';
             editBtn.className = 'action-btn text-blue-600 hover:text-blue-800';
             editBtn.title = 'Edit Task Description';
             editBtn.onclick = () => startEditTask(task.id);
-
             const noteBtn = document.createElement('button');
             noteBtn.innerHTML = '📝';
             noteBtn.className = 'action-btn text-purple-600 hover:text-purple-800';
             noteBtn.title = task.notes ? 'Edit Note' : 'Add Note';
             noteBtn.onclick = () => editTaskNotes(task.id);
-
             const deleteBtn = document.createElement('button');
             deleteBtn.textContent = '×';
             deleteBtn.className = 'action-btn text-red-500 hover:text-red-700 font-bold text-lg leading-none';
             deleteBtn.title = 'Delete Task';
             deleteBtn.onclick = () => deleteTask(task.id);
-
             const doneBtn = document.createElement('button');
             doneBtn.innerHTML = '✅';
             doneBtn.className = 'action-btn text-green-600 hover:text-green-800';
             doneBtn.title = 'Mark as Done';
             doneBtn.onclick = () => markTaskDone(task.id);
-
             buttonContainer.appendChild(editBtn);
             buttonContainer.appendChild(noteBtn);
             buttonContainer.appendChild(deleteBtn);
-            // Only show Done tick if not already in Done column
-            if (task.status !== 'done') {
-                buttonContainer.appendChild(doneBtn);
+            // Show Done button only if not already in 'done' or 'nonurgent' columns
+            if (task.status !== 'done' && task.status !== 'nonurgent') {
+                 buttonContainer.appendChild(doneBtn);
             }
-            // --- End Action Buttons Group ---
-
-            // --- Edit Mode Buttons (Save/Cancel) ---
             const editModeButtonContainer = document.createElement('div');
             editModeButtonContainer.className = 'edit-mode-buttons hidden';
             const saveBtn = document.createElement('button');
@@ -432,13 +428,10 @@
             cancelBtn.onclick = () => cancelTaskEdit(task.id);
             editModeButtonContainer.appendChild(saveBtn);
             editModeButtonContainer.appendChild(cancelBtn);
-            // --- End Edit Mode Buttons ---
-
-            // Assemble the bottom row
             bottomSection.appendChild(metaInfoSpan);
             bottomSection.appendChild(prioritySelect);
-            bottomSection.appendChild(buttonContainer); // Add the container with standard buttons
-            bottomSection.appendChild(editModeButtonContainer); // Add the container for edit mode buttons
+            bottomSection.appendChild(buttonContainer);
+            bottomSection.appendChild(editModeButtonContainer);
 
             const notesDiv = document.createElement('div');
             notesDiv.className = 'task-notes';
@@ -447,25 +440,22 @@
 
             div.appendChild(topSection);
             div.appendChild(bottomSection);
-            div.appendChild(notesDiv); // Notes div is positioned absolutely relative to main div
+            div.appendChild(notesDiv);
 
-            // Handle visibility for edit mode
             if (currentlyEditingTaskId === task.id) {
                 div.draggable = false;
                 contentSpan.classList.add('hidden');
                 editInput.classList.remove('hidden');
-                // Hide parts of the bottom row during text edit
-                metaInfoSpan.classList.add('hidden');
-                prioritySelect.classList.add('hidden');
-                buttonContainer.classList.add('hidden'); // Hide standard action buttons
-                editModeButtonContainer.classList.remove('hidden'); // Show save/cancel
-                bottomSection.classList.remove('hidden'); // Ensure bottom row itself is visible
+                 metaInfoSpan.classList.add('hidden');
+                 prioritySelect.classList.add('hidden');
+                 buttonContainer.classList.add('hidden');
+                 editModeButtonContainer.classList.remove('hidden');
+                 bottomSection.classList.remove('hidden'); // Keep bottom visible
 
                 setTimeout(() => editInput.focus(), 0);
             }
             return div;
         }
-
 
         function renderBoard() {
              if (boardPage.classList.contains('hidden')) return;
@@ -580,19 +570,17 @@
             console.log("Loading tasks...");
             try {
                 const fetchedTasks = await apiCall('get-tasks');
-                // Initialize tasks state including the new 'nonurgent' column
-                tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };
+                tasks = { todo: [], inprogress: [], nonurgent: [], done: [] }; // Reset with nonurgent
                 fetchedTasks.forEach(task => {
                     task.priority = task.priority || DEFAULT_PRIORITY;
                     task.notes = task.notes || '';
                     task.createdAt = task.created_at ? new Date(task.created_at).getTime() : 0;
                     const status = task.status || 'todo';
-                    // Ensure the status is valid before assigning
                     if (VALID_STATUSES.includes(status)) {
                         tasks[status].push(task);
                     } else {
                         console.warn(`Invalid task status "${status}" for task ID ${task.id}. Placing in 'todo'.`);
-                        tasks.todo.push(task); // Fallback to todo for unknown statuses
+                        tasks.todo.push(task);
                     }
                 });
                 console.log("Tasks loaded and processed:", tasks);
@@ -634,7 +622,7 @@
             event.preventDefault();
             if (!draggedTask) return;
             if (event.target.closest('.task')) return;
-            const targetColumnElement = event.currentTarget; // Listener is on the column div
+            const targetColumnElement = event.currentTarget;
             const targetColumnId = targetColumnElement.id;
             handleDropLogic(targetColumnId, draggedTask);
         }
@@ -643,6 +631,9 @@
              const taskId = taskElement.id;
              const sourceColumnId = taskElement.closest('.kanban-column')?.id;
              if (!sourceColumnId || sourceColumnId === targetColumnId) return;
+             if (!VALID_STATUSES.includes(targetColumnId)) {
+                 console.error(`Invalid drop target column ID: ${targetColumnId}`); return;
+             }
              let taskToMove = null; let originalIndex = -1; let originalColumnId = '';
              for (const colId in tasks) {
                  originalIndex = tasks[colId].findIndex(task => task.id === taskId);
@@ -657,10 +648,6 @@
              renderBoard(); updateTaskSummary();
              // Backend Update
              try {
-                 // Ensure the status being sent is valid
-                 if (!VALID_STATUSES.includes(targetColumnId)) {
-                     throw new Error(`Invalid target status: ${targetColumnId}`);
-                 }
                  await apiCall('update-task', 'POST', { id: taskId, updates: { status: targetColumnId } });
                  if (targetColumnId === 'done' && sourceColumnId !== 'done') triggerConfetti();
              } catch (error) {
@@ -683,7 +670,6 @@
 
         // --- Initialization ---
         addTaskBtn.addEventListener('click', addTask);
-        // Removed Enter listener from task input (now textarea)
         newTaskNameInput.addEventListener('keypress', (event) => { if (event.key === 'Enter') addTask(); });
         showInputPageBtn.addEventListener('click', () => showPage('inputPage'));
         showBoardPageBtn.addEventListener('click', async () => {
