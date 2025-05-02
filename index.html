@@ -206,7 +206,7 @@
                 </div>
 
                 <div class="flex-grow order-3 md:order-2 flex justify-center">
-                    <div class="w-full max-w-5xl"> <div class="space-y-6">
+                    <div class="w-full max-w-6xl"> <div class="space-y-6">
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6" id="kanbanBoardTopRow">
                                 <div id="todo" class="kanban-column bg-blue-100 rounded-lg shadow p-4" ondragover="allowDrop(event)" ondrop="drop(event)">
                                     <h2 class="text-xl font-semibold text-blue-800 mb-4 border-b border-blue-300 pb-2">To Do</h2>
@@ -230,7 +230,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="w-full md:w-1/4 lg:w-1/5 flex-shrink-0 order-2 md:order-3"> <div id="upcomingTasksContainer">
+                <div class="w-full md:w-1/4 lg:w-1/5 flex-shrink-0 order-2 md:order-3">
+                    <div id="upcomingTasksContainer">
                         <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Upcoming Due</h3>
                         <div id="upcomingTasksList">
                             <p class="text-xs text-gray-500 text-center italic">Loading...</p>
@@ -276,7 +277,7 @@
         const stickyNoteTextarea = document.getElementById('stickyNoteTextarea');
         const saveStickyNoteBtn = document.getElementById('saveStickyNoteBtn');
         const stickyNoteMessage = document.getElementById('stickyNoteMessage');
-        const upcomingTasksList = document.getElementById('upcomingTasksList'); // Added back
+        const upcomingTasksList = document.getElementById('upcomingTasksList');
 
         // --- State ---
         let tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };
@@ -408,7 +409,7 @@
                 renderBoard();
                 updateTaskSummary();
                 loadStickyNote();
-                renderUpcomingTasks(); // Render upcoming tasks when board is shown
+                renderUpcomingTasks();
                 showInputPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500');
                 showInputPageBtn.classList.replace('hover:bg-blue-600', 'hover:bg-indigo-600');
                 showBoardPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500');
@@ -426,7 +427,7 @@
                      if (task) { task.priority = newPriority; break; }
                  }
                  renderBoard();
-                 renderUpcomingTasks(); // Update upcoming list
+                 renderUpcomingTasks();
              } catch (error) { /* Handled by apiCall */ }
         }
 
@@ -445,7 +446,6 @@
                     await apiCall('update-task', 'POST', { id: taskId, updates: { notes: trimmedNotes } });
                     taskRef.notes = trimmedNotes;
                     renderBoard();
-                    // No need to update upcoming tasks here unless notes affect it
                 } catch (error) { /* Handled by apiCall */ }
             }
         }
@@ -460,7 +460,7 @@
                      if (task) { task.due_date = dateValueToSend; break; }
                  }
                  renderBoard();
-                 renderUpcomingTasks(); // Update upcoming list
+                 renderUpcomingTasks();
              } catch (error) { console.error("Failed to update due date in backend."); }
         }
 
@@ -479,7 +479,7 @@
              taskToMove.status = 'done';
              tasks.done.push(taskToMove);
              renderBoard(); updateTaskSummary(); triggerConfetti();
-             renderUpcomingTasks(); // Update upcoming list
+             renderUpcomingTasks();
              // Backend Update
              try {
                  await apiCall('update-task', 'POST', { id: taskId, updates: { status: 'done' } });
@@ -494,7 +494,7 @@
                   if (!tasks[originalColumnId]) tasks[originalColumnId] = [];
                   tasks[originalColumnId].splice(originalIndex, 0, taskToMove);
                   renderBoard(); updateTaskSummary();
-                  renderUpcomingTasks(); // Update upcoming list on rollback
+                  renderUpcomingTasks();
              }
         }
 
@@ -692,15 +692,19 @@
          * Renders the top 3 upcoming tasks (excluding 'Done').
          */
         function renderUpcomingTasks() {
-            if (!upcomingTasksList) return; // Exit if element doesn't exist
+            if (!upcomingTasksList) return;
 
             let allUpcoming = [];
             ['todo', 'inprogress', 'nonurgent'].forEach(status => {
                 if (tasks[status]) { allUpcoming = allUpcoming.concat(tasks[status]); }
             });
 
+            // Filter for tasks that actually have a due date set
             const tasksWithDueDate = allUpcoming.filter(task => task.due_date);
+
+            // Sort by due date (earliest first)
             tasksWithDueDate.sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
+
             const top3Tasks = tasksWithDueDate.slice(0, 3);
 
             upcomingTasksList.innerHTML = ''; // Clear previous list
@@ -710,7 +714,8 @@
                 top3Tasks.forEach(task => {
                     const taskDiv = document.createElement('div');
                     taskDiv.className = 'upcoming-task';
-                    const displayDueDate = formatDate(new Date(task.due_date)); // Use formatDate
+                    // Use formatDate which handles potential nulls (though we filtered)
+                    const displayDueDate = formatDate(task.due_date);
                     taskDiv.innerHTML = `<span class="due-date">${displayDueDate}</span> ${task.text}`;
                     upcomingTasksList.appendChild(taskDiv);
                 });
@@ -743,7 +748,7 @@
                      addedTask.due_date = addedTask.due_date || null;
                      tasks.todo.push(addedTask);
                      updateTaskSummary();
-                     renderUpcomingTasks(); // Update upcoming list
+                     renderUpcomingTasks();
                      if (!boardPage.classList.contains('hidden')) renderBoard();
                 } else { await loadTasks(); }
                 clearTimeout(successMessageTimeout); clearInterval(cooldownTimer);
@@ -778,7 +783,7 @@
                 await apiCall('delete-task', 'POST', { id: taskId });
                 for (const columnId in tasks) { tasks[columnId] = tasks[columnId].filter(task => task.id !== taskId); }
                 renderBoard(); updateTaskSummary();
-                renderUpcomingTasks(); // Update upcoming list
+                renderUpcomingTasks();
             } catch (error) { /* Handled by apiCall */ }
         }
 
@@ -801,7 +806,7 @@
                     if (task) { task.text = newText; break; }
                  }
                  currentlyEditingTaskId = null; renderBoard();
-                 renderUpcomingTasks(); // Update upcoming list
+                 renderUpcomingTasks();
             } catch (error) { currentlyEditingTaskId = null; renderBoard(); }
         }
 
