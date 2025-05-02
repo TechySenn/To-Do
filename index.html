@@ -16,42 +16,39 @@
         }
         /* Ensure columns take up height */
         .kanban-column .tasks-container {
-             min-height: 500px;
-             max-height: 70vh; /* Slightly reduced to accommodate sticky note */
+             min-height: 450px; /* Adjusted height */
+             max-height: 65vh; /* Adjusted height */
         }
         /* Sticky Note Styles */
         #stickyNoteContainer {
             background-color: #fef9c3; /* yellow-100 */
             border: 1px solid #fde68a; /* yellow-200 */
             border-radius: 8px;
-            padding: 1rem;
+            padding: 0.75rem; /* Reduced padding */
             box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
+            height: 400px; /* Fixed height, adjust as needed */
         }
          #stickyNoteTextarea {
-             flex-grow: 1; /* Take available space */
+             flex-grow: 1;
              border: 1px solid #fcd34d; /* yellow-400 */
              border-radius: 4px;
              padding: 0.5rem;
-             font-size: 0.9rem;
-             resize: none; /* Prevent manual resizing */
+             font-size: 0.85rem; /* Slightly smaller font */
+             resize: none;
              background-color: #fefce8; /* yellow-50 */
-             color: #4b5563; /* gray-600 */
-             margin-bottom: 0.5rem; /* Space before button */
-             min-height: 150px; /* Minimum height */
+             color: #4b5563;
+             margin-bottom: 0.5rem;
+             /* Removed min-height, fixed height on container */
          }
          #saveStickyNoteBtn {
-             align-self: flex-end; /* Align button to the right */
+             align-self: flex-end;
          }
-         /* Style for sticky note status message */
          #stickyNoteMessage {
-            font-size: 0.75rem;
-            margin-top: 0.25rem;
-            height: 1rem; /* Reserve space */
-            text-align: right;
+            font-size: 0.75rem; margin-top: 0.25rem;
+            height: 1rem; text-align: right;
          }
-
 
         /* Style for the confetti canvas */
         #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
@@ -190,36 +187,42 @@
         </div>
 
         <div id="boardPage" class="hidden">
-             <div class="mb-6 flex justify-center">
-                <div id="stickyNoteContainer" class="w-full md:w-1/2">
-                    <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Notes</h3>
-                    <textarea id="stickyNoteTextarea" placeholder="Write your permanent notes here..."></textarea>
-                    <button id="saveStickyNoteBtn" class="nav-button bg-yellow-500 hover:bg-yellow-600 text-yellow-900 text-sm py-1 px-3">Save Note</button>
-                    <p id="stickyNoteMessage" class="text-green-600 text-sm mt-1 h-4 text-right"></p> </div>
+             <div class="flex flex-col md:flex-row gap-6">
+
+                <div class="w-full md:w-1/3 lg:w-1/4 flex-shrink-0"> <div id="stickyNoteContainer">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Notes</h3>
+                        <textarea id="stickyNoteTextarea" placeholder="Write your permanent notes here..."></textarea>
+                        <button id="saveStickyNoteBtn" class="nav-button bg-yellow-500 hover:bg-yellow-600 text-yellow-900 text-sm py-1 px-3">Save Note</button>
+                        <p id="stickyNoteMessage" class="text-green-600 text-sm mt-1 h-4 text-right"></p>
+                    </div>
+                </div>
+
+                <div class="flex-grow">
+                    <div class="space-y-6">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="kanbanBoardTopRow">
+                            <div id="todo" class="kanban-column bg-blue-100 rounded-lg shadow p-4" ondragover="allowDrop(event)" ondrop="drop(event)">
+                                <h2 class="text-xl font-semibold text-blue-800 mb-4 border-b border-blue-300 pb-2">To Do</h2>
+                                <div class="tasks-container space-y-3 overflow-y-auto p-1"></div>
+                            </div>
+                            <div id="inprogress" class="kanban-column bg-blue-100 rounded-lg shadow p-4" ondragover="allowDrop(event)" ondrop="drop(event)">
+                                <h2 class="text-xl font-semibold text-blue-800 mb-4 border-b border-blue-300 pb-2">In Progress</h2>
+                                <div class="tasks-container space-y-3 overflow-y-auto p-1"></div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="kanbanBoardBottomRow">
+                             <div id="nonurgent" class="kanban-column bg-gray-100 rounded-lg shadow p-4" ondragover="allowDrop(event)" ondrop="drop(event)">
+                                <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b border-gray-300 pb-2">Non Urgent</h2>
+                                <div class="tasks-container space-y-3 overflow-y-auto p-1"></div>
+                             </div>
+                             <div id="done" class="kanban-column bg-green-100 rounded-lg shadow p-4" ondragover="allowDrop(event)" ondrop="drop(event)">
+                                <h2 class="text-xl font-semibold text-green-800 mb-4 border-b border-green-300 pb-2">Done</h2>
+                                <div class="tasks-container space-y-3 overflow-y-auto p-1"></div>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
              </div>
-             <div class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="kanbanBoardTopRow">
-                    <div id="todo" class="kanban-column bg-blue-100 rounded-lg shadow p-4" ondragover="allowDrop(event)" ondrop="drop(event)">
-                        <h2 class="text-xl font-semibold text-blue-800 mb-4 border-b border-blue-300 pb-2">To Do</h2>
-                        <div class="tasks-container space-y-3 overflow-y-auto p-1"></div>
-                    </div>
-                    <div id="inprogress" class="kanban-column bg-blue-100 rounded-lg shadow p-4" ondragover="allowDrop(event)" ondrop="drop(event)">
-                        <h2 class="text-xl font-semibold text-blue-800 mb-4 border-b border-blue-300 pb-2">In Progress</h2>
-                        <div class="tasks-container space-y-3 overflow-y-auto p-1"></div>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="kanbanBoardBottomRow">
-                     <div id="nonurgent" class="kanban-column bg-gray-100 rounded-lg shadow p-4" ondragover="allowDrop(event)" ondrop="drop(event)">
-                        <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b border-gray-300 pb-2">Non Urgent</h2>
-                        <div class="tasks-container space-y-3 overflow-y-auto p-1"></div>
-                     </div>
-                     <div id="done" class="kanban-column bg-green-100 rounded-lg shadow p-4" ondragover="allowDrop(event)" ondrop="drop(event)">
-                        <h2 class="text-xl font-semibold text-green-800 mb-4 border-b border-green-300 pb-2">Done</h2>
-                        <div class="tasks-container space-y-3 overflow-y-auto p-1"></div>
-                     </div>
-                </div>
-            </div>
-            </div>
     </div>
 
     <canvas id="confetti-canvas"></canvas>
@@ -256,7 +259,7 @@
         const shiftProgressBar = document.getElementById('shiftProgressBar');
         const stickyNoteTextarea = document.getElementById('stickyNoteTextarea');
         const saveStickyNoteBtn = document.getElementById('saveStickyNoteBtn');
-        const stickyNoteMessage = document.getElementById('stickyNoteMessage'); // Status message element
+        const stickyNoteMessage = document.getElementById('stickyNoteMessage');
 
         // --- State ---
         let tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };
@@ -267,7 +270,7 @@
         let isPinCooldownActive = false;
         let openSubMenuId = null;
         let dateTimeInterval = null;
-        let stickyNoteSaveTimeout = null; // Timer for sticky note save message
+        let stickyNoteSaveTimeout = null;
 
         // --- Generic Fetch Helper ---
         async function apiCall(endpoint, method = 'GET', body = null) {
@@ -666,7 +669,6 @@
                 alert(`Cannot add more tasks. The 'To Do' column limit (${MAX_TODO_TASKS}) has been reached.`); return;
             }
             const taskText = newTaskInput.value.trim();
-            // const taskName = newTaskNameInput.value.trim(); // Removed
             if (taskText === '') { alert('Please enter a task description.'); newTaskInput.focus(); return; }
 
             const newTaskData = {
@@ -708,7 +710,6 @@
                 addTaskBtn.disabled = false; addTaskMessage.textContent = 'Error adding task.'; addTaskMessage.classList.add('text-red-500');
             } finally {
                  newTaskInput.value = '';
-                 // newTaskNameInput.value = ''; // Removed
                  newTaskInput.focus();
             }
         }
@@ -772,6 +773,47 @@
                  if (!boardPage.classList.contains('hidden')) { renderBoard(); }
             }
         }
+
+        // --- Sticky Note Functions ---
+        async function loadStickyNote() {
+             if (!stickyNoteTextarea) return; // Exit if element doesn't exist
+             console.log("Loading sticky note...");
+             try {
+                 const data = await apiCall('get-sticky-note');
+                 stickyNoteTextarea.value = data?.content || '';
+                 console.log("Sticky note loaded.");
+             } catch (error) {
+                 console.error("Failed to load sticky note:", error);
+                 stickyNoteTextarea.value = "Error loading note.";
+             }
+        }
+
+        async function saveStickyNote() {
+             if (!stickyNoteTextarea || !saveStickyNoteBtn || !stickyNoteMessage) return;
+
+             const contentToSave = stickyNoteTextarea.value;
+             saveStickyNoteBtn.disabled = true;
+             stickyNoteMessage.textContent = 'Saving...';
+             stickyNoteMessage.classList.remove('text-red-500', 'text-green-600');
+             stickyNoteMessage.classList.add('text-gray-500');
+             clearTimeout(stickyNoteSaveTimeout); // Clear previous message timer
+
+             try {
+                 await apiCall('update-sticky-note', 'POST', { content: contentToSave });
+                 console.log("Sticky note saved.");
+                 stickyNoteMessage.textContent = 'Note saved!';
+                 stickyNoteMessage.classList.replace('text-gray-500', 'text-green-600');
+                 stickyNoteSaveTimeout = setTimeout(() => { stickyNoteMessage.textContent = ''; }, 2000); // Clear after 2s
+             } catch (error) {
+                 console.error("Failed to save sticky note:", error);
+                 stickyNoteMessage.textContent = 'Save failed!';
+                 stickyNoteMessage.classList.replace('text-gray-500', 'text-red-500');
+                 stickyNoteSaveTimeout = setTimeout(() => { stickyNoteMessage.textContent = ''; }, 3000); // Clear after 3s
+             } finally {
+                 saveStickyNoteBtn.disabled = false;
+             }
+        }
+
 
         // --- Drag and Drop Event Handlers ---
         function dragStart(event) {
@@ -872,7 +914,10 @@
                  }
             } catch (error) { /* Handled by apiCall */ }
         });
-        // Removed changePinBtn listener
+        // Add listener for sticky note save button
+        if(saveStickyNoteBtn) {
+            saveStickyNoteBtn.addEventListener('click', saveStickyNote);
+        }
 
         // Close sub-menu if clicking outside
          document.addEventListener('click', (event) => {
@@ -885,10 +930,10 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
              showPage('inputPage');
-             await loadTasks();
+             await loadTasks(); // Load tasks on initial page load
              // Start the date/time update interval
              updateDateTimeDisplay(); // Initial call
-             if (dateTimeInterval) clearInterval(dateTimeInterval); // Clear existing interval if any
+             if (dateTimeInterval) clearInterval(dateTimeInterval);
              dateTimeInterval = setInterval(updateDateTimeDisplay, 60000); // Update every minute
         });
 
