@@ -190,7 +190,8 @@
         <div id="boardPage" class="hidden">
              <div class="flex flex-col md:flex-row gap-6">
 
-                <div class="w-full md:w-1/3 lg:w-1/4 flex-shrink-0 order-first md:order-none"> <div id="stickyNoteContainer">
+                <div class="w-full md:w-1/3 lg:w-1/4 flex-shrink-0 order-first md:order-none">
+                    <div id="stickyNoteContainer">
                         <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Notes</h3>
                         <textarea id="stickyNoteTextarea" placeholder="Write your permanent notes here..."></textarea>
                         <button id="saveStickyNoteBtn" class="nav-button bg-yellow-500 hover:bg-yellow-600 text-yellow-900 text-sm py-1 px-3">Save Note</button>
@@ -292,7 +293,6 @@
                 return data;
             } catch (error) {
                 console.error(`API Call Failed (${endpoint}):`, error);
-                // Avoid alert for GET requests or specific errors if needed
                 if (method !== 'GET' || endpoint !== 'get-sticky-note') {
                      alert(`Operation failed: ${error.message}. Please check console or try again.`);
                 }
@@ -787,7 +787,7 @@
                  stickyNoteTextarea.value = data?.content || '';
                  console.log("Sticky note loaded.");
              } catch (error) {
-                 console.error("Failed to load sticky note:", error);
+                 // Error already alerted by apiCall
                  stickyNoteTextarea.value = "Error loading note.";
              }
         }
@@ -932,7 +932,7 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
              showPage('inputPage');
-             await loadTasks(); // Load tasks on initial page load
+             await loadTasks(); // Load tasks immediately on page load
              // Start the date/time update interval
              updateDateTimeDisplay(); // Initial call
              if (dateTimeInterval) clearInterval(dateTimeInterval);
