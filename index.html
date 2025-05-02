@@ -30,53 +30,10 @@
         .task-edit-input { padding: 2px 4px; border: 1px solid #93c5fd; border-radius: 4px; margin-right: 5px; background-color: #eff6ff; }
         /* Hide elements */
         .hidden { display: none; }
-
-        /* --- Task Card Metadata and Actions Row --- */
-        .task-meta-row {
-            display: flex;
-            flex-wrap: wrap; /* Allow wrapping on small screens */
-            align-items: center;
-            justify-content: space-between; /* Push groups apart */
-            margin-top: 6px;
-            gap: 8px; /* Space between meta group and actions group */
-        }
-        .task-meta-group { /* Group for priority and due date */
-            display: flex;
-            align-items: center;
-            gap: 8px; /* Increased gap */
-            flex-grow: 1; /* Allow shrinking/growing */
-            min-width: 150px; /* Prevent excessive shrinking */
-        }
-        .task-priority-select {
-            font-size: 0.7rem; padding: 0px 2px; border-radius: 4px;
-            border: 1px solid #9ca3af; background-color: #f9fafb;
-            flex-shrink: 0; /* Don't shrink */
-        }
-         .task-due-date-container { /* Container for due date label+input */
-             display: flex;
-             align-items: center;
-             gap: 2px;
-             flex-shrink: 1; /* Allow shrinking */
-             min-width: 100px; /* Prevent excessive shrinking */
-        }
-        .task-due-date-label {
-            font-size: 0.7rem; color: #4b5563; white-space: nowrap;
-        }
-        .task-due-date-input {
-            font-size: 0.7rem; padding: 0px 2px; border-radius: 4px;
-            border: 1px solid #ccc;
-            max-width: 100px; /* Limit width */
-            color: #4b5563; /* Ensure text is visible */
-        }
-        .task-actions-group { /* Group for menu button and done button */
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            position: relative; /* For positioning the sub-menu */
-            flex-shrink: 0;
-        }
-        /* --- End Task Card Metadata --- */
-
+        /* Style for task metadata */
+        .task-meta-row { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; gap: 6px; flex-wrap: wrap; }
+        .task-meta-info { font-size: 0.75rem; color: #4b5563; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 1; margin-right: auto;}
+        .task-priority-select { font-size: 0.7rem; padding: 0px 2px; border-radius: 4px; border: 1px solid #9ca3af; background-color: #f9fafb; flex-shrink: 0; }
         /* Task text style */
         .task-text { color: #1f2937; display: block; margin-bottom: 4px;}
         /* Style for navigation buttons */
@@ -104,6 +61,8 @@
 
         /* Style for action buttons (individual) */
         .action-btn { background: none; border: none; padding: 0; cursor: pointer; font-size: 0.9rem; line-height: 1; display: flex; align-items: center;}
+         /* Container for action buttons in the meta row */
+        .task-actions { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
          /* Style for save/cancel buttons in edit mode */
          .edit-mode-buttons { display: flex; gap: 4px; }
          /* Ensure task content and buttons align nicely */
@@ -113,45 +72,56 @@
          /* --- Sub-menu Styles --- */
          .task-submenu {
              position: absolute;
-             right: calc(100% + 5px); /* Position to the left of the ellipsis button + gap */
-             top: 50%; /* Align vertically with the middle of the button */
-             transform: translateY(-50%); /* Adjust vertical alignment */
-             background-color: white;
-             border: 1px solid #ccc;
-             border-radius: 4px;
-             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-             padding: 4px;
-             z-index: 20;
-             display: flex;
-             flex-direction: column; /* Stack buttons vertically */
-             gap: 3px;
-             min-width: 100px; /* Give it some minimum width */
+             right: calc(100% + 5px); top: 50%; transform: translateY(-50%);
+             background-color: white; border: 1px solid #ccc; border-radius: 4px;
+             box-shadow: 0 2px 5px rgba(0,0,0,0.1); padding: 4px; z-index: 20;
+             display: flex; flex-direction: column; gap: 3px; min-width: 100px;
          }
-         .task-submenu button { /* Style buttons inside submenu */
-             text-align: left;
-             padding: 2px 5px;
-             font-size: 0.8rem;
-             white-space: nowrap;
-             background: none; /* Ensure no default button background */
-             border: none; /* Ensure no default button border */
-             width: 100%; /* Make buttons fill submenu width */
-             display: flex; /* Use flex for icon alignment */
-             align-items: center;
-             gap: 4px; /* Space between icon and text */
+         .task-submenu button {
+             text-align: left; padding: 2px 5px; font-size: 0.8rem; white-space: nowrap;
+             background: none; border: none; width: 100%; display: flex; align-items: center; gap: 4px;
          }
-         .task-submenu button:hover {
-             background-color: #f0f0f0;
-         }
+         .task-submenu button:hover { background-color: #f0f0f0; }
          /* --- End Sub-menu Styles --- */
 
 
-         /* Header Layout */
+         /* --- Header Layout & Date/Progress Bar --- */
          #mainHeader {
              position: relative; padding-bottom: 1rem; display: flex;
-             align-items: flex-start; justify-content: center;
+             align-items: flex-start; justify-content: center; /* Center title */
+             min-height: 50px; /* Ensure space for absolutely positioned elements */
+         }
+         #headerInfoRight { /* Container for date and progress bar */
+             position: absolute;
+             top: 0;
+             right: 0;
+             display: flex;
+             flex-direction: column; /* Stack date and bar */
+             align-items: flex-end; /* Align items to the right */
+         }
+         #currentDateDisplay {
+             font-size: 0.8rem;
+             color: #4b5563; /* gray-600 */
+             margin-bottom: 4px;
+         }
+         #shiftProgressBarContainer {
+             width: 150px; /* Width of the progress bar */
+             height: 8px; /* Height of the progress bar */
+             background-color: #e5e7eb; /* gray-200 */
+             border-radius: 4px;
+             overflow: hidden; /* Hide overflow for inner bar */
+             border: 1px solid #d1d5db; /* gray-300 */
+         }
+         #shiftProgressBar {
+             height: 100%;
+             width: 0%; /* Start at 0, JS will update */
+             background: linear-gradient(to right, #10b981, #f59e0b, #ef4444); /* green-500, orange-500, red-500 */
+             transition: width 0.5s ease-out; /* Smooth transition */
+             border-radius: 3px; /* Slightly smaller radius for inner bar */
          }
          #taskSummaryContainerBoard { position: absolute; top: 0; left: 0; }
          #mainTitle { flex-grow: 1; text-align: center; }
+         /* --- End Header Layout --- */
 
     </style>
 </head>
@@ -163,7 +133,13 @@
                  <div id="taskSummaryBoard" class="flex items-center space-x-2"></div>
              </div>
              <h1 id="mainTitle" class="text-3xl font-bold text-gray-800">Jay's To Do List</h1>
+             <div id="headerInfoRight">
+                 <div id="currentDateDisplay"></div>
+                 <div id="shiftProgressBarContainer">
+                     <div id="shiftProgressBar"></div>
+                 </div>
              </div>
+        </div>
         <div class="text-center mb-6 space-x-4">
             <button id="showInputPageBtn" class="nav-button bg-blue-500 hover:bg-blue-600 text-white">Add New Task</button>
             <button id="showBoardPageBtn" class="nav-button bg-indigo-500 hover:bg-indigo-600 text-white">View Board</button>
@@ -227,6 +203,8 @@
         const PRIORITY_VALUES = { "New": 4, "High": 3, "Medium": 2, "Low": 1 };
         const FUNCTION_BASE_PATH = '/.netlify/functions/';
         const VALID_STATUSES = ['todo', 'inprogress', 'nonurgent', 'done'];
+        const SHIFT_START_HOUR = 9; // 9 AM
+        const SHIFT_END_HOUR = 16; // 4 PM (16:00)
 
         // --- DOM Elements ---
         const newTaskInput = document.getElementById('newTaskInput');
@@ -244,6 +222,8 @@
         const boardPage = document.getElementById('boardPage');
         const showInputPageBtn = document.getElementById('showInputPageBtn');
         const showBoardPageBtn = document.getElementById('showBoardPageBtn');
+        const currentDateDisplay = document.getElementById('currentDateDisplay'); // Date display element
+        const shiftProgressBar = document.getElementById('shiftProgressBar'); // Progress bar inner element
         // const changePinBtn = document.getElementById('changePinBtn'); // Removed
 
         // --- State ---
@@ -253,7 +233,8 @@
         let cooldownTimer = null;
         let successMessageTimeout = null;
         let isPinCooldownActive = false;
-        let openSubMenuId = null; // Track which sub-menu is open
+        let openSubMenuId = null;
+        let dateTimeInterval = null; // Timer for date/progress bar update
 
         // --- Generic Fetch Helper ---
         async function apiCall(endpoint, method = 'GET', body = null) {
@@ -302,6 +283,38 @@
              } catch (e) { return ''; }
         }
 
+        /**
+         * Updates the current date display and shift progress bar.
+         */
+        function updateDateTimeDisplay() {
+            const now = new Date();
+
+            // Format and display date
+            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            currentDateDisplay.textContent = now.toLocaleDateString('en-GB', dateOptions);
+
+            // Calculate shift progress
+            const shiftStart = new Date(now);
+            shiftStart.setHours(SHIFT_START_HOUR, 0, 0, 0); // Set to 9:00:00 AM today
+
+            const shiftEnd = new Date(now);
+            shiftEnd.setHours(SHIFT_END_HOUR, 0, 0, 0); // Set to 4:00:00 PM today
+
+            const shiftDuration = shiftEnd.getTime() - shiftStart.getTime(); // Total milliseconds in shift
+            const timeElapsed = now.getTime() - shiftStart.getTime(); // Milliseconds passed since shift start
+
+            let progressPercent = 0;
+            if (shiftDuration > 0) { // Avoid division by zero
+                 progressPercent = Math.max(0, Math.min(100, (timeElapsed / shiftDuration) * 100));
+            }
+
+            // Update progress bar width
+            if (shiftProgressBar) {
+                shiftProgressBar.style.width = `${progressPercent}%`;
+            }
+        }
+
+
         function updateTaskSummary() {
             const todoCount = tasks.todo?.length || 0;
             const inProgressCount = tasks.inprogress?.length || 0;
@@ -331,7 +344,7 @@
         }
 
         function showPage(pageToShowId) {
-             closeOpenSubMenu(); // Close menu when switching pages
+             closeOpenSubMenu();
             if (pageToShowId === 'inputPage') {
                 inputPage.classList.remove('hidden');
                 boardPage.classList.add('hidden');
@@ -371,7 +384,7 @@
         }
 
         async function editTaskNotes(taskId) {
-             closeOpenSubMenu(); // Close menu before prompt
+             closeOpenSubMenu();
             let taskFound = false; let currentNotes = ''; let taskRef = null;
             for (const columnId in tasks) {
                 const taskIndex = tasks[columnId].findIndex(task => task.id === taskId);
@@ -398,12 +411,12 @@
                      const task = tasks[colId].find(t => t.id === taskId);
                      if (task) { task.due_date = dateValueToSend; break; }
                  }
-                 renderBoard(); // Re-render to apply new sorting
+                 renderBoard();
              } catch (error) { console.error("Failed to update due date in backend."); }
         }
 
         async function markTaskDone(taskId) {
-             closeOpenSubMenu(); // Close menu before action
+             closeOpenSubMenu();
              console.log(`Marking task ${taskId} as done.`);
              let taskToMove = null; let originalColumnId = ''; let originalIndex = -1;
              for (const colId in tasks) {
@@ -434,48 +447,27 @@
              }
         }
 
-        /**
-         * Toggles the visibility of the sub-menu for a given task.
-         * Closes any other open sub-menu.
-         * @param {Event} event - The click event.
-         * @param {string} taskId
-         */
         function toggleSubMenu(event, taskId) {
-            event.stopPropagation(); // Prevent click from bubbling up to document listener
+            event.stopPropagation();
             const subMenu = document.getElementById(`submenu-${taskId}`);
             if (!subMenu) return;
-
             const isCurrentlyOpen = !subMenu.classList.contains('hidden');
-
-            // Close any previously open menu first
             closeOpenSubMenu();
-
-            // If the clicked menu wasn't the one already open, open it
             if (!isCurrentlyOpen) {
                 subMenu.classList.remove('hidden');
-                openSubMenuId = taskId; // Track the open menu
+                openSubMenuId = taskId;
             }
         }
 
-        /**
-         * Closes the currently open sub-menu, if any.
-         */
         function closeOpenSubMenu() {
              if (openSubMenuId) {
                  const currentlyOpenMenu = document.getElementById(`submenu-${openSubMenuId}`);
-                 if (currentlyOpenMenu) {
-                     currentlyOpenMenu.classList.add('hidden');
-                 }
-                 openSubMenuId = null; // Reset tracker
+                 if (currentlyOpenMenu) { currentlyOpenMenu.classList.add('hidden'); }
+                 openSubMenuId = null;
              }
         }
 
 
-        /**
-         * Creates the HTML element for a task with sub-menu actions.
-         * @param {object} task - The task object { id, text, name, createdAt, priority, notes, due_date }.
-         * @returns {HTMLElement} The task card element.
-         */
         function createTaskElement(task) {
             const div = document.createElement('div');
             div.id = task.id;
@@ -499,14 +491,10 @@
             topSection.appendChild(contentSpan);
             topSection.appendChild(editInput);
 
-            // Bottom row containing meta and actions
             const bottomSection = document.createElement('div');
             bottomSection.className = 'task-meta-row mt-2';
-
-            // Group for Priority and Due Date
             const metaGroup = document.createElement('div');
             metaGroup.className = 'task-meta-group';
-
             const prioritySelect = document.createElement('select');
             prioritySelect.id = `priority-${task.id}`;
             prioritySelect.className = 'task-priority-select';
@@ -517,7 +505,6 @@
                 if (p === task.priority) option.selected = true;
                 prioritySelect.appendChild(option);
             });
-
             const dueDateDiv = document.createElement('div');
             dueDateDiv.className = 'task-due-date-container';
             const dueDateLabel = document.createElement('label');
@@ -532,49 +519,38 @@
             dueDateInput.onchange = (event) => updateTaskDueDate(task.id, event.target.value);
             dueDateDiv.appendChild(dueDateLabel);
             dueDateDiv.appendChild(dueDateInput);
-
             metaGroup.appendChild(prioritySelect);
             metaGroup.appendChild(dueDateDiv);
 
-            // Group for Menu Button and Done Tick
             const actionsGroup = document.createElement('div');
-            actionsGroup.className = 'task-actions-group'; // Relative position for sub-menu
-
-            // --- Sub-menu (Initially Hidden) ---
+            actionsGroup.className = 'task-actions-group';
             const subMenu = document.createElement('div');
             subMenu.id = `submenu-${task.id}`;
-            subMenu.className = 'task-submenu hidden'; // Start hidden
-
+            subMenu.className = 'task-submenu hidden';
             const editBtn = document.createElement('button');
             editBtn.innerHTML = '✏️ Edit Text';
             editBtn.className = 'action-btn text-blue-600 hover:text-blue-800 w-full justify-start';
             editBtn.title = 'Edit Task Description';
             editBtn.onclick = (e) => { e.stopPropagation(); startEditTask(task.id); };
-
             const noteBtn = document.createElement('button');
             noteBtn.innerHTML = '📝 ' + (task.notes ? 'Edit Note' : 'Add Note');
             noteBtn.className = 'action-btn text-purple-600 hover:text-purple-800 w-full justify-start';
             noteBtn.title = task.notes ? 'Edit Note' : 'Add Note';
             noteBtn.onclick = (e) => { e.stopPropagation(); editTaskNotes(task.id); };
-
             const deleteBtn = document.createElement('button');
             deleteBtn.innerHTML = '❌ Delete';
             deleteBtn.className = 'action-btn text-red-500 hover:text-red-700 w-full justify-start';
             deleteBtn.title = 'Delete Task';
             deleteBtn.onclick = (e) => { e.stopPropagation(); deleteTask(task.id); };
-
             subMenu.appendChild(editBtn);
             subMenu.appendChild(noteBtn);
             subMenu.appendChild(deleteBtn);
-            // --- End Sub-menu ---
 
-            // --- Ellipsis Menu Button ---
             const menuBtn = document.createElement('button');
-            menuBtn.innerHTML = '&#8942;'; // Vertical ellipsis
-            menuBtn.className = 'action-btn text-gray-600 hover:text-gray-900 px-1'; // Added padding
+            menuBtn.innerHTML = '&#8942;';
+            menuBtn.className = 'action-btn text-gray-600 hover:text-gray-900 px-1';
             menuBtn.title = 'More Actions';
             menuBtn.onclick = (event) => toggleSubMenu(event, task.id);
-            // --- End Menu Button ---
 
             const doneBtn = document.createElement('button');
             doneBtn.innerHTML = '✅';
@@ -582,14 +558,10 @@
             doneBtn.title = 'Mark as Done';
             doneBtn.onclick = () => markTaskDone(task.id);
 
-            // Append buttons to the actions group
-            actionsGroup.appendChild(subMenu); // Add hidden sub-menu first
-            actionsGroup.appendChild(menuBtn); // Then the ellipsis button
-            if (task.status !== 'done') {
-                actionsGroup.appendChild(doneBtn); // Then the done button if applicable
-            }
+            actionsGroup.appendChild(subMenu);
+            actionsGroup.appendChild(menuBtn);
+            if (task.status !== 'done') { actionsGroup.appendChild(doneBtn); }
 
-            // --- Edit Mode Buttons (Save/Cancel) ---
             const editModeButtonContainer = document.createElement('div');
             editModeButtonContainer.className = 'edit-mode-buttons hidden';
             const saveBtn = document.createElement('button');
@@ -604,12 +576,10 @@
             cancelBtn.onclick = () => cancelTaskEdit(task.id);
             editModeButtonContainer.appendChild(saveBtn);
             editModeButtonContainer.appendChild(cancelBtn);
-            // --- End Edit Mode Buttons ---
 
-            // Assemble the bottom row
-            bottomSection.appendChild(metaGroup); // Add priority/due date group
-            bottomSection.appendChild(actionsGroup); // Add menu/done group
-            bottomSection.appendChild(editModeButtonContainer); // Add hidden save/cancel group
+            bottomSection.appendChild(metaGroup);
+            bottomSection.appendChild(actionsGroup);
+            bottomSection.appendChild(editModeButtonContainer);
 
             const notesDiv = document.createElement('div');
             notesDiv.className = 'task-notes';
@@ -620,15 +590,14 @@
             div.appendChild(bottomSection);
             div.appendChild(notesDiv);
 
-            // Handle visibility for edit mode
             if (currentlyEditingTaskId === task.id) {
                 div.draggable = false;
                 contentSpan.classList.add('hidden');
                 editInput.classList.remove('hidden');
-                metaGroup.classList.add('hidden'); // Hide priority/due date
-                actionsGroup.classList.add('hidden'); // Hide menu/done buttons
-                editModeButtonContainer.classList.remove('hidden'); // Show save/cancel
-                bottomSection.classList.remove('hidden'); // Keep bottom row visible
+                 metaGroup.classList.add('hidden'); // Hide priority/due date group
+                 actionsGroup.classList.add('hidden'); // Hide menu/done group
+                 editModeButtonContainer.classList.remove('hidden'); // Show save/cancel
+                 bottomSection.classList.remove('hidden'); // Keep bottom row visible
 
                 setTimeout(() => editInput.focus(), 0);
             }
@@ -644,7 +613,6 @@
                 if (tasks.hasOwnProperty(columnId)) {
                     const columnElement = document.getElementById(columnId)?.querySelector('.tasks-container');
                     if (columnElement) {
-                        // Sort tasks by due_date (nulls first), then priority, then created date
                         const sortedTasks = tasks[columnId].sort((a, b) => {
                             const dateA = a.due_date ? new Date(a.due_date).getTime() : null;
                             const dateB = b.due_date ? new Date(b.due_date).getTime() : null;
@@ -681,7 +649,7 @@
 
             const newTaskData = {
                 text: taskText, name: "Jay", // Default name
-                priority: DEFAULT_PRIORITY, notes: '', status: 'todo', due_date: null // Add null due_date
+                priority: DEFAULT_PRIORITY, notes: '', status: 'todo', due_date: null
             };
             addTaskBtn.disabled = true;
             addTaskMessage.textContent = 'Adding task...';
@@ -693,7 +661,7 @@
                      addedTask.createdAt = new Date(addedTask.created_at).getTime();
                      addedTask.priority = addedTask.priority || DEFAULT_PRIORITY;
                      addedTask.notes = addedTask.notes || '';
-                     addedTask.due_date = addedTask.due_date || null; // Ensure due_date is handled
+                     addedTask.due_date = addedTask.due_date || null;
                      tasks.todo.push(addedTask);
                      updateTaskSummary();
                      if (!boardPage.classList.contains('hidden')) renderBoard();
@@ -724,7 +692,7 @@
         }
 
         async function deleteTask(taskId) {
-             closeOpenSubMenu(); // Close menu before action
+             closeOpenSubMenu();
             if (currentlyEditingTaskId === taskId) return;
             if (!confirm('Are you sure you want to delete this task?')) return;
             try {
@@ -735,7 +703,7 @@
         }
 
         function startEditTask(taskId) {
-             closeOpenSubMenu(); // Close menu before action
+             closeOpenSubMenu();
             if (currentlyEditingTaskId && currentlyEditingTaskId !== taskId) { cancelTaskEdit(currentlyEditingTaskId); }
             currentlyEditingTaskId = taskId; renderBoard();
         }
@@ -762,24 +730,20 @@
             console.log("Loading tasks...");
             try {
                 const fetchedTasks = await apiCall('get-tasks');
-                tasks = { todo: [], inprogress: [], nonurgent: [], done: [] }; // Reset with nonurgent
+                tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };
                 fetchedTasks.forEach(task => {
                     task.priority = task.priority || DEFAULT_PRIORITY;
                     task.notes = task.notes || '';
                     task.createdAt = task.created_at ? new Date(task.created_at).getTime() : 0;
-                    task.due_date = task.due_date || null; // Ensure due_date is null if missing/null from DB
+                    task.due_date = task.due_date || null; // Ensure due_date is null if missing
                     const status = task.status || 'todo';
-                    if (VALID_STATUSES.includes(status)) {
-                        tasks[status].push(task);
-                    } else {
-                        console.warn(`Invalid task status "${status}" for task ID ${task.id}. Placing in 'todo'.`);
-                        tasks.todo.push(task);
-                    }
+                    if (VALID_STATUSES.includes(status)) { tasks[status].push(task); }
+                    else { console.warn(`Invalid task status "${status}" for task ID ${task.id}. Placing in 'todo'.`); tasks.todo.push(task); }
                 });
                 console.log("Tasks loaded and processed:", tasks);
             } catch (error) {
                 console.error("Error loading tasks from backend:", error);
-                tasks = { todo: [], inprogress: [], nonurgent: [], done: [] }; // Reset on error
+                tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };
             } finally {
                  currentlyEditingTaskId = null;
                  updateTaskSummary();
@@ -864,7 +828,6 @@
         // --- Initialization ---
         addTaskBtn.addEventListener('click', addTask);
         // Removed Enter listener from task input (now textarea)
-        // newTaskNameInput.addEventListener('keypress', (event) => { if (event.key === 'Enter') addTask(); }); // Removed
         showInputPageBtn.addEventListener('click', () => showPage('inputPage'));
         showBoardPageBtn.addEventListener('click', async () => {
             if (isPinCooldownActive) { alert("Please wait before trying the pin again."); return; }
@@ -891,16 +854,12 @@
 
         // Close sub-menu if clicking outside
          document.addEventListener('click', (event) => {
-             // Check if the click was outside of any open sub-menu
-             // and also not on an ellipsis button itself
              const clickedSubMenu = event.target.closest('.task-submenu');
              const clickedMenuButton = event.target.closest('.action-btn[title="More Actions"]');
-
              if (!clickedSubMenu && !clickedMenuButton && openSubMenuId) {
                  closeOpenSubMenu();
              }
          });
-
 
         document.addEventListener('DOMContentLoaded', async () => {
              showPage('inputPage');
