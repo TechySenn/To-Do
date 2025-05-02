@@ -16,15 +16,15 @@
         }
         /* Ensure columns take up height */
         .kanban-column .tasks-container {
-             min-height: 450px;
-             max-height: 65vh;
+             min-height: 450px; /* Adjusted height */
+             max-height: 65vh; /* Adjusted height */
         }
         /* Sticky Note Styles */
         #stickyNoteContainer {
             background-color: #fef9c3; /* yellow-100 */
             border: 1px solid #fde68a; /* yellow-200 */
             border-radius: 8px;
-            padding: 0.75rem;
+            padding: 0.75rem; /* Reduced padding */
             box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
@@ -35,11 +35,12 @@
              border: 1px solid #fcd34d; /* yellow-400 */
              border-radius: 4px;
              padding: 0.5rem;
-             font-size: 0.85rem;
+             font-size: 0.85rem; /* Slightly smaller font */
              resize: none;
              background-color: #fefce8; /* yellow-50 */
              color: #4b5563;
              margin-bottom: 0.5rem;
+             /* Removed min-height */
          }
          #saveStickyNoteBtn {
              align-self: flex-end;
@@ -126,7 +127,7 @@
          }
          #taskSummaryContainerBoard { position: absolute; top: 0; left: 0; }
          #mainTitle { flex-grow: 1; text-align: center; }
-         #headerInfoRight {
+         #headerInfoRight { /* Container for date and progress bar */
              position: absolute; top: 0; right: 0;
              display: flex; flex-direction: column; align-items: flex-end;
          }
@@ -188,7 +189,8 @@
         <div id="boardPage" class="hidden">
              <div class="flex flex-col md:flex-row gap-6">
 
-                <div class="w-full md:w-1/4 lg:w-1/5 flex-shrink-0 order-first md:order-none"> <div id="stickyNoteContainer">
+                <div id="stickyNoteArea" class="w-full md:w-1/4 lg:w-1/5 flex-shrink-0 order-first md:order-none">
+                    <div id="stickyNoteContainer">
                         <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Notes</h3>
                         <textarea id="stickyNoteTextarea" placeholder="Write your permanent notes here..."></textarea>
                         <button id="saveStickyNoteBtn" class="nav-button bg-yellow-500 hover:bg-yellow-600 text-yellow-900 text-sm py-1 px-3 mt-2">Save Note</button>
@@ -197,8 +199,7 @@
                 </div>
 
                 <div class="flex-grow flex justify-center">
-                    <div class="w-full max-w-4xl"> {/* Container to control max width of centered columns */}
-                        <div class="space-y-6">
+                    <div class="w-full max-w-5xl"> <div class="space-y-6">
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6" id="kanbanBoardTopRow">
                                 <div id="todo" class="kanban-column bg-blue-100 rounded-lg shadow p-4" ondragover="allowDrop(event)" ondrop="drop(event)">
                                     <h2 class="text-xl font-semibold text-blue-800 mb-4 border-b border-blue-300 pb-2">To Do</h2>
@@ -845,7 +846,7 @@
             event.preventDefault();
             if (!draggedTask) return;
             if (event.target.closest('.task')) return;
-            const targetColumnElement = event.currentTarget;
+            const targetColumnElement = event.currentTarget; // Listener is on the column div
             const targetColumnId = targetColumnElement.id;
             handleDropLogic(targetColumnId, draggedTask);
         }
