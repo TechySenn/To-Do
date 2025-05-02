@@ -78,6 +78,16 @@
          #taskSummaryContainerBoard { position: absolute; top: 0; left: 0; }
          #mainTitle { flex-grow: 1; text-align: center; }
 
+         /* Due Date Input Style */
+         .task-due-date-input {
+            font-size: 0.75rem;
+            padding: 1px 3px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-top: 4px;
+            max-width: 120px; /* Limit width */
+         }
+
     </style>
 </head>
 <body class="bg-blue-50 font-sans p-4 md:p-8">
@@ -96,16 +106,12 @@
 
         <div id="inputPage" class="">
             <h2 class="text-2xl font-semibold text-center text-blue-800 mb-2">Add a New Task</h2>
-            <p class="text-center text-sm text-gray-600 mb-4">Add new To-Do's below:</p>
+            <p class="text-center text-sm text-gray-600 mb-4">Please advise below what you require, this will be added to Jay's To-Do list.</p>
 
             <div class="p-6 bg-white rounded-lg shadow flex flex-col items-center space-y-4 max-w-lg mx-auto mb-6">
                 <div class="w-full">
                     <label for="newTaskInput" class="block text-sm font-medium text-gray-700 mb-1">Task Description:</label>
                     <textarea id="newTaskInput" placeholder="Enter new task..." rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-                </div>
-                <div class="w-full">
-                    <label for="newTaskNameInput" class="block text-sm font-medium text-gray-700 mb-1">Your Name:</label>
-                    <input type="text" id="newTaskNameInput" placeholder="Your name..." class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <button id="addTaskBtn" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-md transition duration-150 ease-in-out">
                     Add Task
@@ -159,7 +165,7 @@
 
         // --- DOM Elements ---
         const newTaskInput = document.getElementById('newTaskInput');
-        const newTaskNameInput = document.getElementById('newTaskNameInput');
+        // const newTaskNameInput = document.getElementById('newTaskNameInput'); // Removed
         const addTaskBtn = document.getElementById('addTaskBtn');
         const addTaskMessage = document.getElementById('addTaskMessage');
         const taskSummaryInputContainer = document.getElementById('taskSummaryContainerInput');
@@ -176,6 +182,7 @@
         // const changePinBtn = document.getElementById('changePinBtn'); // Removed
 
         // --- State ---
+        // Task object structure: { id, text, name, createdAt, priority, notes, due_date }
         let tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };
         let draggedTask = null;
         let currentlyEditingTaskId = null;
@@ -217,6 +224,26 @@
             const year = date.getFullYear();
             return `${day}/${month}/${year}`;
         }
+
+        // Format date for the value attribute of <input type="date"> (YYYY-MM-DD)
+        function formatDateForInput(timestampOrDateString) {
+             if (!timestampOrDateString) return ''; // Return empty if no date
+             try {
+                 // Handle both timestamp numbers and existing YYYY-MM-DD strings
+                 const date = new Date(timestampOrDateString);
+                 // Check if the date is valid after parsing
+                 if (isNaN(date.getTime())) return '';
+
+                 const year = date.getFullYear();
+                 const month = String(date.getMonth() + 1).padStart(2, '0');
+                 const day = String(date.getDate()).padStart(2, '0');
+                 return `${year}-${month}-${day}`;
+             } catch (e) {
+                 console.error("Error formatting date for input:", e);
+                 return ''; // Return empty on error
+             }
+        }
+
 
         function updateTaskSummary() {
             const todoCount = tasks.todo?.length || 0;
@@ -281,7 +308,7 @@
                      const task = tasks[colId].find(t => t.id === taskId);
                      if (task) { task.priority = newPriority; break; }
                  }
-                 renderBoard();
+                 renderBoard(); // Re-render to sort by new priority
              } catch (error) { /* Handled by apiCall */ }
         }
 
@@ -298,10 +325,37 @@
                 try {
                     await apiCall('update-task', 'POST', { id: taskId, updates: { notes: trimmedNotes } });
                     taskRef.notes = trimmedNotes;
-                    renderBoard();
+                    renderBoard(); // Re-render to update hover text
                 } catch (error) { /* Handled by apiCall */ }
             }
         }
+
+        /**
+         * Updates the due date of a task.
+         * @param {string} taskId - The ID of the task.
+         * @param {string} newDate - The new date string (YYYY-MM-DD) or empty string.
+         */
+        async function updateTaskDueDate(taskId, newDate) {
+             console.log(`Updating due date for task ${taskId} to: ${newDate || 'NULL'}`);
+             // If the date input is cleared, send null to the backend to clear the date
+             const dateValueToSend = newDate === '' ? null : newDate;
+             try {
+                 await apiCall('update-task', 'POST', { id: taskId, updates: { due_date: dateValueToSend } });
+                 // Update local state
+                 for (const colId in tasks) {
+                     const task = tasks[colId].find(t => t.id === taskId);
+                     if (task) {
+                         task.due_date = dateValueToSend; // Store null or YYYY-MM-DD
+                         break;
+                     }
+                 }
+                 renderBoard(); // Re-render to apply new sorting
+             } catch (error) {
+                 // Revert UI change on error? Maybe just alert is enough.
+                 console.error("Failed to update due date in backend.");
+             }
+        }
+
 
         async function markTaskDone(taskId) {
              console.log(`Marking task ${taskId} as done.`);
@@ -334,6 +388,11 @@
              }
         }
 
+        /**
+         * Creates the HTML element for a task, including due date input.
+         * @param {object} task - The task object { id, text, name, createdAt, priority, notes, due_date }.
+         * @returns {HTMLElement} The task card element.
+         */
         function createTaskElement(task) {
             const div = document.createElement('div');
             div.id = task.id;
@@ -357,8 +416,25 @@
             topSection.appendChild(contentSpan);
             topSection.appendChild(editInput);
 
+            // --- Due Date Input ---
+            const dueDateDiv = document.createElement('div');
+            dueDateDiv.className = 'mt-2'; // Add some space above
+            const dueDateLabel = document.createElement('label');
+            dueDateLabel.htmlFor = `due-date-${task.id}`;
+            dueDateLabel.textContent = 'Due: ';
+            dueDateLabel.className = 'text-xs text-gray-600 mr-1';
+            const dueDateInput = document.createElement('input');
+            dueDateInput.type = 'date';
+            dueDateInput.id = `due-date-${task.id}`;
+            dueDateInput.className = 'task-due-date-input';
+            dueDateInput.value = formatDateForInput(task.due_date); // Format date for input
+            dueDateInput.onchange = (event) => updateTaskDueDate(task.id, event.target.value);
+            dueDateDiv.appendChild(dueDateLabel);
+            dueDateDiv.appendChild(dueDateInput);
+            // --- End Due Date Input ---
+
             const bottomSection = document.createElement('div');
-            bottomSection.className = 'task-meta-row mt-2';
+            bottomSection.className = 'task-meta-row mt-2'; // Added margin-top
             const metaInfoSpan = document.createElement('span');
             metaInfoSpan.className = 'task-meta-info';
             metaInfoSpan.textContent = `Added by: ${task.name || 'Unknown'} on ${formatDate(task.createdAt)}`;
@@ -397,11 +473,7 @@
             buttonContainer.appendChild(editBtn);
             buttonContainer.appendChild(noteBtn);
             buttonContainer.appendChild(deleteBtn);
-            // --- CORRECTED Condition for Done Button ---
-            if (task.status !== 'done') {
-                 buttonContainer.appendChild(doneBtn);
-            }
-            // --- End CORRECTED Condition ---
+            if (task.status !== 'done') { buttonContainer.appendChild(doneBtn); }
             const editModeButtonContainer = document.createElement('div');
             editModeButtonContainer.className = 'edit-mode-buttons hidden';
             const saveBtn = document.createElement('button');
@@ -427,6 +499,7 @@
             if (!task.notes) notesDiv.classList.add('hidden');
 
             div.appendChild(topSection);
+            div.appendChild(dueDateDiv); // Add Due Date div
             div.appendChild(bottomSection);
             div.appendChild(notesDiv);
 
@@ -434,6 +507,7 @@
                 div.draggable = false;
                 contentSpan.classList.add('hidden');
                 editInput.classList.remove('hidden');
+                dueDateDiv.classList.add('hidden'); // Hide due date during text edit
                  metaInfoSpan.classList.add('hidden');
                  prioritySelect.classList.add('hidden');
                  buttonContainer.classList.add('hidden');
@@ -445,6 +519,9 @@
             return div;
         }
 
+        /**
+         * Renders tasks onto the board, sorting by due date, then priority, then creation date.
+         */
         function renderBoard() {
              if (boardPage.classList.contains('hidden')) return;
             const taskContainers = document.querySelectorAll('.tasks-container');
@@ -453,17 +530,39 @@
                 if (tasks.hasOwnProperty(columnId)) {
                     const columnElement = document.getElementById(columnId)?.querySelector('.tasks-container');
                     if (columnElement) {
+                        // --- Updated Sorting Logic ---
                         const sortedTasks = tasks[columnId].sort((a, b) => {
+                            const dateA = a.due_date ? new Date(a.due_date).getTime() : null;
+                            const dateB = b.due_date ? new Date(b.due_date).getTime() : null;
+
+                            // 1. Tasks with no due date come first
+                            if (dateA === null && dateB !== null) return -1;
+                            if (dateA !== null && dateB === null) return 1;
+
+                            // 2. If both have due dates, sort by earliest date
+                            if (dateA !== null && dateB !== null && dateA !== dateB) {
+                                return dateA - dateB;
+                            }
+
+                            // 3. If due dates are the same (or both null), sort by priority (desc)
                             const priorityA = PRIORITY_VALUES[a.priority || DEFAULT_PRIORITY] || 0;
                             const priorityB = PRIORITY_VALUES[b.priority || DEFAULT_PRIORITY] || 0;
-                            if (priorityB !== priorityA) return priorityB - priorityA;
+                            if (priorityB !== priorityA) {
+                                return priorityB - priorityA;
+                            }
+
+                            // 4. If priority is also the same, sort by creation date (oldest first)
                             return (a.createdAt || 0) - (b.createdAt || 0);
                         });
+                        // --- End Sorting Logic ---
+
                         sortedTasks.forEach(task => {
                             task.name = task.name || '';
                             task.createdAt = task.createdAt || 0;
                             task.priority = task.priority || DEFAULT_PRIORITY;
                             task.notes = task.notes || '';
+                            task.due_date = task.due_date || null; // Ensure due_date exists, default to null
+
                             const taskElement = createTaskElement(task);
                             columnElement.appendChild(taskElement);
                         });
@@ -472,18 +571,29 @@
             }
         }
 
+        /**
+         * Adds a new task, defaulting name to "Jay".
+         */
         async function addTask() {
             if (addTaskBtn.disabled) return;
             if (tasks.todo && tasks.todo.length >= MAX_TODO_TASKS) {
                 alert(`Cannot add more tasks. The 'To Do' column limit (${MAX_TODO_TASKS}) has been reached.`); return;
             }
             const taskText = newTaskInput.value.trim();
-            const taskName = newTaskNameInput.value.trim();
-            if (taskText === '' || taskName === '') {
-                alert('Please enter both task description and your name.');
-                (taskText === '' ? newTaskInput : newTaskNameInput).focus(); return;
+            // const taskName = newTaskNameInput.value.trim(); // Removed reading name input
+            if (taskText === '') {
+                alert('Please enter a task description.');
+                newTaskInput.focus(); return;
             }
-            const newTaskData = { text: taskText, name: taskName, priority: DEFAULT_PRIORITY, notes: '', status: 'todo' };
+            // Set name to "Jay" for tasks added via form
+            const newTaskData = {
+                text: taskText,
+                name: "Jay", // Default name
+                priority: DEFAULT_PRIORITY,
+                notes: '',
+                status: 'todo',
+                due_date: null // Explicitly set due_date to null for new tasks
+            };
             addTaskBtn.disabled = true;
             addTaskMessage.textContent = 'Adding task...';
             addTaskMessage.classList.remove('text-green-600', 'text-gray-500', 'text-red-500');
@@ -494,6 +604,7 @@
                      addedTask.createdAt = new Date(addedTask.created_at).getTime();
                      addedTask.priority = addedTask.priority || DEFAULT_PRIORITY;
                      addedTask.notes = addedTask.notes || '';
+                     addedTask.due_date = addedTask.due_date || null; // Ensure due_date from backend is handled
                      tasks.todo.push(addedTask);
                      updateTaskSummary();
                      if (!boardPage.classList.contains('hidden')) renderBoard();
@@ -517,7 +628,9 @@
             } catch (error) {
                 addTaskBtn.disabled = false; addTaskMessage.textContent = 'Error adding task.'; addTaskMessage.classList.add('text-red-500');
             } finally {
-                 newTaskInput.value = ''; newTaskNameInput.value = ''; newTaskInput.focus();
+                 newTaskInput.value = '';
+                 // newTaskNameInput.value = ''; // Removed
+                 newTaskInput.focus();
             }
         }
 
@@ -554,6 +667,9 @@
 
         function cancelTaskEdit(taskId) { currentlyEditingTaskId = null; renderBoard(); }
 
+        /**
+         * Loads tasks, ensuring due_date is handled correctly.
+         */
         async function loadTasks() {
             console.log("Loading tasks...");
             try {
@@ -563,6 +679,7 @@
                     task.priority = task.priority || DEFAULT_PRIORITY;
                     task.notes = task.notes || '';
                     task.createdAt = task.created_at ? new Date(task.created_at).getTime() : 0;
+                    task.due_date = task.due_date || null; // Ensure due_date is null if missing/null from DB
                     const status = task.status || 'todo';
                     if (VALID_STATUSES.includes(status)) {
                         tasks[status].push(task);
@@ -584,7 +701,7 @@
 
         // --- Drag and Drop Event Handlers ---
         function dragStart(event) {
-            if (currentlyEditingTaskId || document.activeElement.tagName === 'SELECT' || document.activeElement.tagName === 'INPUT') {
+            if (currentlyEditingTaskId || document.activeElement.tagName === 'SELECT' || document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
                  event.preventDefault(); return;
             }
             draggedTask = event.currentTarget;
@@ -658,10 +775,11 @@
 
         // --- Initialization ---
         addTaskBtn.addEventListener('click', addTask);
-        newTaskNameInput.addEventListener('keypress', (event) => { if (event.key === 'Enter') addTask(); });
+        // Removed Enter listener from task input (now textarea)
+        // newTaskNameInput.addEventListener('keypress', (event) => { if (event.key === 'Enter') addTask(); }); // Removed
         showInputPageBtn.addEventListener('click', () => showPage('inputPage'));
         showBoardPageBtn.addEventListener('click', async () => {
-            if (isPinCooldownActive) { alert("Please wait before trying the pin again."); return; } // Check pin cooldown
+            if (isPinCooldownActive) { alert("Please wait before trying the pin again."); return; }
             const pinInput = prompt("Please enter the pin code to view the board:");
             if (pinInput === null) return;
             try {
@@ -670,19 +788,18 @@
                      showPage('boardPage');
                  } else {
                      alert("Incorrect pin code.");
-                     // Start cooldown on incorrect pin
                      isPinCooldownActive = true;
-                     showBoardPageBtn.disabled = true; // Disable button
+                     showBoardPageBtn.disabled = true;
                      console.log(`Pin cooldown started for ${PIN_COOLDOWN_SECONDS} seconds.`);
                      setTimeout(() => {
                          isPinCooldownActive = false;
-                         showBoardPageBtn.disabled = false; // Re-enable button
+                         showBoardPageBtn.disabled = false;
                          console.log("Pin cooldown finished.");
                      }, PIN_COOLDOWN_SECONDS * 1000);
                  }
             } catch (error) { /* Handled by apiCall */ }
         });
-        // Removed event listener for changePinBtn
+        // Removed changePinBtn listener
 
         document.addEventListener('DOMContentLoaded', async () => {
              showPage('inputPage');
