@@ -30,10 +30,51 @@
         .task-edit-input { padding: 2px 4px; border: 1px solid #93c5fd; border-radius: 4px; margin-right: 5px; background-color: #eff6ff; }
         /* Hide elements */
         .hidden { display: none; }
-        /* Style for task metadata */
-        .task-meta-row { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; gap: 6px; flex-wrap: wrap; }
-        .task-meta-info { font-size: 0.75rem; color: #4b5563; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 1; margin-right: auto;}
-        .task-priority-select { font-size: 0.7rem; padding: 0px 2px; border-radius: 4px; border: 1px solid #9ca3af; background-color: #f9fafb; flex-shrink: 0; }
+
+        /* --- Task Card Metadata and Actions Row --- */
+        .task-meta-row {
+            display: flex;
+            flex-wrap: wrap; /* Allow wrapping */
+            align-items: center; /* Vertically align items in the middle */
+            justify-content: flex-start; /* Align items to start */
+            margin-top: 6px;
+            gap: 8px; /* Consistent gap */
+        }
+        /* Removed task-meta-group */
+        .task-priority-select {
+            font-size: 0.75rem; /* Slightly larger */
+            padding: 1px 3px; /* Adjust padding */
+            border-radius: 4px;
+            border: 1px solid #9ca3af; background-color: #f9fafb;
+            flex-shrink: 0;
+            height: 24px; /* Explicit height for alignment */
+            line-height: 1; /* Adjust line height */
+        }
+         .task-due-date-container {
+             display: flex;
+             align-items: center;
+             gap: 2px;
+             flex-shrink: 0; /* Prevent shrinking */
+        }
+        .task-due-date-label {
+            font-size: 0.75rem; color: #4b5563; white-space: nowrap;
+        }
+        .task-due-date-input {
+            font-size: 0.75rem; padding: 1px 3px; border-radius: 4px;
+            border: 1px solid #ccc; max-width: 110px;
+            color: #4b5563;
+            height: 24px; /* Explicit height for alignment */
+        }
+        .task-actions-group {
+            display: flex;
+            align-items: center;
+            gap: 6px; /* Gap between ellipsis and done */
+            position: relative;
+            flex-shrink: 0;
+            margin-left: auto; /* Push actions to the right */
+        }
+        /* --- End Task Card Metadata --- */
+
         /* Task text style */
         .task-text { color: #1f2937; display: block; margin-bottom: 4px;}
         /* Style for navigation buttons */
@@ -60,11 +101,18 @@
         /* --- End Hover Notes Styles --- */
 
         /* Style for action buttons (individual) */
-        .action-btn { background: none; border: none; padding: 0; cursor: pointer; font-size: 0.9rem; line-height: 1; display: flex; align-items: center;}
-         /* Container for action buttons in the meta row */
-        .task-actions { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+        .action-btn {
+            background: none; border: none; padding: 0; cursor: pointer;
+            font-size: 1rem; /* Slightly larger icons */
+            line-height: 1; display: flex; align-items: center;
+            height: 24px; /* Match height */
+            width: 24px; /* Make square */
+            justify-content: center; /* Center icon */
+        }
          /* Style for save/cancel buttons in edit mode */
-         .edit-mode-buttons { display: flex; gap: 4px; }
+         .edit-mode-buttons { display: flex; gap: 4px; align-items: center; }
+         .edit-mode-buttons .action-btn { font-size: 1rem; } /* Ensure save/cancel icons are same size */
+
          /* Ensure task content and buttons align nicely */
          .task { align-items: flex-start; flex-direction: column; }
          .task > div:first-child { width: 100%; }
@@ -89,36 +137,35 @@
          #mainHeader {
              position: relative; padding-bottom: 1rem; display: flex;
              align-items: flex-start; justify-content: center;
-             min-height: 50px; /* Ensure space */
+             min-height: 50px;
          }
-         #headerInfoRight { /* Container for date and progress bar */
-             position: absolute;
-             top: 0;
-             right: 0;
-             display: flex;
-             flex-direction: column; /* Stack date and bar */
-             align-items: flex-end; /* Align items to the right */
+         #headerInfoRight {
+             position: absolute; top: 0; right: 0;
+             display: flex; flex-direction: column;
+             align-items: flex-end;
          }
          #currentDateDisplay {
-             font-size: 0.8rem; /* Adjusted size */
-             color: #4b5563; /* gray-600 */
-             margin-bottom: 5px; /* Increased spacing */
-             white-space: nowrap; /* Prevent wrapping */
+             font-size: 0.9rem; /* Increased size */
+             font-weight: 600; /* Bold */
+             color: #374151; /* gray-700 */
+             margin-bottom: 4px; /* Spacing */
+             white-space: nowrap;
+             width: 200px; /* Match progress bar width */
+             text-align: right; /* Align text right */
          }
          #shiftProgressBarContainer {
-             width: 180px; /* Increased width */
-             height: 12px; /* Increased height */
-             background-color: #e5e7eb; /* gray-200 */
-             border-radius: 6px; /* Adjusted radius */
+             width: 200px; /* Increased width */
+             height: 14px; /* Increased height */
+             background-color: #e5e7eb;
+             border-radius: 7px; /* Adjusted radius */
              overflow: hidden;
-             border: 1px solid #d1d5db; /* gray-300 */
+             border: 1px solid #d1d5db;
          }
          #shiftProgressBar {
-             height: 100%;
-             width: 0%; /* Start at 0, JS will update */
-             background: linear-gradient(to right, #10b981, #f59e0b, #ef4444); /* green-500, orange-500, red-500 */
+             height: 100%; width: 0%;
+             background: linear-gradient(to right, #10b981, #f59e0b, #ef4444);
              transition: width 0.5s ease-out;
-             border-radius: 5px; /* Adjusted radius */
+             border-radius: 6px; /* Adjusted radius */
          }
          #taskSummaryContainerBoard { position: absolute; top: 0; left: 0; }
          #mainTitle { flex-grow: 1; text-align: center; }
@@ -298,9 +345,9 @@
             currentDateDisplay.textContent = now.toLocaleDateString('en-GB', dateOptions);
 
             // Calculate shift times in minutes from midnight
-            const shiftStartMinutes = SHIFT_START_HOUR * 60; // e.g., 9 * 60 = 540
-            const shiftEndMinutes = SHIFT_END_HOUR * 60; // e.g., 16 * 60 = 960
-            const shiftDurationMinutes = shiftEndMinutes - shiftStartMinutes; // e.g., 960 - 540 = 420
+            const shiftStartMinutes = SHIFT_START_HOUR * 60;
+            const shiftEndMinutes = SHIFT_END_HOUR * 60;
+            const shiftDurationMinutes = shiftEndMinutes - shiftStartMinutes;
 
             let progressPercent = 0;
 
@@ -313,10 +360,11 @@
             } else {
                 // During the shift (9 AM to 4 PM)
                 const timeElapsedMinutes = currentTimeInMinutes - shiftStartMinutes;
-                if (shiftDurationMinutes > 0) { // Avoid division by zero
+                if (shiftDurationMinutes > 0) {
+                    // Ensure minimum 1% even at the very start
                     progressPercent = Math.max(1, Math.min(100, (timeElapsedMinutes / shiftDurationMinutes) * 100));
                 } else {
-                    progressPercent = 100; // Handle edge case of zero duration shift
+                    progressPercent = 100; // Handle zero duration edge case
                 }
             }
 
@@ -504,9 +552,11 @@
             topSection.appendChild(editInput);
 
             const bottomSection = document.createElement('div');
-            bottomSection.className = 'task-meta-row mt-2';
-            const metaGroup = document.createElement('div');
-            metaGroup.className = 'task-meta-group';
+            bottomSection.className = 'task-meta-row mt-2'; // Use flex row
+
+            // Removed Meta Info Span (Added By / On)
+
+            // Priority Select
             const prioritySelect = document.createElement('select');
             prioritySelect.id = `priority-${task.id}`;
             prioritySelect.className = 'task-priority-select';
@@ -517,6 +567,8 @@
                 if (p === task.priority) option.selected = true;
                 prioritySelect.appendChild(option);
             });
+
+            // Due Date Input
             const dueDateDiv = document.createElement('div');
             dueDateDiv.className = 'task-due-date-container';
             const dueDateLabel = document.createElement('label');
@@ -531,49 +583,58 @@
             dueDateInput.onchange = (event) => updateTaskDueDate(task.id, event.target.value);
             dueDateDiv.appendChild(dueDateLabel);
             dueDateDiv.appendChild(dueDateInput);
-            metaGroup.appendChild(prioritySelect);
-            metaGroup.appendChild(dueDateDiv);
 
+            // Actions Group (Ellipsis + Done Tick)
             const actionsGroup = document.createElement('div');
-            actionsGroup.className = 'task-actions-group';
+            actionsGroup.className = 'task-actions-group ml-auto'; // Use ml-auto to push to the right
+
+            // Sub-menu (Edit, Note, Delete)
             const subMenu = document.createElement('div');
             subMenu.id = `submenu-${task.id}`;
             subMenu.className = 'task-submenu hidden';
+
             const editBtn = document.createElement('button');
             editBtn.innerHTML = '✏️ Edit Text';
             editBtn.className = 'action-btn text-blue-600 hover:text-blue-800 w-full justify-start';
             editBtn.title = 'Edit Task Description';
             editBtn.onclick = (e) => { e.stopPropagation(); startEditTask(task.id); };
+
             const noteBtn = document.createElement('button');
             noteBtn.innerHTML = '📝 ' + (task.notes ? 'Edit Note' : 'Add Note');
             noteBtn.className = 'action-btn text-purple-600 hover:text-purple-800 w-full justify-start';
             noteBtn.title = task.notes ? 'Edit Note' : 'Add Note';
             noteBtn.onclick = (e) => { e.stopPropagation(); editTaskNotes(task.id); };
+
             const deleteBtn = document.createElement('button');
             deleteBtn.innerHTML = '❌ Delete';
             deleteBtn.className = 'action-btn text-red-500 hover:text-red-700 w-full justify-start';
             deleteBtn.title = 'Delete Task';
             deleteBtn.onclick = (e) => { e.stopPropagation(); deleteTask(task.id); };
+
             subMenu.appendChild(editBtn);
             subMenu.appendChild(noteBtn);
             subMenu.appendChild(deleteBtn);
 
+            // Ellipsis Menu Button
             const menuBtn = document.createElement('button');
             menuBtn.innerHTML = '&#8942;';
             menuBtn.className = 'action-btn text-gray-600 hover:text-gray-900 px-1';
             menuBtn.title = 'More Actions';
             menuBtn.onclick = (event) => toggleSubMenu(event, task.id);
 
+            // Done Tick Button
             const doneBtn = document.createElement('button');
             doneBtn.innerHTML = '✅';
             doneBtn.className = 'action-btn text-green-600 hover:text-green-800';
             doneBtn.title = 'Mark as Done';
             doneBtn.onclick = () => markTaskDone(task.id);
 
+            // Append to actions group
             actionsGroup.appendChild(subMenu);
             actionsGroup.appendChild(menuBtn);
             if (task.status !== 'done') { actionsGroup.appendChild(doneBtn); }
 
+            // Edit Mode Buttons (Save/Cancel)
             const editModeButtonContainer = document.createElement('div');
             editModeButtonContainer.className = 'edit-mode-buttons hidden';
             const saveBtn = document.createElement('button');
@@ -589,7 +650,9 @@
             editModeButtonContainer.appendChild(saveBtn);
             editModeButtonContainer.appendChild(cancelBtn);
 
-            bottomSection.appendChild(metaGroup);
+            // Assemble the bottom row
+            bottomSection.appendChild(prioritySelect);
+            bottomSection.appendChild(dueDateDiv);
             bottomSection.appendChild(actionsGroup);
             bottomSection.appendChild(editModeButtonContainer);
 
@@ -602,19 +665,23 @@
             div.appendChild(bottomSection);
             div.appendChild(notesDiv);
 
+            // Handle visibility for edit mode
             if (currentlyEditingTaskId === task.id) {
                 div.draggable = false;
                 contentSpan.classList.add('hidden');
                 editInput.classList.remove('hidden');
-                 metaGroup.classList.add('hidden');
-                 actionsGroup.classList.add('hidden');
-                 editModeButtonContainer.classList.remove('hidden');
-                 bottomSection.classList.remove('hidden');
+                // Hide priority, due date, and action buttons during text edit
+                prioritySelect.classList.add('hidden');
+                dueDateDiv.classList.add('hidden');
+                actionsGroup.classList.add('hidden');
+                editModeButtonContainer.classList.remove('hidden'); // Show save/cancel
+                bottomSection.classList.remove('hidden'); // Keep bottom row visible
 
                 setTimeout(() => editInput.focus(), 0);
             }
             return div;
         }
+
 
         function renderBoard() {
              if (boardPage.classList.contains('hidden')) return;
@@ -663,7 +730,7 @@
 
             const newTaskData = {
                 text: taskText, name: "Jay", // Default name
-                priority: DEFAULT_PRIORITY, notes: '', status: 'todo', due_date: null // Add null due_date
+                priority: DEFAULT_PRIORITY, notes: '', status: 'todo', due_date: null
             };
             addTaskBtn.disabled = true;
             addTaskMessage.textContent = 'Adding task...';
@@ -749,7 +816,7 @@
                     task.priority = task.priority || DEFAULT_PRIORITY;
                     task.notes = task.notes || '';
                     task.createdAt = task.created_at ? new Date(task.created_at).getTime() : 0;
-                    task.due_date = task.due_date || null; // Handle null due_date
+                    task.due_date = task.due_date || null; // Ensure due_date is null if missing/null
                     const status = task.status || 'todo';
                     if (VALID_STATUSES.includes(status)) { tasks[status].push(task); }
                     else { console.warn(`Invalid task status "${status}" for task ID ${task.id}. Placing in 'todo'.`); tasks.todo.push(task); }
