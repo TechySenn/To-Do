@@ -149,7 +149,7 @@
     <script>
         // --- Constants ---
         const COOLDOWN_SECONDS = 5;
-        const PIN_COOLDOWN_SECONDS = 5; // New constant for pin cooldown
+        const PIN_COOLDOWN_SECONDS = 5;
         const MAX_TODO_TASKS = 50;
         const PRIORITIES = ["New", "High", "Medium", "Low"];
         const DEFAULT_PRIORITY = "New";
@@ -173,7 +173,7 @@
         const boardPage = document.getElementById('boardPage');
         const showInputPageBtn = document.getElementById('showInputPageBtn');
         const showBoardPageBtn = document.getElementById('showBoardPageBtn');
-        // Removed changePinBtn variable
+        // const changePinBtn = document.getElementById('changePinBtn'); // Removed
 
         // --- State ---
         let tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };
@@ -181,7 +181,7 @@
         let currentlyEditingTaskId = null;
         let cooldownTimer = null;
         let successMessageTimeout = null;
-        let isPinCooldownActive = false; // State for pin cooldown
+        let isPinCooldownActive = false;
 
         // --- Generic Fetch Helper ---
         async function apiCall(endpoint, method = 'GET', body = null) {
@@ -397,7 +397,11 @@
             buttonContainer.appendChild(editBtn);
             buttonContainer.appendChild(noteBtn);
             buttonContainer.appendChild(deleteBtn);
-            if (task.status !== 'done') { buttonContainer.appendChild(doneBtn); }
+            // --- CORRECTED Condition for Done Button ---
+            if (task.status !== 'done') {
+                 buttonContainer.appendChild(doneBtn);
+            }
+            // --- End CORRECTED Condition ---
             const editModeButtonContainer = document.createElement('div');
             editModeButtonContainer.className = 'edit-mode-buttons hidden';
             const saveBtn = document.createElement('button');
@@ -657,11 +661,7 @@
         newTaskNameInput.addEventListener('keypress', (event) => { if (event.key === 'Enter') addTask(); });
         showInputPageBtn.addEventListener('click', () => showPage('inputPage'));
         showBoardPageBtn.addEventListener('click', async () => {
-            // Check if cooldown is active
-            if (isPinCooldownActive) {
-                alert("Please wait before trying the pin again.");
-                return;
-            }
+            if (isPinCooldownActive) { alert("Please wait before trying the pin again."); return; } // Check pin cooldown
             const pinInput = prompt("Please enter the pin code to view the board:");
             if (pinInput === null) return;
             try {
