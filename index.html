@@ -140,34 +140,32 @@
          #currentDateDisplay {
              font-size: 1rem; /* Increased size */
              font-weight: 600; /* Bold */
-             color: #374151; /* gray-700 */
-             margin-bottom: 5px; /* Spacing */
+             color: #374151;
+             margin-bottom: 5px;
              white-space: nowrap;
              width: 220px; /* Match progress bar width */
-             text-align: right; /* Align text right */
+             text-align: right;
          }
          #shiftProgressBarContainer {
              width: 220px; /* Increased width */
              height: 16px; /* Increased height */
              background-color: #e5e7eb;
-             border-radius: 8px; /* Adjusted radius */
+             border-radius: 8px;
              overflow: hidden;
              border: 1px solid #d1d5db;
          }
          #shiftProgressBar {
              height: 100%; width: 0%;
              /* Removed gradient - color set by JS */
-             /* background: linear-gradient(to right, #10b981, #f59e0b, #ef4444); */
-             transition: width 0.5s ease-out, background-color 0.5s ease-out; /* Added transition for color */
-             border-radius: 7px; /* Adjusted radius */
+             transition: width 0.5s ease-out, background-color 0.5s ease-out;
+             border-radius: 7px;
          }
 
     </style>
 </head>
 <body class="bg-blue-50 font-sans p-4 md:p-8">
 
-    <div class="container mx-auto max-w-7xl">
-        <div id="mainHeader" class="mb-4">
+    <div class="container mx-auto max-w-full px-4"> <div id="mainHeader" class="mb-4">
              <div id="taskSummaryContainerBoard" class="hidden">
                  <div id="taskSummaryBoard" class="flex items-center space-x-2"></div>
              </div>
@@ -207,8 +205,7 @@
         <div id="boardPage" class="hidden">
              <div class="flex flex-col md:flex-row gap-6">
 
-                <div class="w-full md:w-1/4 lg:w-1/5 flex-shrink-0 order-1 md:order-1">
-                    <div id="stickyNoteContainer">
+                <div class="w-full md:w-1/5 flex-shrink-0 order-1 md:order-1"> <div id="stickyNoteContainer">
                         <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Notes</h3>
                         <textarea id="stickyNoteTextarea" placeholder="Write your permanent notes here..."></textarea>
                         <button id="saveStickyNoteBtn" class="nav-button bg-yellow-500 hover:bg-yellow-600 text-yellow-900 text-sm py-1 px-3 mt-2">Save Note</button>
@@ -241,8 +238,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="w-full md:w-1/4 lg:w-1/5 flex-shrink-0 order-2 md:order-3">
-                    <div id="upcomingTasksContainer">
+                <div class="w-full md:w-1/4 lg:w-1/5 flex-shrink-0 order-2 md:order-3"> <div id="upcomingTasksContainer">
                         <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Upcoming Due</h3>
                         <div id="upcomingTasksList">
                             <p class="text-xs text-gray-500 text-center italic">Loading...</p>
@@ -329,27 +325,18 @@
 
         // --- Functions ---
 
-        function formatDate(timestamp) {
-            // This version specifically handles the YYYY-MM-DD string format from the date input/Supabase
-            if (!timestamp) return 'N/A'; // Handle null or empty string
+        function formatDate(timestampOrDateString) {
+            if (!timestampOrDateString) return 'N/A';
             try {
-                // Create date object assuming input is YYYY-MM-DD or a valid timestamp number
-                const date = new Date(timestamp);
-                 // Adjust for potential timezone offset if timestamp is just date string
-                 // This ensures the date shown matches the input, regardless of user's timezone
+                const date = new Date(timestampOrDateString);
                  const userTimezoneOffset = date.getTimezoneOffset() * 60000;
                  const adjustedDate = new Date(date.getTime() + userTimezoneOffset);
-
-                if (isNaN(adjustedDate.getTime())) return 'N/A'; // Invalid date format
-
+                if (isNaN(adjustedDate.getTime())) return 'N/A';
                 const day = String(adjustedDate.getDate()).padStart(2, '0');
-                const month = String(adjustedDate.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+                const month = String(adjustedDate.getMonth() + 1).padStart(2, '0');
                 const year = adjustedDate.getFullYear();
                 return `${day}/${month}/${year}`;
-            } catch (e) {
-                 console.error("Error formatting display date:", e);
-                 return 'N/A';
-            }
+            } catch (e) { return 'N/A'; }
         }
 
 
@@ -358,10 +345,8 @@
              try {
                  const date = new Date(timestampOrDateString);
                  if (isNaN(date.getTime())) return '';
-                 // Adjust for timezone offset when getting parts for YYYY-MM-DD
                   const userTimezoneOffset = date.getTimezoneOffset() * 60000;
                   const adjustedDate = new Date(date.getTime() + userTimezoneOffset);
-
                  const year = adjustedDate.getFullYear();
                  const month = String(adjustedDate.getMonth() + 1).padStart(2, '0');
                  const day = String(adjustedDate.getDate()).padStart(2, '0');
@@ -380,7 +365,7 @@
             const shiftEndMinutes = SHIFT_END_HOUR * 60;
             const shiftDurationMinutes = shiftEndMinutes - shiftStartMinutes;
             let progressPercent = 0;
-            let barColor = '#10b981'; // Default green (Tailwind green-500)
+            let barColor = '#10b981'; // Default green
 
             if (currentTimeInMinutes < shiftStartMinutes) {
                 progressPercent = 1;
@@ -394,16 +379,11 @@
                 if (shiftDurationMinutes > 0) {
                     progressPercent = Math.max(1, Math.min(100, (timeElapsedMinutes / shiftDurationMinutes) * 100));
                     // Determine color based on percentage
-                    if (progressPercent < 50) {
-                        barColor = '#10b981'; // Green
-                    } else if (progressPercent < 85) {
-                        barColor = '#f59e0b'; // Orange (Tailwind orange-500)
-                    } else {
-                        barColor = '#ef4444'; // Red (Tailwind red-500)
-                    }
+                    if (progressPercent < 50) { barColor = '#10b981'; } // Green
+                    else if (progressPercent < 85) { barColor = '#f59e0b'; } // Orange
+                    else { barColor = '#ef4444'; } // Red
                 } else {
-                    progressPercent = 100;
-                    barColor = '#ef4444'; // Red if shift duration is zero
+                    progressPercent = 100; barColor = '#ef4444';
                 }
             }
 
@@ -769,7 +749,7 @@
                     const taskDiv = document.createElement('div');
                     taskDiv.className = 'upcoming-task';
                     // Use formatDate which handles potential nulls (though we filtered)
-                    const displayDueDate = formatDate(task.due_date); // Corrected: Pass date object/string
+                    const displayDueDate = formatDate(task.due_date); // Corrected: Pass date string/timestamp
                     taskDiv.innerHTML = `<span class="due-date">${displayDueDate}</span> ${task.text}`;
                     upcomingTasksList.appendChild(taskDiv);
                 });
@@ -856,7 +836,7 @@
             try {
                  await apiCall('update-task', 'POST', { id: taskId, updates: { text: newText } });
                  for (const columnId in tasks) {
-                    const task = tasks[columnId].find(t => t.id === taskId);
+                    const task = tasks[colId].find(t => t.id === taskId);
                     if (task) { task.text = newText; break; }
                  }
                  currentlyEditingTaskId = null; renderBoard();
