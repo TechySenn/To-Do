@@ -71,10 +71,10 @@
         /* Style for task metadata */
         .task-meta-row { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; gap: 6px; flex-wrap: wrap; }
         .task-meta-group { display: flex; align-items: center; gap: 8px; flex-grow: 1; min-width: 150px; }
-        .task-priority-select { font-size: 0.7rem; padding: 0px 2px; border-radius: 4px; border: 1px solid #9ca3af; background-color: #f9fafb; flex-shrink: 0; height: 24px; line-height: 1; }
+        .task-priority-select { font-size: 0.75rem; padding: 1px 3px; border-radius: 4px; border: 1px solid #9ca3af; background-color: #f9fafb; flex-shrink: 0; height: 24px; line-height: 1; }
         .task-due-date-container { display: flex; align-items: center; gap: 2px; flex-shrink: 0; min-width: 100px; }
-        .task-due-date-label { font-size: 0.7rem; color: #4b5563; white-space: nowrap; }
-        .task-due-date-input { font-size: 0.7rem; padding: 0px 2px; border-radius: 4px; border: 1px solid #ccc; max-width: 100px; color: #4b5563; height: 24px; }
+        .task-due-date-label { font-size: 0.75rem; color: #4b5563; white-space: nowrap; }
+        .task-due-date-input { font-size: 0.75rem; padding: 1px 3px; border-radius: 4px; border: 1px solid #ccc; max-width: 110px; color: #4b5563; height: 24px; }
         .task-actions-group { display: flex; align-items: center; gap: 6px; position: relative; flex-shrink: 0; margin-left: auto; }
         /* Task text style */
         .task-text { color: #1f2937; display: block; margin-bottom: 4px;}
@@ -141,7 +141,7 @@
              font-size: 1rem; /* Increased size */
              font-weight: 600; /* Bold */
              color: #374151;
-             margin-bottom: 5px;
+             margin-bottom: 5px; /* Spacing */
              white-space: nowrap;
              width: 220px; /* Match progress bar width */
              text-align: right;
@@ -157,7 +157,7 @@
          #shiftProgressBar {
              height: 100%; width: 0%;
              /* Removed gradient - color set by JS */
-             transition: width 0.5s ease-out, background-color 0.5s ease-out;
+             transition: width 0.5s ease-out, background-color 0.5s ease-out; /* Added transition for color */
              border-radius: 7px;
          }
 
@@ -238,7 +238,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="w-full md:w-1/4 lg:w-1/5 flex-shrink-0 order-2 md:order-3"> <div id="upcomingTasksContainer">
+                <div class="w-full md:w-1/4 lg:w-1/5 flex-shrink-0 order-2 md:order-3">
+                    <div id="upcomingTasksContainer">
                         <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Upcoming Due</h3>
                         <div id="upcomingTasksList">
                             <p class="text-xs text-gray-500 text-center italic">Loading...</p>
@@ -328,15 +329,22 @@
         function formatDate(timestampOrDateString) {
             if (!timestampOrDateString) return 'N/A';
             try {
+                // Handle YYYY-MM-DD strings or timestamps
                 const date = new Date(timestampOrDateString);
-                 const userTimezoneOffset = date.getTimezoneOffset() * 60000;
-                 const adjustedDate = new Date(date.getTime() + userTimezoneOffset);
+                // Adjust for potential timezone offset if it's just a date string
+                const userTimezoneOffset = date.getTimezoneOffset() * 60000;
+                const adjustedTimestamp = date.getTime() + (timestampOrDateString.length === 10 ? userTimezoneOffset : 0); // Only adjust if it looks like YYYY-MM-DD
+                const adjustedDate = new Date(adjustedTimestamp);
+
                 if (isNaN(adjustedDate.getTime())) return 'N/A';
                 const day = String(adjustedDate.getDate()).padStart(2, '0');
                 const month = String(adjustedDate.getMonth() + 1).padStart(2, '0');
                 const year = adjustedDate.getFullYear();
                 return `${day}/${month}/${year}`;
-            } catch (e) { return 'N/A'; }
+            } catch (e) {
+                 console.error("Error formatting display date:", e);
+                 return 'N/A';
+            }
         }
 
 
@@ -365,7 +373,7 @@
             const shiftEndMinutes = SHIFT_END_HOUR * 60;
             const shiftDurationMinutes = shiftEndMinutes - shiftStartMinutes;
             let progressPercent = 0;
-            let barColor = '#10b981'; // Default green
+            let barColor = '#10b981'; // Default green (Tailwind green-500)
 
             if (currentTimeInMinutes < shiftStartMinutes) {
                 progressPercent = 1;
@@ -380,8 +388,8 @@
                     progressPercent = Math.max(1, Math.min(100, (timeElapsedMinutes / shiftDurationMinutes) * 100));
                     // Determine color based on percentage
                     if (progressPercent < 50) { barColor = '#10b981'; } // Green
-                    else if (progressPercent < 85) { barColor = '#f59e0b'; } // Orange
-                    else { barColor = '#ef4444'; } // Red
+                    else if (progressPercent < 85) { barColor = '#f59e0b'; } // Orange (Tailwind orange-500)
+                    else { barColor = '#ef4444'; } // Red (Tailwind red-500)
                 } else {
                     progressPercent = 100; barColor = '#ef4444';
                 }
