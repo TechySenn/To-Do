@@ -19,8 +19,8 @@
              min-height: 450px;
              max-height: 65vh; /* Adjusted height */
         }
-        /* Sticky Note Styles */
-        #stickyNoteContainer {
+        /* Sticky Note & Upcoming Tasks Styles */
+        #stickyNoteContainer, #upcomingTasksContainer {
             background-color: #fef9c3; /* yellow-100 */
             border: 1px solid #fde68a; /* yellow-200 */
             border-radius: 8px;
@@ -38,13 +38,32 @@
          #saveStickyNoteBtn { align-self: flex-end; }
          #stickyNoteMessage { font-size: 0.75rem; margin-top: 0.25rem; height: 1rem; text-align: right; }
 
+         /* Upcoming Tasks Specific Styles */
+         #upcomingTasksContainer {
+             background-color: #e0f2fe; /* sky-100 */
+             border-color: #bae6fd; /* sky-200 */
+         }
+         #upcomingTasksList {
+             flex-grow: 1; overflow-y: auto; padding-right: 4px;
+         }
+         .upcoming-task {
+             font-size: 0.75rem; padding: 2px 4px; margin-bottom: 4px;
+             border-radius: 3px; background-color: #f0f9ff; /* sky-50 */
+             border: 1px solid #e0f2fe; /* sky-100 */
+             display: block; line-height: 1.3;
+         }
+         .upcoming-task .due-date {
+             font-weight: 600; color: #be123c; /* rose-700 */ margin-right: 4px;
+         }
+
+
         /* Style for the confetti canvas */
         #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
         /* Custom scrollbar */
-        .tasks-container::-webkit-scrollbar { width: 8px; }
-        .tasks-container::-webkit-scrollbar-track { background: #dbeafe; border-radius: 10px; }
-        .tasks-container::-webkit-scrollbar-thumb { background: #60a5fa; border-radius: 10px; }
-        .tasks-container::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
+        .tasks-container::-webkit-scrollbar, #upcomingTasksList::-webkit-scrollbar { width: 8px; }
+        .tasks-container::-webkit-scrollbar-track, #upcomingTasksList::-webkit-scrollbar-track { background: #dbeafe; border-radius: 10px; }
+        .tasks-container::-webkit-scrollbar-thumb, #upcomingTasksList::-webkit-scrollbar-thumb { background: #60a5fa; border-radius: 10px; }
+        .tasks-container::-webkit-scrollbar-thumb:hover, #upcomingTasksList::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
         /* Styling for inline edit input */
         .task-edit-input { padding: 2px 4px; border: 1px solid #93c5fd; border-radius: 4px; margin-right: 5px; background-color: #eff6ff; }
         /* Hide elements */
@@ -177,7 +196,8 @@
         <div id="boardPage" class="hidden">
              <div class="flex flex-col md:flex-row gap-6">
 
-                <div class="w-full md:w-1/4 lg:w-1/5 flex-shrink-0 order-first md:order-1"> <div id="stickyNoteContainer">
+                <div class="w-full md:w-1/4 lg:w-1/5 flex-shrink-0 order-1 md:order-1">
+                    <div id="stickyNoteContainer">
                         <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Notes</h3>
                         <textarea id="stickyNoteTextarea" placeholder="Write your permanent notes here..."></textarea>
                         <button id="saveStickyNoteBtn" class="nav-button bg-yellow-500 hover:bg-yellow-600 text-yellow-900 text-sm py-1 px-3 mt-2">Save Note</button>
@@ -185,7 +205,7 @@
                     </div>
                 </div>
 
-                <div class="flex-grow order-last md:order-2 flex justify-center">
+                <div class="flex-grow order-3 md:order-2 flex justify-center">
                     <div class="w-full max-w-6xl"> <div class="space-y-6">
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6" id="kanbanBoardTopRow">
                                 <div id="todo" class="kanban-column bg-blue-100 rounded-lg shadow p-4" ondragover="allowDrop(event)" ondrop="drop(event)">
@@ -210,7 +230,15 @@
                         </div>
                     </div>
                 </div>
+                <div class="w-full md:w-1/4 lg:w-1/5 flex-shrink-0 order-2 md:order-3">
+                    <div id="upcomingTasksContainer">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Upcoming Due</h3>
+                        <div id="upcomingTasksList">
+                            <p class="text-xs text-gray-500 text-center italic">Loading...</p>
+                        </div>
+                    </div>
                 </div>
+                 </div>
              </div>
     </div>
 
@@ -249,7 +277,7 @@
         const stickyNoteTextarea = document.getElementById('stickyNoteTextarea');
         const saveStickyNoteBtn = document.getElementById('saveStickyNoteBtn');
         const stickyNoteMessage = document.getElementById('stickyNoteMessage');
-        // Removed upcomingTasksList
+        const upcomingTasksList = document.getElementById('upcomingTasksList'); // Added back
 
         // --- State ---
         let tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };
@@ -380,8 +408,8 @@
                 // changePinBtn.classList.remove('hidden'); // Removed
                 renderBoard();
                 updateTaskSummary();
-                loadStickyNote(); // Load sticky note when board is shown
-                // renderUpcomingTasks(); // Removed
+                loadStickyNote();
+                renderUpcomingTasks(); // Render upcoming tasks when board is shown
                 showInputPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500');
                 showInputPageBtn.classList.replace('hover:bg-blue-600', 'hover:bg-indigo-600');
                 showBoardPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500');
@@ -399,7 +427,7 @@
                      if (task) { task.priority = newPriority; break; }
                  }
                  renderBoard();
-                 // renderUpcomingTasks(); // Removed
+                 renderUpcomingTasks();
              } catch (error) { /* Handled by apiCall */ }
         }
 
@@ -432,7 +460,7 @@
                      if (task) { task.due_date = dateValueToSend; break; }
                  }
                  renderBoard();
-                 // renderUpcomingTasks(); // Removed
+                 renderUpcomingTasks();
              } catch (error) { console.error("Failed to update due date in backend."); }
         }
 
@@ -451,7 +479,7 @@
              taskToMove.status = 'done';
              tasks.done.push(taskToMove);
              renderBoard(); updateTaskSummary(); triggerConfetti();
-             // renderUpcomingTasks(); // Removed
+             renderUpcomingTasks();
              // Backend Update
              try {
                  await apiCall('update-task', 'POST', { id: taskId, updates: { status: 'done' } });
@@ -466,7 +494,7 @@
                   if (!tasks[originalColumnId]) tasks[originalColumnId] = [];
                   tasks[originalColumnId].splice(originalIndex, 0, taskToMove);
                   renderBoard(); updateTaskSummary();
-                  // renderUpcomingTasks(); // Removed
+                  renderUpcomingTasks();
              }
         }
 
@@ -660,7 +688,40 @@
             }
         }
 
-        // Removed renderUpcomingTasks function
+        /**
+         * Renders the top 3 upcoming tasks (excluding 'Done').
+         */
+        function renderUpcomingTasks() {
+            if (!upcomingTasksList) return;
+
+            let allUpcoming = [];
+            ['todo', 'inprogress', 'nonurgent'].forEach(status => {
+                if (tasks[status]) { allUpcoming = allUpcoming.concat(tasks[status]); }
+            });
+
+            // Filter for tasks that actually have a due date set
+            const tasksWithDueDate = allUpcoming.filter(task => task.due_date);
+
+            // Sort by due date (earliest first)
+            tasksWithDueDate.sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
+
+            const top3Tasks = tasksWithDueDate.slice(0, 3);
+
+            upcomingTasksList.innerHTML = ''; // Clear previous list
+            if (top3Tasks.length === 0) {
+                upcomingTasksList.innerHTML = '<p class="text-xs text-gray-500 text-center italic">No upcoming due dates.</p>';
+            } else {
+                top3Tasks.forEach(task => {
+                    const taskDiv = document.createElement('div');
+                    taskDiv.className = 'upcoming-task';
+                    // Use formatDate which handles potential nulls (though we filtered)
+                    const displayDueDate = formatDate(new Date(task.due_date)); // Corrected: use formatDate
+                    taskDiv.innerHTML = `<span class="due-date">${displayDueDate}</span> ${task.text}`;
+                    upcomingTasksList.appendChild(taskDiv);
+                });
+            }
+        }
+
 
         async function addTask() {
             if (addTaskBtn.disabled) return;
@@ -687,9 +748,9 @@
                      addedTask.due_date = addedTask.due_date || null;
                      tasks.todo.push(addedTask);
                      updateTaskSummary();
-                     // renderUpcomingTasks(); // Removed call
+                     renderUpcomingTasks();
                      if (!boardPage.classList.contains('hidden')) renderBoard();
-                } else { await loadTasks(); } // loadTasks will call renderUpcomingTasks if re-added
+                } else { await loadTasks(); }
                 clearTimeout(successMessageTimeout); clearInterval(cooldownTimer);
                 addTaskMessage.textContent = `Task added: "${addedTask.text || taskText}"`;
                 addTaskMessage.classList.add('text-green-600');
@@ -722,7 +783,7 @@
                 await apiCall('delete-task', 'POST', { id: taskId });
                 for (const columnId in tasks) { tasks[columnId] = tasks[columnId].filter(task => task.id !== taskId); }
                 renderBoard(); updateTaskSummary();
-                // renderUpcomingTasks(); // Removed call
+                renderUpcomingTasks();
             } catch (error) { /* Handled by apiCall */ }
         }
 
@@ -745,7 +806,7 @@
                     if (task) { task.text = newText; break; }
                  }
                  currentlyEditingTaskId = null; renderBoard();
-                 // renderUpcomingTasks(); // Removed call
+                 renderUpcomingTasks();
             } catch (error) { currentlyEditingTaskId = null; renderBoard(); }
         }
 
@@ -772,7 +833,7 @@
             } finally {
                  currentlyEditingTaskId = null;
                  updateTaskSummary();
-                 // renderUpcomingTasks(); // Removed call
+                 renderUpcomingTasks(); // Render upcoming tasks after loading all tasks
                  if (!boardPage.classList.contains('hidden')) { renderBoard(); }
             }
         }
@@ -867,7 +928,7 @@
              tasks[targetColumnId].push(taskToMove);
              taskToMove.status = targetColumnId;
              renderBoard(); updateTaskSummary();
-             // renderUpcomingTasks(); // Removed call
+             renderUpcomingTasks(); // Update upcoming list
              // Backend Update
              try {
                  await apiCall('update-task', 'POST', { id: taskId, updates: { status: targetColumnId } });
@@ -882,7 +943,7 @@
                   if (!tasks[originalColumnId]) tasks[originalColumnId] = [];
                   tasks[originalColumnId].splice(originalIndex, 0, taskToMove);
                   renderBoard(); updateTaskSummary();
-                  // renderUpcomingTasks(); // Removed call
+                  renderUpcomingTasks(); // Update upcoming list on rollback
              }
         }
 
