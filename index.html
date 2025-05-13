@@ -132,7 +132,7 @@
              align-items: flex-start; justify-content: center;
          }
          #taskSummaryContainerBoard { position: absolute; top: 0; left: 0; }
-         #mainTitle { flex-grow: 1; text-align: center; }
+         #mainTitle { flex-grow: 1; text-align: center; color: #e0f2fe; /* Lighter color for dark bg */ }
          #headerInfoRight {
              position: absolute; top: 0; right: 0;
              display: flex; flex-direction: column; align-items: flex-end;
@@ -140,7 +140,7 @@
          #currentDateDisplay {
              font-size: 1rem; /* Increased size */
              font-weight: 600; /* Bold */
-             color: #374151;
+             color: #d1d5db; /* Lighter color for dark bg */
              margin-bottom: 5px; /* Spacing */
              white-space: nowrap;
              width: 220px; /* Match progress bar width */
@@ -149,32 +149,63 @@
          #shiftProgressBarContainer {
              width: 220px; /* Increased width */
              height: 16px; /* Increased height */
-             background-color: #e5e7eb;
+             background-color: #4b5563; /* Darker background for progress bar track */
              border-radius: 8px;
              overflow: hidden;
-             border: 1px solid #d1d5db;
+             border: 1px solid #374151;
          }
          #shiftProgressBar {
              height: 100%; width: 0%;
-             /* Removed gradient - color set by JS */
-             transition: width 0.5s ease-out, background-color 0.5s ease-out; /* Added transition for color */
+             transition: width 0.5s ease-out, background-color 0.5s ease-out;
              border-radius: 7px;
          }
+         /* Shift Time Controls */
+        #shiftTimeControls {
+            margin-top: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+        #shiftTimeControls label {
+            font-size: 0.75rem;
+            color: #9ca3af; /* Lighter text for dark bg */
+        }
+        #shiftTimeControls input[type="time"] {
+            font-size: 0.75rem; padding: 1px 3px;
+            border-radius: 4px; border: 1px solid #4b5563; /* Adjusted border */
+            background-color: #374151; /* Darker input bg */
+            color: #e5e7eb; /* Lighter text */
+            width: 80px;
+        }
+        #shiftTimeControls button {
+            font-size: 0.75rem; padding: 2px 6px;
+            border-radius: 4px;
+            margin-top: 2px;
+        }
 
     </style>
 </head>
-<body class="bg-blue-50 font-sans p-4 md:p-8">
-
-    <div class="container mx-auto max-w-full px-4"> <div id="mainHeader" class="mb-4">
+<body class="bg-blue-800 font-sans p-4 md:p-8"> <div class="container mx-auto max-w-full px-4">
+        <div id="mainHeader" class="mb-4">
              <div id="taskSummaryContainerBoard" class="hidden">
                  <div id="taskSummaryBoard" class="flex items-center space-x-2"></div>
              </div>
-             <h1 id="mainTitle" class="text-3xl font-bold text-gray-800">Jay's To Do List</h1>
-             <div id="headerInfoRight">
+             <h1 id="mainTitle" class="text-3xl font-bold text-gray-100">Jay's To Do List</h1> <div id="headerInfoRight">
                  <div id="currentDateDisplay">Loading date...</div>
                  <div id="shiftProgressBarContainer">
                      <div id="shiftProgressBar"></div>
                  </div>
+                 <div id="shiftTimeControls" class="hidden"> <div>
+                        <label for="shiftStartInput">Start:</label>
+                        <input type="time" id="shiftStartInput" name="shiftStartInput">
+                    </div>
+                    <div>
+                        <label for="shiftEndInput">End:</label>
+                        <input type="time" id="shiftEndInput" name="shiftEndInput">
+                    </div>
+                    <button id="updateShiftTimesBtn" class="nav-button bg-teal-500 hover:bg-teal-600 text-white text-xs py-1 px-2">Update Times</button>
+                </div>
              </div>
         </div>
         <div class="text-center mb-6 space-x-4">
@@ -183,19 +214,17 @@
         </div>
 
         <div id="inputPage" class="">
-            <h2 class="text-2xl font-semibold text-center text-blue-800 mb-2">Add a New Task</h2>
-            <p class="text-center text-sm text-gray-600 mb-4">Please advise below what you require, this will be added to Jay's To-Do list.</p>
+            <h2 class="text-2xl font-semibold text-center text-blue-200 mb-2">Add a New Task</h2>
+            <p class="text-center text-sm text-gray-300 mb-4">Please advise below what you require, this will be added to Jay's To-Do list.</p>
 
-            <div class="p-6 bg-white rounded-lg shadow flex flex-col items-center space-y-4 max-w-lg mx-auto mb-6">
-                <div class="w-full">
+            <div class="p-6 bg-gray-100 rounded-lg shadow flex flex-col items-center space-y-4 max-w-lg mx-auto mb-6"> <div class="w-full">
                     <label for="newTaskInput" class="block text-sm font-medium text-gray-700 mb-1">Task Description:</label>
-                    <textarea id="newTaskInput" placeholder="Enter new task..." rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    <textarea id="newTaskInput" placeholder="Enter new task..." rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"></textarea>
                 </div>
                 <button id="addTaskBtn" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-md transition duration-150 ease-in-out">
                     Add Task
                 </button>
-                 <p id="addTaskMessage" class="text-gray-500 text-sm mt-2 h-5 text-center"></p>
-             </div>
+                 <p id="addTaskMessage" class="text-gray-400 text-sm mt-2 h-5 text-center"></p> </div>
 
              <div id="taskSummaryContainerInput" class="text-center mb-4">
                  <div id="taskSummaryInput"></div>
@@ -205,16 +234,17 @@
         <div id="boardPage" class="hidden">
              <div class="flex flex-col md:flex-row gap-6">
 
-                <div class="w-full md:w-1/5 flex-shrink-0 order-1 md:order-1"> <div id="stickyNoteContainer">
+                <div class="w-full md:w-1/5 flex-shrink-0 order-1 md:order-1">
+                    <div id="stickyNoteContainer">
                         <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Notes</h3>
-                        <textarea id="stickyNoteTextarea" placeholder="Write your permanent notes here..."></textarea>
-                        <button id="saveStickyNoteBtn" class="nav-button bg-yellow-500 hover:bg-yellow-600 text-yellow-900 text-sm py-1 px-3 mt-2">Save Note</button>
+                        <textarea id="stickyNoteTextarea"></textarea> <button id="saveStickyNoteBtn" class="nav-button bg-yellow-500 hover:bg-yellow-600 text-yellow-900 text-sm py-1 px-3 mt-2">Save Note</button>
                         <p id="stickyNoteMessage" class="text-green-600 text-sm mt-1 h-4 text-right"></p>
                     </div>
                 </div>
 
                 <div class="flex-grow order-3 md:order-2 flex justify-center">
-                    <div class="w-full max-w-7xl"> <div class="space-y-6">
+                    <div class="w-full max-w-7xl">
+                        <div class="space-y-6">
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6" id="kanbanBoardTopRow">
                                 <div id="todo" class="kanban-column bg-blue-100 rounded-lg shadow p-4" ondragover="allowDrop(event)" ondrop="drop(event)">
                                     <h2 class="text-xl font-semibold text-blue-800 mb-4 border-b border-blue-300 pb-2">To Do</h2>
@@ -246,8 +276,8 @@
                         </div>
                     </div>
                 </div>
-                 </div>
              </div>
+        </div>
     </div>
 
     <canvas id="confetti-canvas"></canvas>
@@ -262,8 +292,10 @@
         const PRIORITY_VALUES = { "New": 4, "High": 3, "Medium": 2, "Low": 1 };
         const FUNCTION_BASE_PATH = '/.netlify/functions/';
         const VALID_STATUSES = ['todo', 'inprogress', 'nonurgent', 'done'];
-        const SHIFT_START_HOUR = 9;
-        const SHIFT_END_HOUR = 16;
+        // Default shift times (can be updated)
+        let SHIFT_START_HOUR = 9;
+        let SHIFT_END_HOUR = 16;
+
 
         // --- DOM Elements ---
         const newTaskInput = document.getElementById('newTaskInput');
@@ -286,6 +318,11 @@
         const saveStickyNoteBtn = document.getElementById('saveStickyNoteBtn');
         const stickyNoteMessage = document.getElementById('stickyNoteMessage');
         const upcomingTasksList = document.getElementById('upcomingTasksList');
+        const shiftTimeControls = document.getElementById('shiftTimeControls');
+        const shiftStartInput = document.getElementById('shiftStartInput');
+        const shiftEndInput = document.getElementById('shiftEndInput');
+        const updateShiftTimesBtn = document.getElementById('updateShiftTimesBtn');
+
 
         // --- State ---
         let tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };
@@ -329,11 +366,9 @@
         function formatDate(timestampOrDateString) {
             if (!timestampOrDateString) return 'N/A';
             try {
-                // Handle YYYY-MM-DD strings or timestamps
                 const date = new Date(timestampOrDateString);
-                // Adjust for potential timezone offset if it's just a date string
                 const userTimezoneOffset = date.getTimezoneOffset() * 60000;
-                const adjustedTimestamp = date.getTime() + (timestampOrDateString.length === 10 ? userTimezoneOffset : 0); // Only adjust if it looks like YYYY-MM-DD
+                const adjustedTimestamp = date.getTime() + (timestampOrDateString.length === 10 ? userTimezoneOffset : 0); 
                 const adjustedDate = new Date(adjustedTimestamp);
 
                 if (isNaN(adjustedDate.getTime())) return 'N/A';
@@ -362,42 +397,55 @@
              } catch (e) { return ''; }
         }
 
+        function formatTimeToHHMM(hours, minutes = 0) {
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+        }
+
+
         function updateDateTimeDisplay() {
             const now = new Date();
             const currentHour = now.getHours();
             const currentMinutes = now.getMinutes();
             const currentTimeInMinutes = currentHour * 60 + currentMinutes;
+
             const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             currentDateDisplay.textContent = now.toLocaleDateString('en-GB', dateOptions);
+
             const shiftStartMinutes = SHIFT_START_HOUR * 60;
             const shiftEndMinutes = SHIFT_END_HOUR * 60;
             const shiftDurationMinutes = shiftEndMinutes - shiftStartMinutes;
+
             let progressPercent = 0;
             let barColor = '#10b981'; // Default green (Tailwind green-500)
 
-            if (currentTimeInMinutes < shiftStartMinutes) {
-                progressPercent = 1;
-                barColor = '#10b981'; // Green before shift
-            } else if (currentTimeInMinutes >= shiftEndMinutes) {
+            if (currentTimeInMinutes < shiftStartMinutes) { // Before shift
+                progressPercent = 0; // Show no progress before shift starts
+                barColor = '#4ade80'; // Green (e.g., Tailwind green-400)
+            } else if (currentTimeInMinutes >= shiftEndMinutes) { // After shift
                 progressPercent = 100;
-                barColor = '#ef4444'; // Red after shift
-            } else {
-                // During the shift
-                const timeElapsedMinutes = currentTimeInMinutes - shiftStartMinutes;
+                barColor = '#f87171'; // Red (e.g., Tailwind red-400)
+            } else { // During the shift
                 if (shiftDurationMinutes > 0) {
-                    progressPercent = Math.max(1, Math.min(100, (timeElapsedMinutes / shiftDurationMinutes) * 100));
-                    // Determine color based on percentage
-                    if (progressPercent < 50) { barColor = '#10b981'; } // Green
-                    else if (progressPercent < 85) { barColor = '#f59e0b'; } // Orange (Tailwind orange-500)
-                    else { barColor = '#ef4444'; } // Red (Tailwind red-500)
-                } else {
-                    progressPercent = 100; barColor = '#ef4444';
+                    const timeElapsedMinutes = currentTimeInMinutes - shiftStartMinutes;
+                    progressPercent = Math.max(0, Math.min(100, (timeElapsedMinutes / shiftDurationMinutes) * 100));
+
+                    // Color scaling: Green (0-33%), Orange (33-66%), Red (66-100%)
+                    if (progressPercent < 33.33) {
+                        barColor = '#4ade80'; // Green (e.g., Tailwind green-400)
+                    } else if (progressPercent < 66.66) {
+                        barColor = '#facc15'; // Orange/Yellow (e.g., Tailwind yellow-400)
+                    } else {
+                        barColor = '#f87171'; // Red (e.g., Tailwind red-400)
+                    }
+                } else { // Edge case: zero or negative duration
+                    progressPercent = 100;
+                    barColor = '#f87171'; // Red
                 }
             }
 
             if (shiftProgressBar) {
                 shiftProgressBar.style.width = `${progressPercent}%`;
-                shiftProgressBar.style.backgroundColor = barColor; // Set solid background color
+                shiftProgressBar.style.backgroundColor = barColor;
             }
         }
 
@@ -406,22 +454,23 @@
             const todoCount = tasks.todo?.length || 0;
             const inProgressCount = tasks.inprogress?.length || 0;
             const nonUrgentCount = tasks.nonurgent?.length || 0;
+            // Adjusted text colors for better readability on a potentially darker board background if summary moves there
             const summaryBadgesHTML = `
                 <div class="text-center">
                     <span class="summary-count bg-blue-200 text-blue-800">${todoCount}</span>
-                    <span class="block text-xs text-gray-500 mt-1">To Do</span>
+                    <span class="block text-xs text-gray-300 mt-1">To Do</span>
                 </div>
                 <div class="text-center">
                     <span class="summary-count bg-blue-200 text-blue-800">${inProgressCount}</span>
-                    <span class="block text-xs text-gray-500 mt-1">In Progress</span>
+                    <span class="block text-xs text-gray-300 mt-1">In Progress</span>
                 </div>
                 <div class="text-center">
                     <span class="summary-count bg-gray-200 text-gray-700">${nonUrgentCount}</span>
-                    <span class="block text-xs text-gray-500 mt-1">Non Urgent</span>
+                    <span class="block text-xs text-gray-300 mt-1">Non Urgent</span>
                 </div>
             `;
              const summaryInputHTML = `
-                <h3 class="text-lg font-medium text-gray-700 mb-2">Current Task Summary</h3>
+                <h3 class="text-lg font-medium text-gray-300 mb-2">Current Task Summary</h3>
                 <div class="flex justify-center items-center space-x-4">
                     ${summaryBadgesHTML}
                 </div>
@@ -431,23 +480,27 @@
         }
 
         function showPage(pageToShowId) {
-             closeOpenSubMenu();
+            closeOpenSubMenu();
             if (pageToShowId === 'inputPage') {
                 inputPage.classList.remove('hidden');
                 boardPage.classList.add('hidden');
                 taskSummaryBoardContainer.classList.add('hidden');
                 taskSummaryInputContainer.classList.remove('hidden');
-                // changePinBtn.classList.add('hidden'); // Removed
+                if(shiftTimeControls) shiftTimeControls.classList.add('hidden');
                 showInputPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500');
                 showInputPageBtn.classList.replace('hover:bg-indigo-600', 'hover:bg-blue-600');
                 showBoardPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500');
-                 showBoardPageBtn.classList.replace('hover:bg-blue-600', 'hover:bg-indigo-600');
+                showBoardPageBtn.classList.replace('hover:bg-blue-600', 'hover:bg-indigo-600');
             } else if (pageToShowId === 'boardPage') {
                 inputPage.classList.add('hidden');
                 boardPage.classList.remove('hidden');
                 taskSummaryInputContainer.classList.add('hidden');
                 taskSummaryBoardContainer.classList.remove('hidden');
-                // changePinBtn.classList.remove('hidden'); // Removed
+                if(shiftTimeControls) shiftTimeControls.classList.remove('hidden');
+                // Populate current shift times into input fields
+                shiftStartInput.value = formatTimeToHHMM(SHIFT_START_HOUR);
+                shiftEndInput.value = formatTimeToHHMM(SHIFT_END_HOUR);
+
                 renderBoard();
                 updateTaskSummary();
                 loadStickyNote();
@@ -455,11 +508,10 @@
                 showInputPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500');
                 showInputPageBtn.classList.replace('hover:bg-blue-600', 'hover:bg-indigo-600');
                 showBoardPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500');
-                 showBoardPageBtn.classList.replace('hover:bg-indigo-600', 'hover:bg-blue-600');
+                showBoardPageBtn.classList.replace('hover:bg-indigo-600', 'hover:bg-blue-600');
             }
         }
 
-        // Removed changePinCode function
 
         async function updateTaskPriority(taskId, newPriority) {
              try {
@@ -515,21 +567,18 @@
                  if (originalIndex > -1) { originalColumnId = colId; taskToMove = tasks[colId][originalIndex]; break; }
              }
              if (!taskToMove || originalColumnId === 'done') { console.log("Task not found or already in Done column."); return; }
-             // Optimistic UI Update
              tasks[originalColumnId].splice(originalIndex, 1);
              if (!tasks.done) tasks.done = [];
              taskToMove.status = 'done';
              tasks.done.push(taskToMove);
              renderBoard(); updateTaskSummary(); triggerConfetti();
              renderUpcomingTasks();
-             // Backend Update
              try {
                  await apiCall('update-task', 'POST', { id: taskId, updates: { status: 'done' } });
                  console.log(`Task ${taskId} status updated to done in backend.`);
              } catch (error) {
                   console.error(`Failed to update task ${taskId} status to done in backend:`, error);
                   alert("Failed to mark task as done. Reverting.");
-                  // Rollback UI
                   const newIndex = tasks.done.findIndex(task => task.id === taskId);
                   if (newIndex > -1) tasks.done.splice(newIndex, 1);
                   taskToMove.status = originalColumnId;
@@ -577,7 +626,7 @@
             contentSpan.textContent = task.text;
             const editInput = document.createElement('input');
             editInput.type = 'text';
-            editInput.className = 'task-edit-input hidden w-full bg-blue-50 border-blue-400 focus:ring-blue-500';
+            editInput.className = 'task-edit-input hidden w-full bg-blue-50 border-blue-400 focus:ring-blue-500 text-gray-800';
             editInput.value = task.text;
             editInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') saveTaskEdit(task.id); });
             topSection.appendChild(contentSpan);
@@ -589,7 +638,7 @@
             metaGroup.className = 'task-meta-group';
             const prioritySelect = document.createElement('select');
             prioritySelect.id = `priority-${task.id}`;
-            prioritySelect.className = 'task-priority-select';
+            prioritySelect.className = 'task-priority-select text-gray-800'; // Ensure text is readable
             prioritySelect.onchange = (event) => updateTaskPriority(task.id, event.target.value);
             PRIORITIES.forEach(p => {
                 const option = document.createElement('option');
@@ -602,11 +651,11 @@
             const dueDateLabel = document.createElement('label');
             dueDateLabel.htmlFor = `due-date-${task.id}`;
             dueDateLabel.textContent = 'Due:';
-            dueDateLabel.className = 'task-due-date-label';
+            dueDateLabel.className = 'task-due-date-label text-gray-600'; // Darker text for label
             const dueDateInput = document.createElement('input');
             dueDateInput.type = 'date';
             dueDateInput.id = `due-date-${task.id}`;
-            dueDateInput.className = 'task-due-date-input';
+            dueDateInput.className = 'task-due-date-input text-gray-700'; // Ensure text is readable
             dueDateInput.value = formatDateForInput(task.due_date);
             dueDateInput.onchange = (event) => updateTaskDueDate(task.id, event.target.value);
             dueDateDiv.appendChild(dueDateLabel);
@@ -618,7 +667,7 @@
             actionsGroup.className = 'task-actions-group';
             const subMenu = document.createElement('div');
             subMenu.id = `submenu-${task.id}`;
-            subMenu.className = 'task-submenu hidden';
+            subMenu.className = 'task-submenu hidden'; // Kept submenu light for now
             const editBtn = document.createElement('button');
             editBtn.innerHTML = '✏️ Edit Text';
             editBtn.className = 'action-btn text-blue-600 hover:text-blue-800 w-full justify-start';
@@ -674,7 +723,7 @@
             bottomSection.appendChild(editModeButtonContainer);
 
             const notesDiv = document.createElement('div');
-            notesDiv.className = 'task-notes';
+            notesDiv.className = 'task-notes'; // Hover notes remain dark with light text
             notesDiv.textContent = task.notes || '';
             if (!task.notes) notesDiv.classList.add('hidden');
 
@@ -690,7 +739,6 @@
                  actionsGroup.classList.add('hidden');
                  editModeButtonContainer.classList.remove('hidden');
                  bottomSection.classList.remove('hidden');
-
                 setTimeout(() => editInput.focus(), 0);
             }
             return div;
@@ -731,7 +779,7 @@
         }
 
         /**
-         * Renders the top 3 upcoming tasks (excluding 'Done').
+         * Renders the top 5 upcoming tasks (excluding 'Done').
          */
         function renderUpcomingTasks() {
             if (!upcomingTasksList) return;
@@ -741,24 +789,20 @@
                 if (tasks[status]) { allUpcoming = allUpcoming.concat(tasks[status]); }
             });
 
-            // Filter for tasks that actually have a due date set
             const tasksWithDueDate = allUpcoming.filter(task => task.due_date);
-
-            // Sort by due date (earliest first)
             tasksWithDueDate.sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
 
-            const top3Tasks = tasksWithDueDate.slice(0, 3);
+            const top5Tasks = tasksWithDueDate.slice(0, 5); // Changed from 3 to 5
 
-            upcomingTasksList.innerHTML = ''; // Clear previous list
-            if (top3Tasks.length === 0) {
+            upcomingTasksList.innerHTML = '';
+            if (top5Tasks.length === 0) {
                 upcomingTasksList.innerHTML = '<p class="text-xs text-gray-500 text-center italic">No upcoming due dates.</p>';
             } else {
-                top3Tasks.forEach(task => {
+                top5Tasks.forEach(task => {
                     const taskDiv = document.createElement('div');
-                    taskDiv.className = 'upcoming-task';
-                    // Use formatDate which handles potential nulls (though we filtered)
-                    const displayDueDate = formatDate(task.due_date); // Corrected: Pass date string/timestamp
-                    taskDiv.innerHTML = `<span class="due-date">${displayDueDate}</span> ${task.text}`;
+                    taskDiv.className = 'upcoming-task'; // Styles ensure this is readable on its background
+                    const displayDueDate = formatDate(task.due_date);
+                    taskDiv.innerHTML = `<span class="due-date">${displayDueDate}</span> ${task.text}`; // Task text is dark
                     upcomingTasksList.appendChild(taskDiv);
                 });
             }
@@ -774,12 +818,12 @@
             if (taskText === '') { alert('Please enter a task description.'); newTaskInput.focus(); return; }
 
             const newTaskData = {
-                text: taskText, name: "Jay", // Default name
+                text: taskText, name: "Jay",
                 priority: DEFAULT_PRIORITY, notes: '', status: 'todo', due_date: null
             };
             addTaskBtn.disabled = true;
             addTaskMessage.textContent = 'Adding task...';
-            addTaskMessage.classList.remove('text-green-600', 'text-gray-500', 'text-red-500');
+            addTaskMessage.classList.remove('text-green-600', 'text-gray-400', 'text-red-500'); // Adjusted default color
             try {
                 const addedTask = await apiCall('add-task', 'POST', newTaskData);
                 if (addedTask && addedTask.id) {
@@ -795,12 +839,12 @@
                 } else { await loadTasks(); }
                 clearTimeout(successMessageTimeout); clearInterval(cooldownTimer);
                 addTaskMessage.textContent = `Task added: "${addedTask.text || taskText}"`;
-                addTaskMessage.classList.add('text-green-600');
+                addTaskMessage.classList.add('text-green-400'); // Lighter green for dark bg
                 let secondsRemaining = COOLDOWN_SECONDS;
                 successMessageTimeout = setTimeout(() => {
                      if (addTaskBtn.disabled) {
-                         addTaskMessage.classList.remove('text-green-600');
-                         addTaskMessage.classList.add('text-gray-500');
+                         addTaskMessage.classList.remove('text-green-400');
+                         addTaskMessage.classList.add('text-gray-400');
                          addTaskMessage.textContent = `Please wait ${secondsRemaining} seconds...`;
                          cooldownTimer = setInterval(() => {
                              secondsRemaining--;
@@ -810,7 +854,7 @@
                      }
                 }, 1500);
             } catch (error) {
-                addTaskBtn.disabled = false; addTaskMessage.textContent = 'Error adding task.'; addTaskMessage.classList.add('text-red-500');
+                addTaskBtn.disabled = false; addTaskMessage.textContent = 'Error adding task.'; addTaskMessage.classList.add('text-red-400'); // Lighter red for dark bg
             } finally {
                  newTaskInput.value = '';
                  newTaskInput.focus();
@@ -843,8 +887,8 @@
             if (newText === '') { alert('Task description cannot be empty.'); inputElement.focus(); return; }
             try {
                  await apiCall('update-task', 'POST', { id: taskId, updates: { text: newText } });
-                 for (const columnId in tasks) {
-                    const task = tasks[colId].find(t => t.id === taskId);
+                 for (const colId in tasks) { // Corrected variable name from tasks[colId] to tasks[columnId] in find
+                    const task = tasks[colId].find(t => t.id === taskId); // tasks[columnId] was tasks[colId]
                     if (task) { task.text = newText; break; }
                  }
                  currentlyEditingTaskId = null; renderBoard();
@@ -875,7 +919,7 @@
             } finally {
                  currentlyEditingTaskId = null;
                  updateTaskSummary();
-                 renderUpcomingTasks(); // Render upcoming tasks after loading all tasks
+                 renderUpcomingTasks();
                  if (!boardPage.classList.contains('hidden')) { renderBoard(); }
             }
         }
@@ -899,7 +943,7 @@
              saveStickyNoteBtn.disabled = true;
              stickyNoteMessage.textContent = 'Saving...';
              stickyNoteMessage.classList.remove('text-red-500', 'text-green-600');
-             stickyNoteMessage.classList.add('text-gray-500');
+             stickyNoteMessage.classList.add('text-gray-500'); // Default saving message color
              clearTimeout(stickyNoteSaveTimeout);
              try {
                  await apiCall('update-sticky-note', 'POST', { content: contentToSave });
@@ -946,7 +990,7 @@
             event.preventDefault();
             if (!draggedTask) return;
             if (event.target.closest('.task')) return;
-            const targetColumnElement = event.currentTarget; // Listener is on column div
+            const targetColumnElement = event.currentTarget;
             const targetColumnId = targetColumnElement.id;
             handleDropLogic(targetColumnId, draggedTask);
         }
@@ -964,28 +1008,25 @@
                  if (originalIndex > -1) { originalColumnId = colId; taskToMove = tasks[colId][originalIndex]; break; }
              }
              if (!taskToMove) { console.error("Could not find task in local state during drop:", taskId); return; }
-             // Optimistic UI Update
              tasks[originalColumnId].splice(originalIndex, 1);
              if (!tasks[targetColumnId]) tasks[targetColumnId] = [];
              tasks[targetColumnId].push(taskToMove);
              taskToMove.status = targetColumnId;
              renderBoard(); updateTaskSummary();
-             renderUpcomingTasks(); // Update upcoming list
-             // Backend Update
+             renderUpcomingTasks();
              try {
                  await apiCall('update-task', 'POST', { id: taskId, updates: { status: targetColumnId } });
                  if (targetColumnId === 'done' && sourceColumnId !== 'done') triggerConfetti();
              } catch (error) {
                   console.error(`Failed to update task ${taskId} status in backend:`, error);
                   alert("Failed to move task. Reverting.");
-                  // Rollback UI
                   const newIndex = tasks[targetColumnId].findIndex(task => task.id === taskId);
                   if (newIndex > -1) tasks[targetColumnId].splice(newIndex, 1);
                   taskToMove.status = originalColumnId;
                   if (!tasks[originalColumnId]) tasks[originalColumnId] = [];
                   tasks[originalColumnId].splice(originalIndex, 0, taskToMove);
                   renderBoard(); updateTaskSummary();
-                  renderUpcomingTasks(); // Update upcoming list on rollback
+                  renderUpcomingTasks();
              }
         }
 
@@ -994,9 +1035,8 @@
             myConfetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
         }
 
-        // --- Initialization ---
+        // --- Initialization & Event Listeners ---
         addTaskBtn.addEventListener('click', addTask);
-        // Removed Enter listener from task input (now textarea)
         showInputPageBtn.addEventListener('click', () => showPage('inputPage'));
         showBoardPageBtn.addEventListener('click', async () => {
             if (isPinCooldownActive) { alert("Please wait before trying the pin again."); return; }
@@ -1019,12 +1059,35 @@
                  }
             } catch (error) { /* Handled by apiCall */ }
         });
-        // Add listener for sticky note save button
         if(saveStickyNoteBtn) {
             saveStickyNoteBtn.addEventListener('click', saveStickyNote);
         }
 
-        // Close sub-menu if clicking outside
+        updateShiftTimesBtn.addEventListener('click', () => {
+            const newStart = shiftStartInput.value;
+            const newEnd = shiftEndInput.value;
+
+            if (newStart && newEnd) {
+                const [startH, startM] = newStart.split(':').map(Number);
+                const [endH, endM] = newEnd.split(':').map(Number);
+
+                if (startH * 60 + startM >= endH * 60 + endM) {
+                    alert("Shift start time must be before end time.");
+                    return;
+                }
+                SHIFT_START_HOUR = startH; // Note: SHIFT_END_HOUR logic might need to account for minutes too if more precision is needed
+                SHIFT_END_HOUR = endH;
+                console.log(`Shift times updated: Start ${SHIFT_START_HOUR}, End ${SHIFT_END_HOUR}`);
+                updateDateTimeDisplay(); // Update progress bar immediately
+                // Optionally, save these to localStorage if you want them to persist across sessions
+                // localStorage.setItem('shiftStartHour', SHIFT_START_HOUR);
+                // localStorage.setItem('shiftEndHour', SHIFT_END_HOUR);
+            } else {
+                alert("Please select both start and end times.");
+            }
+        });
+
+
          document.addEventListener('click', (event) => {
              const clickedSubMenu = event.target.closest('.task-submenu');
              const clickedMenuButton = event.target.closest('.action-btn[title="More Actions"]');
@@ -1034,12 +1097,17 @@
          });
 
         document.addEventListener('DOMContentLoaded', async () => {
+             // Optionally, load shift times from localStorage
+             // const savedStartHour = localStorage.getItem('shiftStartHour');
+             // const savedEndHour = localStorage.getItem('shiftEndHour');
+             // if (savedStartHour) SHIFT_START_HOUR = parseInt(savedStartHour, 10);
+             // if (savedEndHour) SHIFT_END_HOUR = parseInt(savedEndHour, 10);
+
              showPage('inputPage');
-             await loadTasks(); // Load tasks immediately on page load
-             // Start the date/time update interval
-             updateDateTimeDisplay(); // Initial call
+             await loadTasks();
+             updateDateTimeDisplay();
              if (dateTimeInterval) clearInterval(dateTimeInterval);
-             dateTimeInterval = setInterval(updateDateTimeDisplay, 60000); // Update every minute
+             dateTimeInterval = setInterval(updateDateTimeDisplay, 60000);
         });
 
     </script>
