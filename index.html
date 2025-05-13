@@ -19,30 +19,62 @@
              min-height: 450px;
              max-height: 65vh; /* Adjusted height */
         }
-        /* Sticky Note & Upcoming Tasks Styles */
-        #stickyNoteContainer, #upcomingTasksContainer {
-            background-color: #fef9c3; /* yellow-100 */
-            border: 1px solid #fde68a; /* yellow-200 */
+        /* Sticky Note Wrapper Styles */
+        .sticky-note-wrapper {
             border-radius: 8px;
             padding: 0.75rem;
             box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
-            height: 250px; /* Reduced fixed height */
+            height: 200px; /* Adjusted height for each note */
+            margin-bottom: 1rem;
         }
-         #stickyNoteTextarea {
-             flex-grow: 1; border: 1px solid #fcd34d; border-radius: 4px;
+        .sticky-note-wrapper:last-child {
+            margin-bottom: 0;
+        }
+        /* Original Sticky Note Style */
+        #stickyNoteContainer {
+            background-color: #fef9c3; /* yellow-100 */
+            border: 1px solid #fde68a; /* yellow-200 */
+        }
+        /* AAT Level 4 Sticky Note Style (Green like 'Done' column) */
+        #stickyNoteContainerAAT {
+            background-color: #d1fae5; /* Tailwind green-100 (matching Done column bg) */
+            border: 1px solid #a7f3d0; /* Tailwind green-200 (lighter border) */
+        }
+        #stickyNoteContainerAAT h3 { /* Header text color for AAT note */
+            color: #065f46; /* Tailwind green-800 (matching Done column header text) */
+        }
+         #stickyNoteTextarea, #stickyNoteTextareaAAT {
+             flex-grow: 1; border-radius: 4px;
              padding: 0.5rem; font-size: 0.85rem; resize: none;
-             background-color: #fefce8; color: #4b5563; margin-bottom: 0.5rem;
+             margin-bottom: 0.5rem; color: #4b5563; /* Default text color for textarea */
          }
-         #saveStickyNoteBtn { align-self: flex-end; }
-         #stickyNoteMessage { font-size: 0.75rem; margin-top: 0.25rem; height: 1rem; text-align: right; }
+         /* Textarea specific backgrounds and borders */
+         #stickyNoteTextarea { /* Original yellow-ish textarea */
+            background-color: #fefce8; border: 1px solid #fcd34d;
+         }
+         #stickyNoteTextareaAAT { /* Lighter green textarea for AAT note */
+            background-color: #f0fdf4; /* Tailwind green-50 */ border: 1px solid #6ee7b7; /* Tailwind green-300 */
+         }
 
-         /* Upcoming Tasks Specific Styles */
-         #upcomingTasksContainer {
-             background-color: #e0f2fe; /* sky-100 */
-             border-color: #bae6fd; /* sky-200 */
+         .save-sticky-note-btn {
+            align-self: flex-end;
          }
+         .sticky-note-message {
+            font-size: 0.75rem; margin-top: 0.25rem; height: 1rem; text-align: right;
+         }
+
+         #upcomingTasksContainer {
+            background-color: #e0f2fe; /* sky-100 */
+            border: 1px solid #bae6fd; /* sky-200 */
+            border-radius: 8px;
+            padding: 0.75rem;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            height: 250px;
+        }
          #upcomingTasksList {
              flex-grow: 1; overflow-y: auto; padding-right: 4px;
          }
@@ -135,21 +167,21 @@
          #mainTitle { flex-grow: 1; text-align: center; color: #e0f2fe; /* Lighter color for dark bg */ }
          #headerInfoRight {
              position: absolute; top: 0; right: 0;
-             display: flex; flex-direction: column; align-items: flex-end; /* Aligns children to the right */
+             display: flex; flex-direction: column; align-items: flex-end;
          }
          #currentDateDisplay {
              font-size: 1rem;
              font-weight: 600;
-             color: #d1d5db; /* Lighter color for dark bg */
+             color: #d1d5db;
              margin-bottom: 5px;
              white-space: nowrap;
-             width: 220px; /* Match progress bar width */
+             width: 220px;
              text-align: right;
          }
          #shiftProgressBarContainer {
              width: 220px;
              height: 16px;
-             background-color: #4b5563; /* Darker background for progress bar track */
+             background-color: #4b5563;
              border-radius: 8px;
              overflow: hidden;
              border: 1px solid #374151;
@@ -159,23 +191,22 @@
              transition: width 0.5s ease-out, background-color 0.5s ease-out;
              border-radius: 7px;
          }
-         /* Shift Time Controls - Styled to be side-by-side under progress bar */
         #shiftTimeControls {
-            margin-top: 6px; /* Space below progress bar */
-            display: flex; /* Enable flex for side-by-side layout */
-            gap: 8px; /* Space between items */
-            align-items: center; /* Vertically align items */
-            width: 220px; /* Match progress bar width */
-            justify-content: space-around; /* Distribute space */
+            margin-top: 6px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            width: 220px;
+            justify-content: space-around;
         }
-        #shiftTimeControls > div { /* Target the divs holding label and input */
+        #shiftTimeControls > div {
             display: flex;
             align-items: center;
             gap: 4px;
         }
         #shiftTimeControls label {
             font-size: 0.75rem;
-            color: #9ca3af; /* Lighter text for dark bg */
+            color: #9ca3af;
             white-space: nowrap;
         }
         #shiftTimeControls input[type="time"] {
@@ -183,16 +214,17 @@
             border-radius: 4px; border: 1px solid #4b5563;
             background-color: #374151;
             color: #e5e7eb;
-            width: 75px; /* Adjust width as needed */
+            width: 75px;
         }
-        #updateShiftTimesBtn { /* Button styling within the flex container */
-            font-size: 0.7rem; padding: 3px 6px; /* Smaller padding for compact button */
-            /* margin-left: auto; Pushes button to the right if needed, or rely on justify-content */
+        #updateShiftTimesBtn {
+            font-size: 0.7rem; padding: 3px 6px;
         }
 
     </style>
 </head>
-<body class="bg-blue-800 font-sans p-4 md:p-8"> <div class="container mx-auto max-w-full px-4">
+<body class="bg-blue-800 font-sans p-4 md:p-8">
+
+    <div class="container mx-auto max-w-full px-4">
         <div id="mainHeader" class="mb-4">
              <div id="taskSummaryContainerBoard" class="hidden">
                  <div id="taskSummaryBoard" class="flex items-center space-x-2"></div>
@@ -203,7 +235,8 @@
                  <div id="shiftProgressBarContainer">
                      <div id="shiftProgressBar"></div>
                  </div>
-                 <div id="shiftTimeControls" class="hidden"> <div>
+                 <div id="shiftTimeControls" class="hidden">
+                    <div>
                         <label for="shiftStartInput">Start:</label>
                         <input type="time" id="shiftStartInput" name="shiftStartInput">
                     </div>
@@ -244,12 +277,17 @@
              <div class="flex flex-col md:flex-row gap-6">
 
                 <div class="w-full md:w-1/5 flex-shrink-0 order-1 md:order-1">
-                    <div id="stickyNoteContainer">
+                    <div id="stickyNoteContainer" class="sticky-note-wrapper">
                         <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Notes</h3>
                         <textarea id="stickyNoteTextarea"></textarea>
-                        <button id="saveStickyNoteBtn" class="nav-button bg-yellow-500 hover:bg-yellow-600 text-yellow-900 text-sm py-1 px-3 mt-2">Save Note</button>
-                        <p id="stickyNoteMessage" class="text-green-600 text-sm mt-1 h-4 text-right"></p>
+                        <button id="saveStickyNoteBtn" class="nav-button bg-yellow-500 hover:bg-yellow-600 text-yellow-900 text-sm py-1 px-3 mt-2 save-sticky-note-btn">Save Note</button>
+                        <p id="stickyNoteMessage" class="sticky-note-message text-green-600"></p>
                     </div>
+                    <div id="stickyNoteContainerAAT" class="sticky-note-wrapper">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">AAT Level 4</h3>
+                        <textarea id="stickyNoteTextareaAAT"></textarea>
+                        <button id="saveStickyNoteBtnAAT" class="nav-button bg-green-600 hover:bg-green-700 text-white text-sm py-1 px-3 mt-2 save-sticky-note-btn">Save Note</button>
+                        <p id="stickyNoteMessageAAT" class="sticky-note-message text-green-700"></p> </div>
                 </div>
 
                 <div class="flex-grow order-3 md:order-2 flex justify-center">
@@ -298,12 +336,14 @@
         const PIN_COOLDOWN_SECONDS = 5;
         const MAX_TODO_TASKS = 50;
         const PRIORITIES = ["New", "High", "Medium", "Low"];
-        const DEFAULT_PRIORITY = "New"; // Default if not specified, tasks usually get "New"
-        const PRIORITY_VALUES = { "New": 4, "High": 3, "Medium": 2, "Low": 1 }; // Used for sorting
+        const DEFAULT_PRIORITY = "New";
+        const PRIORITY_VALUES = { "New": 4, "High": 3, "Medium": 2, "Low": 1 };
         const FUNCTION_BASE_PATH = '/.netlify/functions/';
         const VALID_STATUSES = ['todo', 'inprogress', 'nonurgent', 'done'];
         let SHIFT_START_HOUR = 9;
         let SHIFT_END_HOUR = 16;
+        const STICKY_NOTE_ID_MAIN = 1; // Assuming original note is ID 1
+        const STICKY_NOTE_ID_AAT = 2;  // ID for AAT Level 4 note
 
 
         // --- DOM Elements ---
@@ -314,7 +354,7 @@
         const taskSummaryInput = document.getElementById('taskSummaryInput');
         const taskSummaryBoardContainer = document.getElementById('taskSummaryContainerBoard');
         const taskSummaryBoard = document.getElementById('taskSummaryBoard');
-        const columns = document.querySelectorAll('.kanban-column .tasks-container');
+        // Columns are selected dynamically if needed
         const confettiCanvas = document.getElementById('confetti-canvas');
         const myConfetti = confetti.create(confettiCanvas, { resize: true, useWorker: true });
         const inputPage = document.getElementById('inputPage');
@@ -323,9 +363,17 @@
         const showBoardPageBtn = document.getElementById('showBoardPageBtn');
         const currentDateDisplay = document.getElementById('currentDateDisplay');
         const shiftProgressBar = document.getElementById('shiftProgressBar');
+
+        // Sticky Note 1 (Original)
         const stickyNoteTextarea = document.getElementById('stickyNoteTextarea');
         const saveStickyNoteBtn = document.getElementById('saveStickyNoteBtn');
         const stickyNoteMessage = document.getElementById('stickyNoteMessage');
+
+        // Sticky Note 2 (AAT Level 4)
+        const stickyNoteTextareaAAT = document.getElementById('stickyNoteTextareaAAT');
+        const saveStickyNoteBtnAAT = document.getElementById('saveStickyNoteBtnAAT');
+        const stickyNoteMessageAAT = document.getElementById('stickyNoteMessageAAT');
+
         const upcomingTasksList = document.getElementById('upcomingTasksList');
         const shiftTimeControls = document.getElementById('shiftTimeControls');
         const shiftStartInput = document.getElementById('shiftStartInput');
@@ -343,27 +391,38 @@
         let openSubMenuId = null;
         let dateTimeInterval = null;
         let stickyNoteSaveTimeout = null;
+        let stickyNoteAATSaveTimeout = null; // Separate timeout for the AAT note
 
         // --- Generic Fetch Helper ---
+        // The apiCall function will be used as is.
+        // Backend functions 'get-sticky-note' and 'update-sticky-note'
+        // will need to be adapted to handle a 'note_id' parameter.
         async function apiCall(endpoint, method = 'GET', body = null) {
             const options = { method, headers: {} };
             if (body) {
                 options.headers['Content-Type'] = 'application/json';
                 options.body = JSON.stringify(body);
             }
+            // For GET requests that need parameters, it's common to append them to the endpoint URL
+            // e.g., if (method === 'GET' && body && body.note_id) { endpoint = `${endpoint}?note_id=${body.note_id}`; delete body.note_id; }
+            // However, this generic apiCall doesn't explicitly do that for GET with body.
+            // We'll assume the backend functions can parse note_id from the body for now,
+            // or you'll adjust the endpoint string directly when calling for specific notes.
+
             try {
                 const response = await fetch(`${FUNCTION_BASE_PATH}${endpoint}`, options);
                 const isJson = response.headers.get('content-type')?.includes('application/json');
                 const data = isJson ? await response.json() : null;
                 if (!response.ok) {
                     const error = (data && (data.error || data.message)) || `HTTP error! status: ${response.status}`;
-                    console.error(`API Error (${endpoint}):`, error, data?.details);
+                    console.error(`API Error (${endpoint}, Body: ${JSON.stringify(body)}):`, error, data?.details);
                     throw new Error(error);
                 }
                 return data;
             } catch (error) {
-                console.error(`API Call Failed (${endpoint}):`, error);
-                if (method !== 'GET' || endpoint !== 'get-sticky-note') {
+                console.error(`API Call Failed (${endpoint}, Body: ${JSON.stringify(body)}):`, error);
+                // Avoid alert for initial sticky note load failures if they are not critical blockers
+                if (endpoint !== 'get-sticky-note' || method !== 'GET') {
                      alert(`Operation failed: ${error.message}. Please check console or try again.`);
                 }
                 throw error;
@@ -420,30 +479,30 @@
             const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             currentDateDisplay.textContent = now.toLocaleDateString('en-GB', dateOptions);
 
-            const shiftStartMinutes = SHIFT_START_HOUR * 60; // Using global updatable var
-            const shiftEndMinutes = SHIFT_END_HOUR * 60;   // Using global updatable var
+            const shiftStartMinutes = SHIFT_START_HOUR * 60;
+            const shiftEndMinutes = SHIFT_END_HOUR * 60;
             const shiftDurationMinutes = shiftEndMinutes - shiftStartMinutes;
 
             let progressPercent = 0;
-            let barColor = '#4ade80'; // Default green (Tailwind green-400)
+            let barColor = '#4ade80';
 
             if (currentTimeInMinutes < shiftStartMinutes) {
                 progressPercent = 0;
                 barColor = '#4ade80';
             } else if (currentTimeInMinutes >= shiftEndMinutes) {
                 progressPercent = 100;
-                barColor = '#f87171'; // Red (Tailwind red-400)
+                barColor = '#f87171';
             } else {
                 if (shiftDurationMinutes > 0) {
                     const timeElapsedMinutes = currentTimeInMinutes - shiftStartMinutes;
                     progressPercent = Math.max(0, Math.min(100, (timeElapsedMinutes / shiftDurationMinutes) * 100));
 
                     if (progressPercent < 33.33) {
-                        barColor = '#4ade80'; // Green
+                        barColor = '#4ade80';
                     } else if (progressPercent < 66.66) {
-                        barColor = '#facc15'; // Orange/Yellow (Tailwind yellow-400)
+                        barColor = '#facc15';
                     } else {
-                        barColor = '#f87171'; // Red
+                        barColor = '#f87171';
                     }
                 } else {
                     progressPercent = 100;
@@ -493,7 +552,7 @@
                 boardPage.classList.add('hidden');
                 taskSummaryBoardContainer.classList.add('hidden');
                 taskSummaryInputContainer.classList.remove('hidden');
-                if(shiftTimeControls) shiftTimeControls.classList.add('hidden'); // Hide controls on input page
+                if(shiftTimeControls) shiftTimeControls.classList.add('hidden');
 
                 showInputPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500');
                 showInputPageBtn.classList.replace('hover:bg-indigo-600', 'hover:bg-blue-600');
@@ -504,14 +563,15 @@
                 boardPage.classList.remove('hidden');
                 taskSummaryInputContainer.classList.add('hidden');
                 taskSummaryBoardContainer.classList.remove('hidden');
-                if(shiftTimeControls) shiftTimeControls.classList.remove('hidden'); // Show controls on board page
+                if(shiftTimeControls) shiftTimeControls.classList.remove('hidden');
 
                 shiftStartInput.value = formatTimeToHHMM(SHIFT_START_HOUR);
                 shiftEndInput.value = formatTimeToHHMM(SHIFT_END_HOUR);
 
                 renderBoard();
                 updateTaskSummary();
-                loadStickyNote();
+                loadStickyNoteMain(); // Load original sticky note
+                loadStickyNoteAAT();  // Load AAT sticky note
                 renderUpcomingTasks();
                 showInputPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500');
                 showInputPageBtn.classList.replace('hover:bg-blue-600', 'hover:bg-indigo-600');
@@ -528,7 +588,7 @@
                      const task = tasks[colId].find(t => t.id === taskId);
                      if (task) { task.priority = newPriority; break; }
                  }
-                 renderBoard(); // Re-render to apply color changes
+                 renderBoard();
                  renderUpcomingTasks();
              } catch (error) { /* Handled by apiCall */ }
         }
@@ -620,22 +680,19 @@
         function createTaskElement(task) {
             const div = document.createElement('div');
             div.id = task.id;
-            // Default task color
             let bgColorClass = 'bg-blue-200';
             let borderColorClass = 'border-blue-300';
 
-            // Apply colors based on priority
             if (task.priority === 'New') {
-                bgColorClass = 'bg-red-200'; // New tasks are red
+                bgColorClass = 'bg-red-200';
                 borderColorClass = 'border-red-300';
             } else if (task.priority === 'High') {
-                bgColorClass = 'bg-red-200'; // High priority tasks are red (was orange)
+                bgColorClass = 'bg-red-200';
                 borderColorClass = 'border-red-300';
             } else if (task.priority === 'Medium') {
-                bgColorClass = 'bg-orange-200'; // Medium priority tasks are orange (was default/blue)
+                bgColorClass = 'bg-orange-200';
                 borderColorClass = 'border-orange-300';
             }
-            // 'Low' priority and any other unspecified will use the default blue.
 
             div.className = `task relative ${bgColorClass} p-3 rounded-md shadow-sm border ${borderColorClass} flex flex-col`;
             div.draggable = true;
@@ -778,21 +835,20 @@
                         const sortedTasks = tasks[columnId].sort((a, b) => {
                             const dateA = a.due_date ? new Date(a.due_date).getTime() : null;
                             const dateB = b.due_date ? new Date(b.due_date).getTime() : null;
-                            if (dateA === null && dateB !== null) return -1; // Tasks with no due date sort as if they are far in the future for some views, or first for others. Here, -1 means they come before tasks with due dates for 'earliest first' if that's desired. Or handle as needed.
-                            if (dateA !== null && dateB === null) return 1;
-                            if (dateA !== null && dateB !== null && dateA !== dateB) return dateA - dateB; // Sort by due date
+                            if (dateA === null && dateB !== null) return 1; // Tasks without due dates last
+                            if (dateA !== null && dateB === null) return -1; // Tasks with due dates first
+                            if (dateA !== null && dateB !== null && dateA !== dateB) return dateA - dateB;
 
                             const priorityA = PRIORITY_VALUES[a.priority || DEFAULT_PRIORITY] || 0;
                             const priorityB = PRIORITY_VALUES[b.priority || DEFAULT_PRIORITY] || 0;
-                            if (priorityB !== priorityA) return priorityB - priorityA; // Then by priority (higher value = higher priority)
+                            if (priorityB !== priorityA) return priorityB - priorityA;
 
-                            return (a.createdAt || 0) - (b.createdAt || 0); // Finally by creation time
+                            return (a.createdAt || 0) - (b.createdAt || 0);
                         });
                         sortedTasks.forEach(task => {
-                            task.name = task.name || ''; // Ensure name exists, though not directly used in display
-                            task.createdAt = task.createdAt || 0;
                             task.priority = task.priority || DEFAULT_PRIORITY;
                             task.notes = task.notes || '';
+                            task.createdAt = task.createdAt || 0;
                             task.due_date = task.due_date || null;
                             const taskElement = createTaskElement(task);
                             columnElement.appendChild(taskElement);
@@ -802,9 +858,6 @@
             }
         }
 
-        /**
-         * Renders the top 6 upcoming tasks (excluding 'Done').
-         */
         function renderUpcomingTasks() {
             if (!upcomingTasksList) return;
 
@@ -816,7 +869,7 @@
             const tasksWithDueDate = allUpcoming.filter(task => task.due_date);
             tasksWithDueDate.sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
 
-            const top6Tasks = tasksWithDueDate.slice(0, 6); // Changed from 5 to 6
+            const top6Tasks = tasksWithDueDate.slice(0, 6); // Show 6 tasks
 
             upcomingTasksList.innerHTML = '';
             if (top6Tasks.length === 0) {
@@ -843,7 +896,7 @@
 
             const newTaskData = {
                 text: taskText, name: "Jay",
-                priority: "New", // Explicitly set new tasks to "New" priority
+                priority: "New",
                 notes: '', status: 'todo', due_date: null
             };
             addTaskBtn.disabled = true;
@@ -854,20 +907,20 @@
                 if (addedTask && addedTask.id) {
                      if (!tasks.todo) tasks.todo = [];
                      addedTask.createdAt = new Date(addedTask.created_at).getTime();
-                     addedTask.priority = addedTask.priority || "New"; // Ensure priority from backend or default to New
+                     addedTask.priority = addedTask.priority || "New";
                      addedTask.notes = addedTask.notes || '';
                      addedTask.due_date = addedTask.due_date || null;
                      tasks.todo.push(addedTask);
                      updateTaskSummary();
                      renderUpcomingTasks();
                      if (!boardPage.classList.contains('hidden')) renderBoard();
-                } else { await loadTasks(); } // Fallback if addedTask is not as expected
+                } else { await loadTasks(); }
                 clearTimeout(successMessageTimeout); clearInterval(cooldownTimer);
                 addTaskMessage.textContent = `Task added: "${addedTask.text || taskText}"`;
                 addTaskMessage.classList.add('text-green-400');
                 let secondsRemaining = COOLDOWN_SECONDS;
                 successMessageTimeout = setTimeout(() => {
-                     if (addTaskBtn.disabled) { // Check if still in cooldown state
+                     if (addTaskBtn.disabled) {
                          addTaskMessage.classList.remove('text-green-400');
                          addTaskMessage.classList.add('text-gray-400');
                          addTaskMessage.textContent = `Please wait ${secondsRemaining} seconds...`;
@@ -888,7 +941,7 @@
 
         async function deleteTask(taskId) {
              closeOpenSubMenu();
-            if (currentlyEditingTaskId === taskId) return; // Don't delete if actively editing
+            if (currentlyEditingTaskId === taskId) return;
             if (!confirm('Are you sure you want to delete this task?')) return;
             try {
                 await apiCall('delete-task', 'POST', { id: taskId });
@@ -918,7 +971,7 @@
                  }
                  currentlyEditingTaskId = null; renderBoard();
                  renderUpcomingTasks();
-            } catch (error) { currentlyEditingTaskId = null; renderBoard(); /* Revert or show error */ }
+            } catch (error) { currentlyEditingTaskId = null; renderBoard(); }
         }
 
         function cancelTaskEdit(taskId) { currentlyEditingTaskId = null; renderBoard(); }
@@ -927,22 +980,22 @@
             console.log("Loading tasks...");
             try {
                 const fetchedTasks = await apiCall('get-tasks');
-                tasks = { todo: [], inprogress: [], nonurgent: [], done: [] }; // Reset tasks
+                tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };
                 fetchedTasks.forEach(task => {
-                    task.priority = task.priority || DEFAULT_PRIORITY; // Default priority if undefined
+                    task.priority = task.priority || DEFAULT_PRIORITY;
                     task.notes = task.notes || '';
                     task.createdAt = task.created_at ? new Date(task.created_at).getTime() : 0;
                     task.due_date = task.due_date || null;
-                    const status = task.status || 'todo'; // Default status if undefined
+                    const status = task.status || 'todo';
                     if (VALID_STATUSES.includes(status)) { tasks[status].push(task); }
                     else { console.warn(`Invalid task status "${status}" for task ID ${task.id}. Placing in 'todo'.`); tasks.todo.push(task); }
                 });
                 console.log("Tasks loaded and processed:", tasks);
             } catch (error) {
                 console.error("Error loading tasks from backend:", error);
-                tasks = { todo: [], inprogress: [], nonurgent: [], done: [] }; // Ensure tasks is in a valid state
+                tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };
             } finally {
-                 currentlyEditingTaskId = null; // Reset editing state
+                 currentlyEditingTaskId = null;
                  updateTaskSummary();
                  renderUpcomingTasks();
                  if (!boardPage.classList.contains('hidden')) { renderBoard(); }
@@ -950,19 +1003,26 @@
         }
 
         // --- Sticky Note Functions ---
-        async function loadStickyNote() {
+
+        // Load Main Sticky Note (ID 1)
+        async function loadStickyNoteMain() {
              if (!stickyNoteTextarea) return;
-             console.log("Loading sticky note...");
+             console.log("Loading main sticky note (ID: " + STICKY_NOTE_ID_MAIN + ")...");
              try {
-                 const data = await apiCall('get-sticky-note');
+                 // Adjust the endpoint or body as per your backend's expectation for identifying the note
+                 // Option 1: Query parameter (if backend supports it for GET)
+                 // const data = await apiCall(`get-sticky-note?note_id=${STICKY_NOTE_ID_MAIN}`);
+                 // Option 2: Send ID in body (if backend supports it for GET via apiCall modification)
+                 const data = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_MAIN });
                  stickyNoteTextarea.value = data?.content || '';
-                 console.log("Sticky note loaded.");
+                 console.log("Main sticky note loaded.");
              } catch (error) {
-                 stickyNoteTextarea.value = "Error loading note.";
+                 stickyNoteTextarea.value = "Error loading note."; // Keep error message specific
              }
         }
 
-        async function saveStickyNote() {
+        // Save Main Sticky Note (ID 1)
+        async function saveStickyNoteMain() {
              if (!stickyNoteTextarea || !saveStickyNoteBtn || !stickyNoteMessage) return;
              const contentToSave = stickyNoteTextarea.value;
              saveStickyNoteBtn.disabled = true;
@@ -971,19 +1031,58 @@
              stickyNoteMessage.classList.add('text-gray-500');
              clearTimeout(stickyNoteSaveTimeout);
              try {
-                 await apiCall('update-sticky-note', 'POST', { content: contentToSave });
-                 console.log("Sticky note saved.");
+                 await apiCall('update-sticky-note', 'POST', { content: contentToSave, note_id: STICKY_NOTE_ID_MAIN });
+                 console.log("Main sticky note saved.");
                  stickyNoteMessage.textContent = 'Note saved!';
                  stickyNoteMessage.classList.replace('text-gray-500', 'text-green-600');
                  stickyNoteSaveTimeout = setTimeout(() => { stickyNoteMessage.textContent = ''; }, 2000);
              } catch (error) {
-                 console.error("Failed to save sticky note:", error);
+                 console.error("Failed to save main sticky note:", error);
                  stickyNoteMessage.textContent = 'Save failed!';
                  stickyNoteMessage.classList.replace('text-gray-500', 'text-red-500');
                  stickyNoteSaveTimeout = setTimeout(() => { stickyNoteMessage.textContent = ''; }, 3000);
              } finally {
                  saveStickyNoteBtn.disabled = false;
              }
+        }
+
+        // Load AAT Level 4 Sticky Note (ID 2)
+        async function loadStickyNoteAAT() {
+            if (!stickyNoteTextareaAAT) return;
+            console.log("Loading AAT sticky note (ID: " + STICKY_NOTE_ID_AAT + ")...");
+            try {
+                // As with loadStickyNoteMain, adjust how note_id is passed if needed
+                const data = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_AAT });
+                stickyNoteTextareaAAT.value = data?.content || '';
+                console.log("AAT sticky note loaded.");
+            } catch (error) {
+                stickyNoteTextareaAAT.value = "Error loading AAT note.";
+            }
+        }
+
+        // Save AAT Level 4 Sticky Note (ID 2)
+        async function saveStickyNoteAAT() {
+            if (!stickyNoteTextareaAAT || !saveStickyNoteBtnAAT || !stickyNoteMessageAAT) return;
+            const contentToSave = stickyNoteTextareaAAT.value;
+            saveStickyNoteBtnAAT.disabled = true;
+            stickyNoteMessageAAT.textContent = 'Saving...';
+            stickyNoteMessageAAT.classList.remove('text-red-700', 'text-green-700'); // Use appropriate text colors for green bg
+            stickyNoteMessageAAT.classList.add('text-gray-700'); // Or a neutral color
+            clearTimeout(stickyNoteAATSaveTimeout);
+            try {
+                await apiCall('update-sticky-note', 'POST', { content: contentToSave, note_id: STICKY_NOTE_ID_AAT });
+                console.log("AAT sticky note saved.");
+                stickyNoteMessageAAT.textContent = 'Note saved!';
+                stickyNoteMessageAAT.classList.replace('text-gray-700', 'text-green-700');
+                stickyNoteAATSaveTimeout = setTimeout(() => { stickyNoteMessageAAT.textContent = ''; }, 2000);
+            } catch (error) {
+                console.error("Failed to save AAT sticky note:", error);
+                stickyNoteMessageAAT.textContent = 'Save failed!';
+                stickyNoteMessageAAT.classList.replace('text-gray-700', 'text-red-700'); // Darker red on light green
+                stickyNoteAATSaveTimeout = setTimeout(() => { stickyNoteMessageAAT.textContent = ''; }, 3000);
+            } finally {
+                saveStickyNoteBtnAAT.disabled = false;
+            }
         }
 
 
@@ -1006,7 +1105,7 @@
 
         function allowDrop(event) {
             if (event.target.closest('.task') || event.target.closest('button') || event.target.closest('select')) {
-                return; // Don't allow dropping onto other tasks or interactive elements within the column
+                return;
             }
             event.preventDefault();
         }
@@ -1014,9 +1113,9 @@
         function drop(event) {
             event.preventDefault();
             if (!draggedTask) return;
-            if (event.target.closest('.task')) return; // Prevent dropping onto another task element directly
-            const targetColumnElement = event.currentTarget; // Listener is on the column's tasks-container div
-            const targetColumnId = targetColumnElement.parentElement.id; // Get id from parent .kanban-column
+            if (event.target.closest('.task')) return;
+            const targetColumnElement = event.currentTarget;
+            const targetColumnId = targetColumnElement.parentElement.id;
             handleDropLogic(targetColumnId, draggedTask);
         }
 
@@ -1028,36 +1127,32 @@
                  console.error(`Invalid drop target column ID: ${targetColumnId}`); return;
              }
              let taskToMove = null; let originalIndex = -1; let originalColumnId = '';
-             // Find the task in the local state
              for (const colId in tasks) {
                  originalIndex = tasks[colId].findIndex(task => task.id === taskId);
                  if (originalIndex > -1) { originalColumnId = colId; taskToMove = tasks[colId][originalIndex]; break; }
              }
              if (!taskToMove) { console.error("Could not find task in local state during drop:", taskId); return; }
 
-             // Optimistic UI Update
-             tasks[originalColumnId].splice(originalIndex, 1); // Remove from old column
-             if (!tasks[targetColumnId]) tasks[targetColumnId] = []; // Ensure target column array exists
-             tasks[targetColumnId].push(taskToMove); // Add to new column
-             taskToMove.status = targetColumnId; // Update task's status property
+             tasks[originalColumnId].splice(originalIndex, 1);
+             if (!tasks[targetColumnId]) tasks[targetColumnId] = [];
+             tasks[targetColumnId].push(taskToMove);
+             taskToMove.status = targetColumnId;
 
-             renderBoard(); // Re-render the entire board
+             renderBoard();
              updateTaskSummary();
              renderUpcomingTasks();
 
-             // Backend Update
              try {
                  await apiCall('update-task', 'POST', { id: taskId, updates: { status: targetColumnId } });
                  if (targetColumnId === 'done' && sourceColumnId !== 'done') triggerConfetti();
              } catch (error) {
                   console.error(`Failed to update task ${taskId} status in backend:`, error);
                   alert("Failed to move task. Reverting.");
-                  // Rollback UI
                   const newIndex = tasks[targetColumnId].findIndex(task => task.id === taskId);
-                  if (newIndex > -1) tasks[targetColumnId].splice(newIndex, 1); // Remove from new column
-                  taskToMove.status = originalColumnId; // Revert status
+                  if (newIndex > -1) tasks[targetColumnId].splice(newIndex, 1);
+                  taskToMove.status = originalColumnId;
                   if (!tasks[originalColumnId]) tasks[originalColumnId] = [];
-                  tasks[originalColumnId].splice(originalIndex, 0, taskToMove); // Add back to original position
+                  tasks[originalColumnId].splice(originalIndex, 0, taskToMove);
                   renderBoard(); updateTaskSummary();
                   renderUpcomingTasks();
              }
@@ -1074,7 +1169,7 @@
         showBoardPageBtn.addEventListener('click', async () => {
             if (isPinCooldownActive) { alert("Please wait before trying the pin again."); return; }
             const pinInput = prompt("Please enter the pin code to view the board:");
-            if (pinInput === null) return; // User cancelled prompt
+            if (pinInput === null) return;
             try {
                  const result = await apiCall('check-pin', 'POST', { enteredPin: pinInput });
                  if (result && result.valid) {
@@ -1090,11 +1185,14 @@
                          console.log("Pin cooldown finished.");
                      }, PIN_COOLDOWN_SECONDS * 1000);
                  }
-            } catch (error) { /* Handled by apiCall, which includes an alert */ }
+            } catch (error) { /* Handled by apiCall */ }
         });
 
         if(saveStickyNoteBtn) {
-            saveStickyNoteBtn.addEventListener('click', saveStickyNote);
+            saveStickyNoteBtn.addEventListener('click', saveStickyNoteMain); // Call main save function
+        }
+        if(saveStickyNoteBtnAAT) {
+            saveStickyNoteBtnAAT.addEventListener('click', saveStickyNoteAAT); // Call AAT save function
         }
 
         updateShiftTimesBtn.addEventListener('click', () => {
@@ -1110,14 +1208,9 @@
                     return;
                 }
                 SHIFT_START_HOUR = startH;
-                SHIFT_END_HOUR = endH; // Note: SHIFT_END_HOUR only uses the hour part in current progress logic.
-                                       // If minute precision is needed for END_HOUR, update logic in updateDateTimeDisplay.
+                SHIFT_END_HOUR = endH;
                 console.log(`Shift times updated: Start ${SHIFT_START_HOUR}, End ${SHIFT_END_HOUR}`);
-                updateDateTimeDisplay(); // Update progress bar immediately
-
-                // Optional: Persist to localStorage
-                // localStorage.setItem('customShiftStartHour', SHIFT_START_HOUR);
-                // localStorage.setItem('customShiftEndHour', SHIFT_END_HOUR);
+                updateDateTimeDisplay();
             } else {
                 alert("Please select both start and end times.");
             }
@@ -1126,24 +1219,18 @@
 
          document.addEventListener('click', (event) => {
              const clickedSubMenu = event.target.closest('.task-submenu');
-             const clickedMenuButton = event.target.closest('.action-btn[title="More Actions"]'); // Check if click was on a menu button
-             if (!clickedSubMenu && !clickedMenuButton && openSubMenuId) { // If click is outside and not on a menu button itself
+             const clickedMenuButton = event.target.closest('.action-btn[title="More Actions"]');
+             if (!clickedSubMenu && !clickedMenuButton && openSubMenuId) {
                  closeOpenSubMenu();
              }
          });
 
         document.addEventListener('DOMContentLoaded', async () => {
-            // Optional: Load custom shift times from localStorage if previously saved
-            // const savedStart = localStorage.getItem('customShiftStartHour');
-            // const savedEnd = localStorage.getItem('customShiftEndHour');
-            // if (savedStart) SHIFT_START_HOUR = parseInt(savedStart, 10);
-            // if (savedEnd) SHIFT_END_HOUR = parseInt(savedEnd, 10);
-
-             showPage('inputPage'); // Default to input page
+             showPage('inputPage');
              await loadTasks();
-             updateDateTimeDisplay(); // Initial call for date/time/progress
+             updateDateTimeDisplay();
              if (dateTimeInterval) clearInterval(dateTimeInterval);
-             dateTimeInterval = setInterval(updateDateTimeDisplay, 60000); // Update every minute
+             dateTimeInterval = setInterval(updateDateTimeDisplay, 60000);
         });
 
     </script>

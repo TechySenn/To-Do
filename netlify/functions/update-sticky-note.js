@@ -17,35 +17,41 @@ exports.handler = async function(event, context) {
     }
 
     try {
-        const { content } = JSON.parse(event.body);
+        const { content, note_id } = JSON.parse(event.body);
 
-        // Allow empty content, but check if content property exists
         if (typeof content === 'undefined') {
              console.error("UPDATE-STICKY: Validation Error: Missing 'content' field.");
              return { statusCode: 400, body: JSON.stringify({ error: "Missing 'content' field in request body." }) };
         }
 
-        console.log("UPDATE-STICKY: Updating sticky note content...");
+        if (typeof note_id === 'undefined' || isNaN(parseInt(note_id))) {
+            console.error("UPDATE-STICKY: Validation Error: Missing or invalid 'note_id' field.");
+            return { statusCode: 400, body: JSON.stringify({ error: "Missing or invalid 'note_id' field in request body." }) };
+        }
+
+        const noteIdToUpdate = parseInt(note_id);
+
+        console.log(`UPDATE-STICKY: Updating sticky note (ID: ${noteIdToUpdate}) content...`);
         const { error } = await supabase
             .from('sticky_note') // Your sticky note table name
             .update({ content: content }) // Update the content column
-            .eq('id', 1); // Update the row where id = 1
+            .eq('id', noteIdToUpdate); // Update the row for the specified note_id
 
         if (error) {
-            console.error('UPDATE-STICKY: Supabase update error:', error);
+            console.error(`UPDATE-STICKY: Supabase update error for ID ${noteIdToUpdate}:`, error);
             return { statusCode: 500, body: JSON.stringify({ error: 'Failed to update sticky note', details: error.message }) };
         }
 
-        console.log("UPDATE-STICKY: Sticky note updated successfully.");
+        console.log(`UPDATE-STICKY: Sticky note (ID: ${noteIdToUpdate}) updated successfully.`);
         return {
             statusCode: 200,
-            body: JSON.stringify({ message: 'Sticky note updated successfully.' }),
+            body: JSON.stringify({ message: `Sticky note (ID: ${noteIdToUpdate}) updated successfully.` }),
             headers: { 'Content-Type': 'application/json' },
         };
 
     } catch (err) {
         console.error('UPDATE-STICKY: Function execution error:', err);
-         if (err instanceof SyntaxError) {
+         if (err instanceof SyntaxError) { // Check if the error is due to invalid JSON
              return { statusCode: 400, body: JSON.stringify({ error: 'Invalid JSON format in request body.' }) };
          }
         return { statusCode: 500, body: JSON.stringify({ error: 'Internal Server Error', details: err.message }) };
