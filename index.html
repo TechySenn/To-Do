@@ -345,10 +345,15 @@
         const PRIORITY_VALUES = { "New": 4, "High": 3, "Medium": 2, "Low": 1 };
         const FUNCTION_BASE_PATH = '/.netlify/functions/';
         const VALID_STATUSES = ['todo', 'inprogress', 'nonurgent', 'done'];
+        
+        // Default shift times, will be updated from Supabase
         let SHIFT_START_HOUR = 9;
         let SHIFT_END_HOUR = 16;
+        
         const STICKY_NOTE_ID_MAIN = 1; 
         const STICKY_NOTE_ID_AAT = 2;
+        const STICKY_NOTE_ID_SHIFT_START = 3; // For storing shift start time
+        const STICKY_NOTE_ID_SHIFT_END = 4;   // For storing shift end time
 
 
         // --- DOM Elements ---
@@ -392,6 +397,7 @@
         let dateTimeInterval = null;
         let stickyNoteSaveTimeout = null;
         let stickyNoteAATSaveTimeout = null;
+        let shiftTimeSaveMessageTimeout = null; // For shift time save messages
 
         // --- Generic Fetch Helper ---
         async function apiCall(endpoint, method = 'GET', paramsOrBody = null) {
@@ -420,7 +426,7 @@
                 return data;
             } catch (error) {
                 console.error(`API Call Failed (${url}):`, error);
-                if (!(endpoint === 'get-sticky-note' && method === 'GET')) {
+                if (!(endpoint === 'get-sticky-note' && method === 'GET')) { // Avoid alert for initial sticky note/shift time loads
                      alert(`Operation failed: ${error.message}. Please check console or try again.`);
                 }
                 throw error;
@@ -477,8 +483,9 @@
             const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             currentDateDisplay.textContent = now.toLocaleDateString('en-GB', dateOptions);
 
-            const shiftStartMinutes = SHIFT_START_HOUR * 60;
-            const shiftEndMinutes = SHIFT_END_HOUR * 60;
+            // Use the global SHIFT_START_HOUR and SHIFT_END_HOUR which are now loaded from Supabase
+            const shiftStartMinutes = SHIFT_START_HOUR * 60; 
+            const shiftEndMinutes = SHIFT_END_HOUR * 60;   
             const shiftDurationMinutes = shiftEndMinutes - shiftStartMinutes;
 
             let progressPercent = 0;
@@ -563,13 +570,15 @@
                 taskSummaryBoardContainer.classList.remove('hidden');
                 if(shiftTimeControls) shiftTimeControls.classList.remove('hidden');
 
-                shiftStartInput.value = formatTimeToHHMM(SHIFT_START_HOUR);
-                shiftEndInput.value = formatTimeToHHMM(SHIFT_END_HOUR);
+                // Shift times are now loaded by loadShiftTimes() and set there
+                // shiftStartInput.value = formatTimeToHHMM(SHIFT_START_HOUR);
+                // shiftEndInput.value = formatTimeToHHMM(SHIFT_END_HOUR);
 
                 renderBoard();
                 updateTaskSummary();
                 loadStickyNoteMain();
                 loadStickyNoteAAT();
+                // loadShiftTimes(); // Already called on DOMContentLoaded and when saving
                 renderUpcomingTasks();
                 renderHighestPriorityTasks();
                 showInputPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500');
@@ -1130,6 +1139,82 @@
                 saveStickyNoteBtnAAT.disabled = false;
             }
         }
+        
+        // --- Shift Time Persistence Functions ---
+        async function loadShiftTimes() {
+            console.log("Loading shift times from Supabase...");
+            let startHourLoaded = false;
+            let endHourLoaded = false;
+
+            try {
+                const startTimeData = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_SHIFT_START });
+                if (startTimeData && startTimeData.content) {
+                    const [hours] = startTimeData.content.split(':').map(Number);
+                    if (!isNaN(hours)) {
+                        SHIFT_START_HOUR = hours;
+                        shiftStartInput.value = startTimeData.content; // Set input to full HH:MM
+                        startHourLoaded = true;
+                        console.log("Shift start time loaded:", SHIFT_START_HOUR, "(Full:", startTimeData.content, ")");
+                    }
+                }
+            } catch (error) {
+                console.warn("Could not load shift start time, using default. Error:", error.message);
+            }
+
+            try {
+                const endTimeData = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_SHIFT_END });
+                if (endTimeData && endTimeData.content) {
+                    const [hours] = endTimeData.content.split(':').map(Number);
+                    if (!isNaN(hours)) {
+                        SHIFT_END_HOUR = hours;
+                        shiftEndInput.value = endTimeData.content; // Set input to full HH:MM
+                        endHourLoaded = true;
+                        console.log("Shift end time loaded:", SHIFT_END_HOUR, "(Full:", endTimeData.content, ")");
+                    }
+                }
+            } catch (error) {
+                console.warn("Could not load shift end time, using default. Error:", error.message);
+            }
+
+            if (!startHourLoaded) { // If start time wasn't loaded, set default to input
+                shiftStartInput.value = formatTimeToHHMM(SHIFT_START_HOUR);
+                console.log("Default shift start time set to input:", SHIFT_START_HOUR);
+            }
+            if (!endHourLoaded) { // If end time wasn't loaded, set default to input
+                shiftEndInput.value = formatTimeToHHMM(SHIFT_END_HOUR);
+                console.log("Default shift end time set to input:", SHIFT_END_HOUR);
+            }
+            updateDateTimeDisplay(); // Refresh progress bar with loaded/default times
+        }
+
+        async function saveShiftTime(noteId, timeValueString) {
+            console.log(`Saving shift time for ID ${noteId}: ${timeValueString}`);
+            try {
+                await apiCall('update-sticky-note', 'POST', { content: timeValueString, note_id: noteId });
+                console.log(`Shift time for ID ${noteId} saved successfully.`);
+                // Optional: Add a small success message near the time inputs
+                const shiftTimeMessageArea = document.getElementById('shiftTimeControls'); // Or a more specific element
+                if (shiftTimeMessageArea) {
+                    let msgElement = document.getElementById('shiftTimeSaveMessage');
+                    if (!msgElement) {
+                        msgElement = document.createElement('p');
+                        msgElement.id = 'shiftTimeSaveMessage';
+                        msgElement.className = 'text-xs text-green-400 ml-2'; // Style as needed
+                        // Find a good place to append it, e.g., after the button
+                        updateShiftTimesBtn.insertAdjacentElement('afterend', msgElement);
+                    }
+                    msgElement.textContent = 'Times saved!';
+                    clearTimeout(shiftTimeSaveMessageTimeout);
+                    shiftTimeSaveMessageTimeout = setTimeout(() => {
+                        if(msgElement) msgElement.textContent = '';
+                    }, 2000);
+                }
+
+            } catch (error) {
+                console.error(`Failed to save shift time for ID ${noteId}:`, error);
+                alert(`Failed to save shift ${noteId === STICKY_NOTE_ID_SHIFT_START ? 'start' : 'end'} time.`);
+            }
+        }
 
 
         // --- Drag and Drop Event Handlers ---
@@ -1243,22 +1328,40 @@
             saveStickyNoteBtnAAT.addEventListener('click', saveStickyNoteAAT);
         }
 
-        updateShiftTimesBtn.addEventListener('click', () => {
-            const newStart = shiftStartInput.value;
-            const newEnd = shiftEndInput.value;
+        updateShiftTimesBtn.addEventListener('click', async () => {
+            const newStartString = shiftStartInput.value; // HH:MM format
+            const newEndString = shiftEndInput.value;   // HH:MM format
 
-            if (newStart && newEnd) {
-                const [startH, startM] = newStart.split(':').map(Number);
-                const [endH, endM] = newEnd.split(':').map(Number);
+            if (newStartString && newEndString) {
+                const [startH, startM] = newStartString.split(':').map(Number);
+                const [endH, endM] = newEndString.split(':').map(Number);
 
                 if ( (startH * 60 + startM) >= (endH * 60 + endM) ) {
                     alert("Shift start time must be before end time.");
                     return;
                 }
+                // Update global JavaScript hour variables (used by progress bar logic)
                 SHIFT_START_HOUR = startH;
-                SHIFT_END_HOUR = endH;
-                console.log(`Shift times updated: Start ${SHIFT_START_HOUR}, End ${SHIFT_END_HOUR}`);
-                updateDateTimeDisplay();
+                SHIFT_END_HOUR = endH; 
+                
+                console.log(`Shift times updated locally: Start ${SHIFT_START_HOUR}, End ${SHIFT_END_HOUR}`);
+                updateDateTimeDisplay(); // Update progress bar immediately with new JS hour vars
+
+                // Save the full "HH:MM" strings to Supabase
+                updateShiftTimesBtn.disabled = true; // Disable button during save
+                try {
+                    await Promise.all([
+                        saveShiftTime(STICKY_NOTE_ID_SHIFT_START, newStartString),
+                        saveShiftTime(STICKY_NOTE_ID_SHIFT_END, newEndString)
+                    ]);
+                    console.log("Both shift times attempted to save to Supabase.");
+                } catch (error) {
+                    // Error already alerted by saveShiftTime or apiCall
+                    console.error("Error during saving one or both shift times:", error);
+                } finally {
+                    updateShiftTimesBtn.disabled = false; // Re-enable button
+                }
+
             } else {
                 alert("Please select both start and end times.");
             }
@@ -1276,7 +1379,8 @@
         document.addEventListener('DOMContentLoaded', async () => {
              showPage('inputPage');
              await loadTasks(); 
-             updateDateTimeDisplay();
+             await loadShiftTimes(); // Load shift times from Supabase
+             // updateDateTimeDisplay(); // Called by loadShiftTimes
              if (dateTimeInterval) clearInterval(dateTimeInterval);
              dateTimeInterval = setInterval(updateDateTimeDisplay, 60000);
         });
