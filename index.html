@@ -135,20 +135,20 @@
          #mainTitle { flex-grow: 1; text-align: center; color: #e0f2fe; /* Lighter color for dark bg */ }
          #headerInfoRight {
              position: absolute; top: 0; right: 0;
-             display: flex; flex-direction: column; align-items: flex-end;
+             display: flex; flex-direction: column; align-items: flex-end; /* Aligns children to the right */
          }
          #currentDateDisplay {
-             font-size: 1rem; /* Increased size */
-             font-weight: 600; /* Bold */
+             font-size: 1rem;
+             font-weight: 600;
              color: #d1d5db; /* Lighter color for dark bg */
-             margin-bottom: 5px; /* Spacing */
+             margin-bottom: 5px;
              white-space: nowrap;
              width: 220px; /* Match progress bar width */
              text-align: right;
          }
          #shiftProgressBarContainer {
-             width: 220px; /* Increased width */
-             height: 16px; /* Increased height */
+             width: 220px;
+             height: 16px;
              background-color: #4b5563; /* Darker background for progress bar track */
              border-radius: 8px;
              overflow: hidden;
@@ -159,29 +159,35 @@
              transition: width 0.5s ease-out, background-color 0.5s ease-out;
              border-radius: 7px;
          }
-         /* Shift Time Controls */
+         /* Shift Time Controls - Styled to be side-by-side under progress bar */
         #shiftTimeControls {
-            margin-top: 8px;
+            margin-top: 6px; /* Space below progress bar */
+            display: flex; /* Enable flex for side-by-side layout */
+            gap: 8px; /* Space between items */
+            align-items: center; /* Vertically align items */
+            width: 220px; /* Match progress bar width */
+            justify-content: space-around; /* Distribute space */
+        }
+        #shiftTimeControls > div { /* Target the divs holding label and input */
             display: flex;
-            flex-direction: column;
-            align-items: flex-end;
+            align-items: center;
             gap: 4px;
         }
         #shiftTimeControls label {
             font-size: 0.75rem;
             color: #9ca3af; /* Lighter text for dark bg */
+            white-space: nowrap;
         }
         #shiftTimeControls input[type="time"] {
             font-size: 0.75rem; padding: 1px 3px;
-            border-radius: 4px; border: 1px solid #4b5563; /* Adjusted border */
-            background-color: #374151; /* Darker input bg */
-            color: #e5e7eb; /* Lighter text */
-            width: 80px;
+            border-radius: 4px; border: 1px solid #4b5563;
+            background-color: #374151;
+            color: #e5e7eb;
+            width: 75px; /* Adjust width as needed */
         }
-        #shiftTimeControls button {
-            font-size: 0.75rem; padding: 2px 6px;
-            border-radius: 4px;
-            margin-top: 2px;
+        #updateShiftTimesBtn { /* Button styling within the flex container */
+            font-size: 0.7rem; padding: 3px 6px; /* Smaller padding for compact button */
+            /* margin-left: auto; Pushes button to the right if needed, or rely on justify-content */
         }
 
     </style>
@@ -191,7 +197,8 @@
              <div id="taskSummaryContainerBoard" class="hidden">
                  <div id="taskSummaryBoard" class="flex items-center space-x-2"></div>
              </div>
-             <h1 id="mainTitle" class="text-3xl font-bold text-gray-100">Jay's To Do List</h1> <div id="headerInfoRight">
+             <h1 id="mainTitle" class="text-3xl font-bold text-gray-100">Jay's To Do List</h1>
+             <div id="headerInfoRight">
                  <div id="currentDateDisplay">Loading date...</div>
                  <div id="shiftProgressBarContainer">
                      <div id="shiftProgressBar"></div>
@@ -204,7 +211,7 @@
                         <label for="shiftEndInput">End:</label>
                         <input type="time" id="shiftEndInput" name="shiftEndInput">
                     </div>
-                    <button id="updateShiftTimesBtn" class="nav-button bg-teal-500 hover:bg-teal-600 text-white text-xs py-1 px-2">Update Times</button>
+                    <button id="updateShiftTimesBtn" class="nav-button bg-teal-500 hover:bg-teal-600 text-white">Set</button>
                 </div>
              </div>
         </div>
@@ -217,14 +224,16 @@
             <h2 class="text-2xl font-semibold text-center text-blue-200 mb-2">Add a New Task</h2>
             <p class="text-center text-sm text-gray-300 mb-4">Please advise below what you require, this will be added to Jay's To-Do list.</p>
 
-            <div class="p-6 bg-gray-100 rounded-lg shadow flex flex-col items-center space-y-4 max-w-lg mx-auto mb-6"> <div class="w-full">
+            <div class="p-6 bg-gray-100 rounded-lg shadow flex flex-col items-center space-y-4 max-w-lg mx-auto mb-6">
+                <div class="w-full">
                     <label for="newTaskInput" class="block text-sm font-medium text-gray-700 mb-1">Task Description:</label>
                     <textarea id="newTaskInput" placeholder="Enter new task..." rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"></textarea>
                 </div>
                 <button id="addTaskBtn" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-md transition duration-150 ease-in-out">
                     Add Task
                 </button>
-                 <p id="addTaskMessage" class="text-gray-400 text-sm mt-2 h-5 text-center"></p> </div>
+                 <p id="addTaskMessage" class="text-gray-400 text-sm mt-2 h-5 text-center"></p>
+             </div>
 
              <div id="taskSummaryContainerInput" class="text-center mb-4">
                  <div id="taskSummaryInput"></div>
@@ -237,7 +246,8 @@
                 <div class="w-full md:w-1/5 flex-shrink-0 order-1 md:order-1">
                     <div id="stickyNoteContainer">
                         <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Notes</h3>
-                        <textarea id="stickyNoteTextarea"></textarea> <button id="saveStickyNoteBtn" class="nav-button bg-yellow-500 hover:bg-yellow-600 text-yellow-900 text-sm py-1 px-3 mt-2">Save Note</button>
+                        <textarea id="stickyNoteTextarea"></textarea>
+                        <button id="saveStickyNoteBtn" class="nav-button bg-yellow-500 hover:bg-yellow-600 text-yellow-900 text-sm py-1 px-3 mt-2">Save Note</button>
                         <p id="stickyNoteMessage" class="text-green-600 text-sm mt-1 h-4 text-right"></p>
                     </div>
                 </div>
@@ -250,8 +260,8 @@
                                     <h2 class="text-xl font-semibold text-blue-800 mb-4 border-b border-blue-300 pb-2">To Do</h2>
                                     <div class="tasks-container space-y-3 overflow-y-auto p-1"></div>
                                 </div>
-                                <div id="inprogress" class="kanban-column bg-blue-100 rounded-lg shadow p-4" ondragover="allowDrop(event)" ondrop="drop(event)">
-                                    <h2 class="text-xl font-semibold text-blue-800 mb-4 border-b border-blue-300 pb-2">In Progress</h2>
+                                <div id="inprogress" class="kanban-column bg-orange-100 rounded-lg shadow p-4" ondragover="allowDrop(event)" ondrop="drop(event)">
+                                    <h2 class="text-xl font-semibold text-orange-800 mb-4 border-b border-orange-300 pb-2">In Progress</h2>
                                     <div class="tasks-container space-y-3 overflow-y-auto p-1"></div>
                                 </div>
                             </div>
@@ -288,11 +298,10 @@
         const PIN_COOLDOWN_SECONDS = 5;
         const MAX_TODO_TASKS = 50;
         const PRIORITIES = ["New", "High", "Medium", "Low"];
-        const DEFAULT_PRIORITY = "New";
-        const PRIORITY_VALUES = { "New": 4, "High": 3, "Medium": 2, "Low": 1 };
+        const DEFAULT_PRIORITY = "New"; // Default if not specified, tasks usually get "New"
+        const PRIORITY_VALUES = { "New": 4, "High": 3, "Medium": 2, "Low": 1 }; // Used for sorting
         const FUNCTION_BASE_PATH = '/.netlify/functions/';
         const VALID_STATUSES = ['todo', 'inprogress', 'nonurgent', 'done'];
-        // Default shift times (can be updated)
         let SHIFT_START_HOUR = 9;
         let SHIFT_END_HOUR = 16;
 
@@ -368,7 +377,7 @@
             try {
                 const date = new Date(timestampOrDateString);
                 const userTimezoneOffset = date.getTimezoneOffset() * 60000;
-                const adjustedTimestamp = date.getTime() + (timestampOrDateString.length === 10 ? userTimezoneOffset : 0); 
+                const adjustedTimestamp = date.getTime() + (timestampOrDateString.length === 10 ? userTimezoneOffset : 0);
                 const adjustedDate = new Date(adjustedTimestamp);
 
                 if (isNaN(adjustedDate.getTime())) return 'N/A';
@@ -411,35 +420,34 @@
             const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             currentDateDisplay.textContent = now.toLocaleDateString('en-GB', dateOptions);
 
-            const shiftStartMinutes = SHIFT_START_HOUR * 60;
-            const shiftEndMinutes = SHIFT_END_HOUR * 60;
+            const shiftStartMinutes = SHIFT_START_HOUR * 60; // Using global updatable var
+            const shiftEndMinutes = SHIFT_END_HOUR * 60;   // Using global updatable var
             const shiftDurationMinutes = shiftEndMinutes - shiftStartMinutes;
 
             let progressPercent = 0;
-            let barColor = '#10b981'; // Default green (Tailwind green-500)
+            let barColor = '#4ade80'; // Default green (Tailwind green-400)
 
-            if (currentTimeInMinutes < shiftStartMinutes) { // Before shift
-                progressPercent = 0; // Show no progress before shift starts
-                barColor = '#4ade80'; // Green (e.g., Tailwind green-400)
-            } else if (currentTimeInMinutes >= shiftEndMinutes) { // After shift
+            if (currentTimeInMinutes < shiftStartMinutes) {
+                progressPercent = 0;
+                barColor = '#4ade80';
+            } else if (currentTimeInMinutes >= shiftEndMinutes) {
                 progressPercent = 100;
-                barColor = '#f87171'; // Red (e.g., Tailwind red-400)
-            } else { // During the shift
+                barColor = '#f87171'; // Red (Tailwind red-400)
+            } else {
                 if (shiftDurationMinutes > 0) {
                     const timeElapsedMinutes = currentTimeInMinutes - shiftStartMinutes;
                     progressPercent = Math.max(0, Math.min(100, (timeElapsedMinutes / shiftDurationMinutes) * 100));
 
-                    // Color scaling: Green (0-33%), Orange (33-66%), Red (66-100%)
                     if (progressPercent < 33.33) {
-                        barColor = '#4ade80'; // Green (e.g., Tailwind green-400)
+                        barColor = '#4ade80'; // Green
                     } else if (progressPercent < 66.66) {
-                        barColor = '#facc15'; // Orange/Yellow (e.g., Tailwind yellow-400)
+                        barColor = '#facc15'; // Orange/Yellow (Tailwind yellow-400)
                     } else {
-                        barColor = '#f87171'; // Red (e.g., Tailwind red-400)
+                        barColor = '#f87171'; // Red
                     }
-                } else { // Edge case: zero or negative duration
+                } else {
                     progressPercent = 100;
-                    barColor = '#f87171'; // Red
+                    barColor = '#f87171';
                 }
             }
 
@@ -454,14 +462,13 @@
             const todoCount = tasks.todo?.length || 0;
             const inProgressCount = tasks.inprogress?.length || 0;
             const nonUrgentCount = tasks.nonurgent?.length || 0;
-            // Adjusted text colors for better readability on a potentially darker board background if summary moves there
             const summaryBadgesHTML = `
                 <div class="text-center">
                     <span class="summary-count bg-blue-200 text-blue-800">${todoCount}</span>
                     <span class="block text-xs text-gray-300 mt-1">To Do</span>
                 </div>
                 <div class="text-center">
-                    <span class="summary-count bg-blue-200 text-blue-800">${inProgressCount}</span>
+                    <span class="summary-count bg-orange-200 text-orange-800">${inProgressCount}</span>
                     <span class="block text-xs text-gray-300 mt-1">In Progress</span>
                 </div>
                 <div class="text-center">
@@ -486,7 +493,8 @@
                 boardPage.classList.add('hidden');
                 taskSummaryBoardContainer.classList.add('hidden');
                 taskSummaryInputContainer.classList.remove('hidden');
-                if(shiftTimeControls) shiftTimeControls.classList.add('hidden');
+                if(shiftTimeControls) shiftTimeControls.classList.add('hidden'); // Hide controls on input page
+
                 showInputPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500');
                 showInputPageBtn.classList.replace('hover:bg-indigo-600', 'hover:bg-blue-600');
                 showBoardPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500');
@@ -496,8 +504,8 @@
                 boardPage.classList.remove('hidden');
                 taskSummaryInputContainer.classList.add('hidden');
                 taskSummaryBoardContainer.classList.remove('hidden');
-                if(shiftTimeControls) shiftTimeControls.classList.remove('hidden');
-                // Populate current shift times into input fields
+                if(shiftTimeControls) shiftTimeControls.classList.remove('hidden'); // Show controls on board page
+
                 shiftStartInput.value = formatTimeToHHMM(SHIFT_START_HOUR);
                 shiftEndInput.value = formatTimeToHHMM(SHIFT_END_HOUR);
 
@@ -520,7 +528,7 @@
                      const task = tasks[colId].find(t => t.id === taskId);
                      if (task) { task.priority = newPriority; break; }
                  }
-                 renderBoard();
+                 renderBoard(); // Re-render to apply color changes
                  renderUpcomingTasks();
              } catch (error) { /* Handled by apiCall */ }
         }
@@ -612,9 +620,23 @@
         function createTaskElement(task) {
             const div = document.createElement('div');
             div.id = task.id;
-            let bgColorClass = 'bg-blue-200'; let borderColorClass = 'border-blue-300';
-            if (task.priority === 'New') { bgColorClass = 'bg-red-200'; borderColorClass = 'border-red-300'; }
-            else if (task.priority === 'High') { bgColorClass = 'bg-orange-200'; borderColorClass = 'border-orange-300'; }
+            // Default task color
+            let bgColorClass = 'bg-blue-200';
+            let borderColorClass = 'border-blue-300';
+
+            // Apply colors based on priority
+            if (task.priority === 'New') {
+                bgColorClass = 'bg-red-200'; // New tasks are red
+                borderColorClass = 'border-red-300';
+            } else if (task.priority === 'High') {
+                bgColorClass = 'bg-red-200'; // High priority tasks are red (was orange)
+                borderColorClass = 'border-red-300';
+            } else if (task.priority === 'Medium') {
+                bgColorClass = 'bg-orange-200'; // Medium priority tasks are orange (was default/blue)
+                borderColorClass = 'border-orange-300';
+            }
+            // 'Low' priority and any other unspecified will use the default blue.
+
             div.className = `task relative ${bgColorClass} p-3 rounded-md shadow-sm border ${borderColorClass} flex flex-col`;
             div.draggable = true;
             div.addEventListener('dragstart', dragStart);
@@ -638,7 +660,7 @@
             metaGroup.className = 'task-meta-group';
             const prioritySelect = document.createElement('select');
             prioritySelect.id = `priority-${task.id}`;
-            prioritySelect.className = 'task-priority-select text-gray-800'; // Ensure text is readable
+            prioritySelect.className = 'task-priority-select text-gray-800';
             prioritySelect.onchange = (event) => updateTaskPriority(task.id, event.target.value);
             PRIORITIES.forEach(p => {
                 const option = document.createElement('option');
@@ -651,11 +673,11 @@
             const dueDateLabel = document.createElement('label');
             dueDateLabel.htmlFor = `due-date-${task.id}`;
             dueDateLabel.textContent = 'Due:';
-            dueDateLabel.className = 'task-due-date-label text-gray-600'; // Darker text for label
+            dueDateLabel.className = 'task-due-date-label text-gray-600';
             const dueDateInput = document.createElement('input');
             dueDateInput.type = 'date';
             dueDateInput.id = `due-date-${task.id}`;
-            dueDateInput.className = 'task-due-date-input text-gray-700'; // Ensure text is readable
+            dueDateInput.className = 'task-due-date-input text-gray-700';
             dueDateInput.value = formatDateForInput(task.due_date);
             dueDateInput.onchange = (event) => updateTaskDueDate(task.id, event.target.value);
             dueDateDiv.appendChild(dueDateLabel);
@@ -667,7 +689,7 @@
             actionsGroup.className = 'task-actions-group';
             const subMenu = document.createElement('div');
             subMenu.id = `submenu-${task.id}`;
-            subMenu.className = 'task-submenu hidden'; // Kept submenu light for now
+            subMenu.className = 'task-submenu hidden';
             const editBtn = document.createElement('button');
             editBtn.innerHTML = '✏️ Edit Text';
             editBtn.className = 'action-btn text-blue-600 hover:text-blue-800 w-full justify-start';
@@ -723,7 +745,7 @@
             bottomSection.appendChild(editModeButtonContainer);
 
             const notesDiv = document.createElement('div');
-            notesDiv.className = 'task-notes'; // Hover notes remain dark with light text
+            notesDiv.className = 'task-notes';
             notesDiv.textContent = task.notes || '';
             if (!task.notes) notesDiv.classList.add('hidden');
 
@@ -756,16 +778,18 @@
                         const sortedTasks = tasks[columnId].sort((a, b) => {
                             const dateA = a.due_date ? new Date(a.due_date).getTime() : null;
                             const dateB = b.due_date ? new Date(b.due_date).getTime() : null;
-                            if (dateA === null && dateB !== null) return -1;
+                            if (dateA === null && dateB !== null) return -1; // Tasks with no due date sort as if they are far in the future for some views, or first for others. Here, -1 means they come before tasks with due dates for 'earliest first' if that's desired. Or handle as needed.
                             if (dateA !== null && dateB === null) return 1;
-                            if (dateA !== null && dateB !== null && dateA !== dateB) return dateA - dateB;
+                            if (dateA !== null && dateB !== null && dateA !== dateB) return dateA - dateB; // Sort by due date
+
                             const priorityA = PRIORITY_VALUES[a.priority || DEFAULT_PRIORITY] || 0;
                             const priorityB = PRIORITY_VALUES[b.priority || DEFAULT_PRIORITY] || 0;
-                            if (priorityB !== priorityA) return priorityB - priorityA;
-                            return (a.createdAt || 0) - (b.createdAt || 0);
+                            if (priorityB !== priorityA) return priorityB - priorityA; // Then by priority (higher value = higher priority)
+
+                            return (a.createdAt || 0) - (b.createdAt || 0); // Finally by creation time
                         });
                         sortedTasks.forEach(task => {
-                            task.name = task.name || '';
+                            task.name = task.name || ''; // Ensure name exists, though not directly used in display
                             task.createdAt = task.createdAt || 0;
                             task.priority = task.priority || DEFAULT_PRIORITY;
                             task.notes = task.notes || '';
@@ -779,7 +803,7 @@
         }
 
         /**
-         * Renders the top 5 upcoming tasks (excluding 'Done').
+         * Renders the top 6 upcoming tasks (excluding 'Done').
          */
         function renderUpcomingTasks() {
             if (!upcomingTasksList) return;
@@ -792,17 +816,17 @@
             const tasksWithDueDate = allUpcoming.filter(task => task.due_date);
             tasksWithDueDate.sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
 
-            const top5Tasks = tasksWithDueDate.slice(0, 5); // Changed from 3 to 5
+            const top6Tasks = tasksWithDueDate.slice(0, 6); // Changed from 5 to 6
 
             upcomingTasksList.innerHTML = '';
-            if (top5Tasks.length === 0) {
+            if (top6Tasks.length === 0) {
                 upcomingTasksList.innerHTML = '<p class="text-xs text-gray-500 text-center italic">No upcoming due dates.</p>';
             } else {
-                top5Tasks.forEach(task => {
+                top6Tasks.forEach(task => {
                     const taskDiv = document.createElement('div');
-                    taskDiv.className = 'upcoming-task'; // Styles ensure this is readable on its background
+                    taskDiv.className = 'upcoming-task';
                     const displayDueDate = formatDate(task.due_date);
-                    taskDiv.innerHTML = `<span class="due-date">${displayDueDate}</span> ${task.text}`; // Task text is dark
+                    taskDiv.innerHTML = `<span class="due-date">${displayDueDate}</span> ${task.text}`;
                     upcomingTasksList.appendChild(taskDiv);
                 });
             }
@@ -819,30 +843,31 @@
 
             const newTaskData = {
                 text: taskText, name: "Jay",
-                priority: DEFAULT_PRIORITY, notes: '', status: 'todo', due_date: null
+                priority: "New", // Explicitly set new tasks to "New" priority
+                notes: '', status: 'todo', due_date: null
             };
             addTaskBtn.disabled = true;
             addTaskMessage.textContent = 'Adding task...';
-            addTaskMessage.classList.remove('text-green-600', 'text-gray-400', 'text-red-500'); // Adjusted default color
+            addTaskMessage.classList.remove('text-green-400', 'text-gray-400', 'text-red-400');
             try {
                 const addedTask = await apiCall('add-task', 'POST', newTaskData);
                 if (addedTask && addedTask.id) {
                      if (!tasks.todo) tasks.todo = [];
                      addedTask.createdAt = new Date(addedTask.created_at).getTime();
-                     addedTask.priority = addedTask.priority || DEFAULT_PRIORITY;
+                     addedTask.priority = addedTask.priority || "New"; // Ensure priority from backend or default to New
                      addedTask.notes = addedTask.notes || '';
                      addedTask.due_date = addedTask.due_date || null;
                      tasks.todo.push(addedTask);
                      updateTaskSummary();
                      renderUpcomingTasks();
                      if (!boardPage.classList.contains('hidden')) renderBoard();
-                } else { await loadTasks(); }
+                } else { await loadTasks(); } // Fallback if addedTask is not as expected
                 clearTimeout(successMessageTimeout); clearInterval(cooldownTimer);
                 addTaskMessage.textContent = `Task added: "${addedTask.text || taskText}"`;
-                addTaskMessage.classList.add('text-green-400'); // Lighter green for dark bg
+                addTaskMessage.classList.add('text-green-400');
                 let secondsRemaining = COOLDOWN_SECONDS;
                 successMessageTimeout = setTimeout(() => {
-                     if (addTaskBtn.disabled) {
+                     if (addTaskBtn.disabled) { // Check if still in cooldown state
                          addTaskMessage.classList.remove('text-green-400');
                          addTaskMessage.classList.add('text-gray-400');
                          addTaskMessage.textContent = `Please wait ${secondsRemaining} seconds...`;
@@ -854,7 +879,7 @@
                      }
                 }, 1500);
             } catch (error) {
-                addTaskBtn.disabled = false; addTaskMessage.textContent = 'Error adding task.'; addTaskMessage.classList.add('text-red-400'); // Lighter red for dark bg
+                addTaskBtn.disabled = false; addTaskMessage.textContent = 'Error adding task.'; addTaskMessage.classList.add('text-red-400');
             } finally {
                  newTaskInput.value = '';
                  newTaskInput.focus();
@@ -863,7 +888,7 @@
 
         async function deleteTask(taskId) {
              closeOpenSubMenu();
-            if (currentlyEditingTaskId === taskId) return;
+            if (currentlyEditingTaskId === taskId) return; // Don't delete if actively editing
             if (!confirm('Are you sure you want to delete this task?')) return;
             try {
                 await apiCall('delete-task', 'POST', { id: taskId });
@@ -887,13 +912,13 @@
             if (newText === '') { alert('Task description cannot be empty.'); inputElement.focus(); return; }
             try {
                  await apiCall('update-task', 'POST', { id: taskId, updates: { text: newText } });
-                 for (const colId in tasks) { // Corrected variable name from tasks[colId] to tasks[columnId] in find
-                    const task = tasks[colId].find(t => t.id === taskId); // tasks[columnId] was tasks[colId]
+                 for (const colId in tasks) {
+                    const task = tasks[colId].find(t => t.id === taskId);
                     if (task) { task.text = newText; break; }
                  }
                  currentlyEditingTaskId = null; renderBoard();
                  renderUpcomingTasks();
-            } catch (error) { currentlyEditingTaskId = null; renderBoard(); }
+            } catch (error) { currentlyEditingTaskId = null; renderBoard(); /* Revert or show error */ }
         }
 
         function cancelTaskEdit(taskId) { currentlyEditingTaskId = null; renderBoard(); }
@@ -902,22 +927,22 @@
             console.log("Loading tasks...");
             try {
                 const fetchedTasks = await apiCall('get-tasks');
-                tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };
+                tasks = { todo: [], inprogress: [], nonurgent: [], done: [] }; // Reset tasks
                 fetchedTasks.forEach(task => {
-                    task.priority = task.priority || DEFAULT_PRIORITY;
+                    task.priority = task.priority || DEFAULT_PRIORITY; // Default priority if undefined
                     task.notes = task.notes || '';
                     task.createdAt = task.created_at ? new Date(task.created_at).getTime() : 0;
                     task.due_date = task.due_date || null;
-                    const status = task.status || 'todo';
+                    const status = task.status || 'todo'; // Default status if undefined
                     if (VALID_STATUSES.includes(status)) { tasks[status].push(task); }
                     else { console.warn(`Invalid task status "${status}" for task ID ${task.id}. Placing in 'todo'.`); tasks.todo.push(task); }
                 });
                 console.log("Tasks loaded and processed:", tasks);
             } catch (error) {
                 console.error("Error loading tasks from backend:", error);
-                tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };
+                tasks = { todo: [], inprogress: [], nonurgent: [], done: [] }; // Ensure tasks is in a valid state
             } finally {
-                 currentlyEditingTaskId = null;
+                 currentlyEditingTaskId = null; // Reset editing state
                  updateTaskSummary();
                  renderUpcomingTasks();
                  if (!boardPage.classList.contains('hidden')) { renderBoard(); }
@@ -943,7 +968,7 @@
              saveStickyNoteBtn.disabled = true;
              stickyNoteMessage.textContent = 'Saving...';
              stickyNoteMessage.classList.remove('text-red-500', 'text-green-600');
-             stickyNoteMessage.classList.add('text-gray-500'); // Default saving message color
+             stickyNoteMessage.classList.add('text-gray-500');
              clearTimeout(stickyNoteSaveTimeout);
              try {
                  await apiCall('update-sticky-note', 'POST', { content: contentToSave });
@@ -981,7 +1006,7 @@
 
         function allowDrop(event) {
             if (event.target.closest('.task') || event.target.closest('button') || event.target.closest('select')) {
-                return;
+                return; // Don't allow dropping onto other tasks or interactive elements within the column
             }
             event.preventDefault();
         }
@@ -989,9 +1014,9 @@
         function drop(event) {
             event.preventDefault();
             if (!draggedTask) return;
-            if (event.target.closest('.task')) return;
-            const targetColumnElement = event.currentTarget;
-            const targetColumnId = targetColumnElement.id;
+            if (event.target.closest('.task')) return; // Prevent dropping onto another task element directly
+            const targetColumnElement = event.currentTarget; // Listener is on the column's tasks-container div
+            const targetColumnId = targetColumnElement.parentElement.id; // Get id from parent .kanban-column
             handleDropLogic(targetColumnId, draggedTask);
         }
 
@@ -1003,28 +1028,36 @@
                  console.error(`Invalid drop target column ID: ${targetColumnId}`); return;
              }
              let taskToMove = null; let originalIndex = -1; let originalColumnId = '';
+             // Find the task in the local state
              for (const colId in tasks) {
                  originalIndex = tasks[colId].findIndex(task => task.id === taskId);
                  if (originalIndex > -1) { originalColumnId = colId; taskToMove = tasks[colId][originalIndex]; break; }
              }
              if (!taskToMove) { console.error("Could not find task in local state during drop:", taskId); return; }
-             tasks[originalColumnId].splice(originalIndex, 1);
-             if (!tasks[targetColumnId]) tasks[targetColumnId] = [];
-             tasks[targetColumnId].push(taskToMove);
-             taskToMove.status = targetColumnId;
-             renderBoard(); updateTaskSummary();
+
+             // Optimistic UI Update
+             tasks[originalColumnId].splice(originalIndex, 1); // Remove from old column
+             if (!tasks[targetColumnId]) tasks[targetColumnId] = []; // Ensure target column array exists
+             tasks[targetColumnId].push(taskToMove); // Add to new column
+             taskToMove.status = targetColumnId; // Update task's status property
+
+             renderBoard(); // Re-render the entire board
+             updateTaskSummary();
              renderUpcomingTasks();
+
+             // Backend Update
              try {
                  await apiCall('update-task', 'POST', { id: taskId, updates: { status: targetColumnId } });
                  if (targetColumnId === 'done' && sourceColumnId !== 'done') triggerConfetti();
              } catch (error) {
                   console.error(`Failed to update task ${taskId} status in backend:`, error);
                   alert("Failed to move task. Reverting.");
+                  // Rollback UI
                   const newIndex = tasks[targetColumnId].findIndex(task => task.id === taskId);
-                  if (newIndex > -1) tasks[targetColumnId].splice(newIndex, 1);
-                  taskToMove.status = originalColumnId;
+                  if (newIndex > -1) tasks[targetColumnId].splice(newIndex, 1); // Remove from new column
+                  taskToMove.status = originalColumnId; // Revert status
                   if (!tasks[originalColumnId]) tasks[originalColumnId] = [];
-                  tasks[originalColumnId].splice(originalIndex, 0, taskToMove);
+                  tasks[originalColumnId].splice(originalIndex, 0, taskToMove); // Add back to original position
                   renderBoard(); updateTaskSummary();
                   renderUpcomingTasks();
              }
@@ -1041,7 +1074,7 @@
         showBoardPageBtn.addEventListener('click', async () => {
             if (isPinCooldownActive) { alert("Please wait before trying the pin again."); return; }
             const pinInput = prompt("Please enter the pin code to view the board:");
-            if (pinInput === null) return;
+            if (pinInput === null) return; // User cancelled prompt
             try {
                  const result = await apiCall('check-pin', 'POST', { enteredPin: pinInput });
                  if (result && result.valid) {
@@ -1057,8 +1090,9 @@
                          console.log("Pin cooldown finished.");
                      }, PIN_COOLDOWN_SECONDS * 1000);
                  }
-            } catch (error) { /* Handled by apiCall */ }
+            } catch (error) { /* Handled by apiCall, which includes an alert */ }
         });
+
         if(saveStickyNoteBtn) {
             saveStickyNoteBtn.addEventListener('click', saveStickyNote);
         }
@@ -1071,17 +1105,19 @@
                 const [startH, startM] = newStart.split(':').map(Number);
                 const [endH, endM] = newEnd.split(':').map(Number);
 
-                if (startH * 60 + startM >= endH * 60 + endM) {
+                if ( (startH * 60 + startM) >= (endH * 60 + endM) ) {
                     alert("Shift start time must be before end time.");
                     return;
                 }
-                SHIFT_START_HOUR = startH; // Note: SHIFT_END_HOUR logic might need to account for minutes too if more precision is needed
-                SHIFT_END_HOUR = endH;
+                SHIFT_START_HOUR = startH;
+                SHIFT_END_HOUR = endH; // Note: SHIFT_END_HOUR only uses the hour part in current progress logic.
+                                       // If minute precision is needed for END_HOUR, update logic in updateDateTimeDisplay.
                 console.log(`Shift times updated: Start ${SHIFT_START_HOUR}, End ${SHIFT_END_HOUR}`);
                 updateDateTimeDisplay(); // Update progress bar immediately
-                // Optionally, save these to localStorage if you want them to persist across sessions
-                // localStorage.setItem('shiftStartHour', SHIFT_START_HOUR);
-                // localStorage.setItem('shiftEndHour', SHIFT_END_HOUR);
+
+                // Optional: Persist to localStorage
+                // localStorage.setItem('customShiftStartHour', SHIFT_START_HOUR);
+                // localStorage.setItem('customShiftEndHour', SHIFT_END_HOUR);
             } else {
                 alert("Please select both start and end times.");
             }
@@ -1090,24 +1126,24 @@
 
          document.addEventListener('click', (event) => {
              const clickedSubMenu = event.target.closest('.task-submenu');
-             const clickedMenuButton = event.target.closest('.action-btn[title="More Actions"]');
-             if (!clickedSubMenu && !clickedMenuButton && openSubMenuId) {
+             const clickedMenuButton = event.target.closest('.action-btn[title="More Actions"]'); // Check if click was on a menu button
+             if (!clickedSubMenu && !clickedMenuButton && openSubMenuId) { // If click is outside and not on a menu button itself
                  closeOpenSubMenu();
              }
          });
 
         document.addEventListener('DOMContentLoaded', async () => {
-             // Optionally, load shift times from localStorage
-             // const savedStartHour = localStorage.getItem('shiftStartHour');
-             // const savedEndHour = localStorage.getItem('shiftEndHour');
-             // if (savedStartHour) SHIFT_START_HOUR = parseInt(savedStartHour, 10);
-             // if (savedEndHour) SHIFT_END_HOUR = parseInt(savedEndHour, 10);
+            // Optional: Load custom shift times from localStorage if previously saved
+            // const savedStart = localStorage.getItem('customShiftStartHour');
+            // const savedEnd = localStorage.getItem('customShiftEndHour');
+            // if (savedStart) SHIFT_START_HOUR = parseInt(savedStart, 10);
+            // if (savedEnd) SHIFT_END_HOUR = parseInt(savedEnd, 10);
 
-             showPage('inputPage');
+             showPage('inputPage'); // Default to input page
              await loadTasks();
-             updateDateTimeDisplay();
+             updateDateTimeDisplay(); // Initial call for date/time/progress
              if (dateTimeInterval) clearInterval(dateTimeInterval);
-             dateTimeInterval = setInterval(updateDateTimeDisplay, 60000);
+             dateTimeInterval = setInterval(updateDateTimeDisplay, 60000); // Update every minute
         });
 
     </script>
