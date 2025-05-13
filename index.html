@@ -106,6 +106,17 @@
          .priority-task .priority-label-medium { color: #ea580c; } 
          .priority-task .priority-label-low { color: #fb923c; } 
 
+        /* Overdue Task Styling */
+        .task.overdue {
+            border: 3px solid #dc2626; /* Tailwind red-600, thick border */
+            /* Padding adjustment to compensate for border if needed:
+               If original padding was p-3 (0.75rem = 12px), new padding could be 9px.
+               However, Tailwind's p-3 is applied via class, so this direct style might conflict.
+               It's often better to let the border expand the element slightly or use an inner div for content.
+               For simplicity, we'll let it expand.
+            */
+        }
+
 
         /* Style for the confetti canvas */
         #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
@@ -290,7 +301,8 @@
                 </div>
 
                 <div class="flex-grow order-3 md:order-2 flex justify-center">
-                    <div class="w-full max-w-7xl"> <div class="space-y-6">
+                    <div class="w-full max-w-7xl"> 
+                        <div class="space-y-6">
                             <div id="kanbanBoardTopRow" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <div id="todo" class="kanban-column bg-blue-100 rounded-lg shadow p-4" ondragover="allowDrop(event)" ondrop="drop(event)">
                                     <h2 class="text-xl font-semibold text-blue-800 mb-4 border-b border-blue-300 pb-2">To Do</h2>
@@ -588,9 +600,9 @@
                      const task = tasks[colId].find(t => t.id === taskId);
                      if (task) { task.priority = newPriority; break; }
                  }
-                 renderBoard();
-                 renderUpcomingTasks();
-                 renderHighestPriorityTasks();
+                 renderBoard(); // This will re-sort and re-render with new priority logic
+                 renderUpcomingTasks(); // May not be affected but good practice
+                 renderHighestPriorityTasks(); // This list is directly affected by priority changes
              } catch (error) { /* Handled by apiCall */ }
         }
 
@@ -608,7 +620,7 @@
                 try {
                     await apiCall('update-task', 'POST', { id: taskId, updates: { notes: trimmedNotes } });
                     taskRef.notes = trimmedNotes;
-                    renderBoard();
+                    renderBoard(); // Re-render task to show updated hover notes
                 } catch (error) { /* Handled by apiCall */ }
             }
         }
@@ -622,9 +634,9 @@
                      const task = tasks[colId].find(t => t.id === taskId);
                      if (task) { task.due_date = dateValueToSend; break; }
                  }
-                 renderBoard();
-                 renderUpcomingTasks();
-                 renderHighestPriorityTasks();
+                 renderBoard(); // Re-sorts and re-renders, applying overdue style if needed
+                 renderUpcomingTasks(); // Directly affected
+                 renderHighestPriorityTasks(); // May be affected if due date is a tie-breaker
              } catch (error) { console.error("Failed to update due date in backend."); }
         }
 
@@ -684,24 +696,34 @@
         function createTaskElement(task) {
             const div = document.createElement('div');
             div.id = task.id;
-            let bgColorClass = 'bg-blue-200';
+            let bgColorClass = 'bg-blue-200'; // Default for Low or unspecified
             let borderColorClass = 'border-blue-300';
 
+            // Priority-based background colors
             if (task.priority === 'New') {
-                bgColorClass = 'bg-red-200';
+                bgColorClass = 'bg-red-200'; 
                 borderColorClass = 'border-red-300';
             } else if (task.priority === 'High') {
-                bgColorClass = 'bg-red-200';
+                bgColorClass = 'bg-red-200'; // High priority tasks are red
                 borderColorClass = 'border-red-300';
             } else if (task.priority === 'Medium') {
-                bgColorClass = 'bg-orange-200';
+                bgColorClass = 'bg-orange-200'; // Medium priority tasks are orange
                 borderColorClass = 'border-orange-300';
             }
+            // Low priority uses the default blue defined above
 
             div.className = `task relative ${bgColorClass} p-3 rounded-md shadow-sm border ${borderColorClass} flex flex-col`;
             div.draggable = true;
             div.addEventListener('dragstart', dragStart);
             div.addEventListener('dragend', dragEnd);
+
+            // Check for overdue and add class if necessary
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Normalize today's date for comparison
+            if (task.due_date && new Date(task.due_date) < today && task.status !== 'done') {
+                div.classList.add('overdue');
+            }
+
 
             const topSection = document.createElement('div');
             const contentSpan = document.createElement('span');
@@ -829,38 +851,80 @@
 
 
         function renderBoard() {
-             if (boardPage.classList.contains('hidden')) return;
+            if (boardPage.classList.contains('hidden')) return;
             const taskContainers = document.querySelectorAll('.tasks-container');
-            taskContainers.forEach(colContainer => colContainer.innerHTML = '');
+            taskContainers.forEach(colContainer => colContainer.innerHTML = ''); // Clear existing tasks
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Normalize today's date for comparison
+
             for (const columnId in tasks) {
-                if (tasks.hasOwnProperty(columnId)) {
+                if (tasks.hasOwnProperty(columnId) && ['todo', 'inprogress', 'nonurgent'].includes(columnId)) {
                     const columnElement = document.getElementById(columnId)?.querySelector('.tasks-container');
                     if (columnElement) {
-                        const sortedTasks = tasks[columnId].sort((a, b) => {
-                            const dateA = a.due_date ? new Date(a.due_date).getTime() : null;
-                            const dateB = b.due_date ? new Date(b.due_date).getTime() : null;
-                            if (dateA === null && dateB !== null) return 1;
-                            if (dateA !== null && dateB === null) return -1;
-                            if (dateA !== null && dateB !== null && dateA !== dateB) return dateA - dateB;
+                        let columnTasks = [...tasks[columnId]]; // Create a mutable copy for sorting
+
+                        // Separate tasks into categories for sorting
+                        const newTasks = columnTasks.filter(task => task.priority === "New");
+                        const nonNewTasks = columnTasks.filter(task => task.priority !== "New");
+                        
+                        const overdueTasks = nonNewTasks.filter(task => task.due_date && new Date(task.due_date) < today);
+                        const otherTasks = nonNewTasks.filter(task => !(task.due_date && new Date(task.due_date) < today));
+
+                        // Sort 'New' tasks (e.g., by creation date - oldest first)
+                        newTasks.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+
+                        // Sort 'Overdue' tasks: by due date (earliest first), then by priority, then by creation
+                        overdueTasks.sort((a, b) => {
+                            const dateA = new Date(a.due_date).getTime();
+                            const dateB = new Date(b.due_date).getTime();
+                            if (dateA !== dateB) return dateA - dateB;
 
                             const priorityA = PRIORITY_VALUES[a.priority || DEFAULT_PRIORITY] || 0;
                             const priorityB = PRIORITY_VALUES[b.priority || DEFAULT_PRIORITY] || 0;
                             if (priorityB !== priorityA) return priorityB - priorityA;
-
+                            
                             return (a.createdAt || 0) - (b.createdAt || 0);
                         });
-                        sortedTasks.forEach(task => {
-                            task.priority = task.priority || DEFAULT_PRIORITY;
-                            task.notes = task.notes || '';
-                            task.createdAt = task.createdAt || 0;
-                            task.due_date = task.due_date || null;
+
+                        // Sort 'Other' tasks: by priority, then by due date, then by creation
+                        otherTasks.sort((a, b) => {
+                            const priorityA = PRIORITY_VALUES[a.priority || DEFAULT_PRIORITY] || 0;
+                            const priorityB = PRIORITY_VALUES[b.priority || DEFAULT_PRIORITY] || 0;
+                            if (priorityB !== priorityA) return priorityB - priorityA;
+
+                            const dateA = a.due_date ? new Date(a.due_date).getTime() : null;
+                            const dateB = b.due_date ? new Date(b.due_date).getTime() : null;
+                            if (dateA === null && dateB !== null) return 1; // No due date tasks last
+                            if (dateA !== null && dateB === null) return -1; // Due date tasks first
+                            if (dateA !== null && dateB !== null && dateA !== dateB) return dateA - dateB;
+                            
+                            return (a.createdAt || 0) - (b.createdAt || 0);
+                        });
+                        
+                        // Combine sorted groups
+                        const sortedColumnTasks = [...newTasks, ...overdueTasks, ...otherTasks];
+
+                        sortedColumnTasks.forEach(task => {
                             const taskElement = createTaskElement(task);
                             columnElement.appendChild(taskElement);
                         });
                     } else { console.error(`Column element not found for ID: ${columnId}`); }
+                } else if (tasks.hasOwnProperty(columnId) && columnId === 'done') {
+                    // Handle 'done' column separately if its sorting is different (e.g., by completion date or just creation)
+                    const columnElement = document.getElementById(columnId)?.querySelector('.tasks-container');
+                    if (columnElement) {
+                        tasks[columnId]
+                            .sort((a,b) => (b.completedAt || b.createdAt || 0) - (a.completedAt || a.createdAt || 0)) // Example: newest completed first
+                            .forEach(task => {
+                                const taskElement = createTaskElement(task);
+                                columnElement.appendChild(taskElement);
+                            });
+                    }
                 }
             }
         }
+
 
         function renderUpcomingTasks() {
             if (!upcomingTasksList) return;
@@ -949,16 +1013,18 @@
             const newTaskData = {
                 text: taskText, name: "Jay",
                 priority: "New", 
-                notes: '', status: 'todo', due_date: null
+                notes: '', status: 'todo', due_date: null,
+                createdAt: Date.now() // Add creation timestamp for sorting
             };
             addTaskBtn.disabled = true;
             addTaskMessage.textContent = 'Adding task...';
             addTaskMessage.classList.remove('text-green-400', 'text-gray-400', 'text-red-400');
             try {
-                const addedTask = await apiCall('add-task', 'POST', newTaskData);
+                const addedTask = await apiCall('add-task', 'POST', newTaskData); // Ensure backend saves createdAt
                 if (addedTask && addedTask.id) {
                      if (!tasks.todo) tasks.todo = [];
-                     addedTask.createdAt = new Date(addedTask.created_at).getTime();
+                     // Use createdAt from backend if available, otherwise keep what we set
+                     addedTask.createdAt = addedTask.created_at ? new Date(addedTask.created_at).getTime() : newTaskData.createdAt;
                      addedTask.priority = addedTask.priority || "New";
                      addedTask.notes = addedTask.notes || '';
                      addedTask.due_date = addedTask.due_date || null;
@@ -1039,7 +1105,7 @@
                 fetchedTasks.forEach(task => {
                     task.priority = task.priority || DEFAULT_PRIORITY;
                     task.notes = task.notes || '';
-                    task.createdAt = task.created_at ? new Date(task.created_at).getTime() : 0;
+                    task.createdAt = task.created_at ? new Date(task.created_at).getTime() : Date.now(); // Fallback for createdAt
                     task.due_date = task.due_date || null;
                     const status = task.status || 'todo';
                     if (VALID_STATUSES.includes(status)) { tasks[status].push(task); }
@@ -1259,7 +1325,7 @@
              tasks[targetColumnId].push(taskToMove);
              taskToMove.status = targetColumnId;
 
-             renderBoard();
+             renderBoard(); // This will re-sort and re-render the affected columns
              updateTaskSummary();
              renderUpcomingTasks();
              renderHighestPriorityTasks(); 
@@ -1275,7 +1341,8 @@
                   taskToMove.status = originalColumnId;
                   if (!tasks[originalColumnId]) tasks[originalColumnId] = [];
                   tasks[originalColumnId].splice(originalIndex, 0, taskToMove);
-                  renderBoard(); updateTaskSummary();
+                  renderBoard(); // Re-sort and re-render on rollback
+                  updateTaskSummary();
                   renderUpcomingTasks();
                   renderHighestPriorityTasks(); 
              }
