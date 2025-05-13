@@ -16,18 +16,18 @@ exports.handler = async function(event, context) {
         return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }), headers: { 'Allow': 'GET' } };
     }
 
-    let noteIdToFetch = 1; // Default to note ID 1
+    let noteIdToFetch = 1; // Default to note ID 1 (original sticky note)
 
-    if (event.body) {
-        try {
-            const body = JSON.parse(event.body);
-            if (body.note_id && !isNaN(parseInt(body.note_id))) {
-                noteIdToFetch = parseInt(body.note_id);
-            }
-        } catch (e) {
-            console.warn('GET-STICKY: Could not parse body for note_id, defaulting to 1.', e.message);
-            // Keep default noteIdToFetch = 1
+    // For GET requests, parameters are in event.queryStringParameters
+    if (event.queryStringParameters && event.queryStringParameters.note_id) {
+        const parsedId = parseInt(event.queryStringParameters.note_id);
+        if (!isNaN(parsedId)) {
+            noteIdToFetch = parsedId;
+        } else {
+            console.warn(`GET-STICKY: Invalid note_id '${event.queryStringParameters.note_id}' in query string, defaulting to 1.`);
         }
+    } else {
+        console.log('GET-STICKY: No note_id in query string, defaulting to 1.');
     }
 
     try {
@@ -39,10 +39,11 @@ exports.handler = async function(event, context) {
             .single(); // Expecting only one row
 
         if (error) {
-            if (error.code === 'PGRST116') { // Resource Not Found
+            if (error.code === 'PGRST116') { // Resource Not Found (e.g., row for ID doesn't exist)
                  console.log(`GET-STICKY: Sticky note row not found for ID ${noteIdToFetch}, returning empty.`);
                  return { statusCode: 200, body: JSON.stringify({ content: '' }), headers: { 'Content-Type': 'application/json' } };
             }
+            // Otherwise, it's a different Supabase error
             console.error(`GET-STICKY: Supabase fetch error for ID ${noteIdToFetch}:`, error);
             return { statusCode: 500, body: JSON.stringify({ error: 'Failed to fetch sticky note', details: error.message }) };
         }
@@ -50,11 +51,12 @@ exports.handler = async function(event, context) {
         console.log(`GET-STICKY: Sticky note content fetched for ID: ${noteIdToFetch}.`);
         return {
             statusCode: 200,
-            body: JSON.stringify({ content: data?.content || '' }),
+            body: JSON.stringify({ content: data?.content || '' }), // Default to empty string if content is null
             headers: { 'Content-Type': 'application/json' },
         };
 
     } catch (err) {
+        // Catch-all for other unexpected errors during function execution
         console.error(`GET-STICKY: Function execution error for ID ${noteIdToFetch}:`, err);
         return { statusCode: 500, body: JSON.stringify({ error: 'Internal Server Error', details: err.message }) };
     }

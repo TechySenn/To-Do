@@ -391,26 +391,34 @@
         let stickyNoteAATSaveTimeout = null;
 
         // --- Generic Fetch Helper ---
-        async function apiCall(endpoint, method = 'GET', body = null) {
+        async function apiCall(endpoint, method = 'GET', paramsOrBody = null) {
             const options = { method, headers: {} };
-            if (body) {
+            let url = `${FUNCTION_BASE_PATH}${endpoint}`;
+
+            if (method === 'GET' && paramsOrBody) {
+                // For GET requests, append paramsOrBody as query string parameters
+                const queryParams = new URLSearchParams(paramsOrBody).toString();
+                if (queryParams) {
+                    url += `?${queryParams}`;
+                }
+            } else if (paramsOrBody) { // For POST, PUT, DELETE etc.
                 options.headers['Content-Type'] = 'application/json';
-                options.body = JSON.stringify(body);
+                options.body = JSON.stringify(paramsOrBody);
             }
             
             try {
-                const response = await fetch(`${FUNCTION_BASE_PATH}${endpoint}`, options);
+                const response = await fetch(url, options);
                 const isJson = response.headers.get('content-type')?.includes('application/json');
                 const data = isJson ? await response.json() : null;
                 if (!response.ok) {
                     const error = (data && (data.error || data.message)) || `HTTP error! status: ${response.status}`;
-                    console.error(`API Error (${endpoint}, Body: ${JSON.stringify(body)}):`, error, data?.details);
+                    console.error(`API Error (${url}):`, error, data?.details);
                     throw new Error(error);
                 }
                 return data;
             } catch (error) {
-                console.error(`API Call Failed (${endpoint}, Body: ${JSON.stringify(body)}):`, error);
-                if (endpoint !== 'get-sticky-note' || method !== 'GET') {
+                console.error(`API Call Failed (${url}):`, error);
+                if (!(endpoint === 'get-sticky-note' && method === 'GET')) {
                      alert(`Operation failed: ${error.message}. Please check console or try again.`);
                 }
                 throw error;
