@@ -26,7 +26,7 @@
             box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
-            height: 200px; /* Adjusted height for each note */
+            height: 250px; /* Increased height to show ~6 lines of text */
             margin-bottom: 1rem;
         }
         .sticky-note-wrapper:last-child {
@@ -47,7 +47,9 @@
         }
          #stickyNoteTextarea, #stickyNoteTextareaAAT {
              flex-grow: 1; border-radius: 4px;
-             padding: 0.5rem; font-size: 0.85rem; resize: none;
+             padding: 0.5rem; font-size: 0.85rem; /* Base font size for calculation */
+             line-height: 1.4; /* Typical line height */
+             resize: none;
              margin-bottom: 0.5rem; color: #4b5563; /* Default text color for textarea */
          }
          /* Textarea specific backgrounds and borders */
@@ -287,7 +289,8 @@
                         <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">AAT Level 4</h3>
                         <textarea id="stickyNoteTextareaAAT"></textarea>
                         <button id="saveStickyNoteBtnAAT" class="nav-button bg-green-600 hover:bg-green-700 text-white text-sm py-1 px-3 mt-2 save-sticky-note-btn">Save Note</button>
-                        <p id="stickyNoteMessageAAT" class="sticky-note-message text-green-700"></p> </div>
+                        <p id="stickyNoteMessageAAT" class="sticky-note-message text-green-700"></p>
+                    </div>
                 </div>
 
                 <div class="flex-grow order-3 md:order-2 flex justify-center">
@@ -342,8 +345,8 @@
         const VALID_STATUSES = ['todo', 'inprogress', 'nonurgent', 'done'];
         let SHIFT_START_HOUR = 9;
         let SHIFT_END_HOUR = 16;
-        const STICKY_NOTE_ID_MAIN = 1; // Assuming original note is ID 1
-        const STICKY_NOTE_ID_AAT = 2;  // ID for AAT Level 4 note
+        const STICKY_NOTE_ID_MAIN = 1; 
+        const STICKY_NOTE_ID_AAT = 2;
 
 
         // --- DOM Elements ---
@@ -354,7 +357,6 @@
         const taskSummaryInput = document.getElementById('taskSummaryInput');
         const taskSummaryBoardContainer = document.getElementById('taskSummaryContainerBoard');
         const taskSummaryBoard = document.getElementById('taskSummaryBoard');
-        // Columns are selected dynamically if needed
         const confettiCanvas = document.getElementById('confetti-canvas');
         const myConfetti = confetti.create(confettiCanvas, { resize: true, useWorker: true });
         const inputPage = document.getElementById('inputPage');
@@ -363,17 +365,12 @@
         const showBoardPageBtn = document.getElementById('showBoardPageBtn');
         const currentDateDisplay = document.getElementById('currentDateDisplay');
         const shiftProgressBar = document.getElementById('shiftProgressBar');
-
-        // Sticky Note 1 (Original)
         const stickyNoteTextarea = document.getElementById('stickyNoteTextarea');
         const saveStickyNoteBtn = document.getElementById('saveStickyNoteBtn');
         const stickyNoteMessage = document.getElementById('stickyNoteMessage');
-
-        // Sticky Note 2 (AAT Level 4)
         const stickyNoteTextareaAAT = document.getElementById('stickyNoteTextareaAAT');
         const saveStickyNoteBtnAAT = document.getElementById('saveStickyNoteBtnAAT');
         const stickyNoteMessageAAT = document.getElementById('stickyNoteMessageAAT');
-
         const upcomingTasksList = document.getElementById('upcomingTasksList');
         const shiftTimeControls = document.getElementById('shiftTimeControls');
         const shiftStartInput = document.getElementById('shiftStartInput');
@@ -391,24 +388,16 @@
         let openSubMenuId = null;
         let dateTimeInterval = null;
         let stickyNoteSaveTimeout = null;
-        let stickyNoteAATSaveTimeout = null; // Separate timeout for the AAT note
+        let stickyNoteAATSaveTimeout = null;
 
         // --- Generic Fetch Helper ---
-        // The apiCall function will be used as is.
-        // Backend functions 'get-sticky-note' and 'update-sticky-note'
-        // will need to be adapted to handle a 'note_id' parameter.
         async function apiCall(endpoint, method = 'GET', body = null) {
             const options = { method, headers: {} };
             if (body) {
                 options.headers['Content-Type'] = 'application/json';
                 options.body = JSON.stringify(body);
             }
-            // For GET requests that need parameters, it's common to append them to the endpoint URL
-            // e.g., if (method === 'GET' && body && body.note_id) { endpoint = `${endpoint}?note_id=${body.note_id}`; delete body.note_id; }
-            // However, this generic apiCall doesn't explicitly do that for GET with body.
-            // We'll assume the backend functions can parse note_id from the body for now,
-            // or you'll adjust the endpoint string directly when calling for specific notes.
-
+            
             try {
                 const response = await fetch(`${FUNCTION_BASE_PATH}${endpoint}`, options);
                 const isJson = response.headers.get('content-type')?.includes('application/json');
@@ -421,7 +410,6 @@
                 return data;
             } catch (error) {
                 console.error(`API Call Failed (${endpoint}, Body: ${JSON.stringify(body)}):`, error);
-                // Avoid alert for initial sticky note load failures if they are not critical blockers
                 if (endpoint !== 'get-sticky-note' || method !== 'GET') {
                      alert(`Operation failed: ${error.message}. Please check console or try again.`);
                 }
@@ -570,8 +558,8 @@
 
                 renderBoard();
                 updateTaskSummary();
-                loadStickyNoteMain(); // Load original sticky note
-                loadStickyNoteAAT();  // Load AAT sticky note
+                loadStickyNoteMain();
+                loadStickyNoteAAT();
                 renderUpcomingTasks();
                 showInputPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500');
                 showInputPageBtn.classList.replace('hover:bg-blue-600', 'hover:bg-indigo-600');
@@ -835,8 +823,8 @@
                         const sortedTasks = tasks[columnId].sort((a, b) => {
                             const dateA = a.due_date ? new Date(a.due_date).getTime() : null;
                             const dateB = b.due_date ? new Date(b.due_date).getTime() : null;
-                            if (dateA === null && dateB !== null) return 1; // Tasks without due dates last
-                            if (dateA !== null && dateB === null) return -1; // Tasks with due dates first
+                            if (dateA === null && dateB !== null) return 1;
+                            if (dateA !== null && dateB === null) return -1;
                             if (dateA !== null && dateB !== null && dateA !== dateB) return dateA - dateB;
 
                             const priorityA = PRIORITY_VALUES[a.priority || DEFAULT_PRIORITY] || 0;
@@ -869,7 +857,7 @@
             const tasksWithDueDate = allUpcoming.filter(task => task.due_date);
             tasksWithDueDate.sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
 
-            const top6Tasks = tasksWithDueDate.slice(0, 6); // Show 6 tasks
+            const top6Tasks = tasksWithDueDate.slice(0, 6);
 
             upcomingTasksList.innerHTML = '';
             if (top6Tasks.length === 0) {
@@ -1004,24 +992,18 @@
 
         // --- Sticky Note Functions ---
 
-        // Load Main Sticky Note (ID 1)
         async function loadStickyNoteMain() {
              if (!stickyNoteTextarea) return;
              console.log("Loading main sticky note (ID: " + STICKY_NOTE_ID_MAIN + ")...");
              try {
-                 // Adjust the endpoint or body as per your backend's expectation for identifying the note
-                 // Option 1: Query parameter (if backend supports it for GET)
-                 // const data = await apiCall(`get-sticky-note?note_id=${STICKY_NOTE_ID_MAIN}`);
-                 // Option 2: Send ID in body (if backend supports it for GET via apiCall modification)
                  const data = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_MAIN });
                  stickyNoteTextarea.value = data?.content || '';
                  console.log("Main sticky note loaded.");
              } catch (error) {
-                 stickyNoteTextarea.value = "Error loading note."; // Keep error message specific
+                 stickyNoteTextarea.value = "Error loading note.";
              }
         }
 
-        // Save Main Sticky Note (ID 1)
         async function saveStickyNoteMain() {
              if (!stickyNoteTextarea || !saveStickyNoteBtn || !stickyNoteMessage) return;
              const contentToSave = stickyNoteTextarea.value;
@@ -1046,12 +1028,10 @@
              }
         }
 
-        // Load AAT Level 4 Sticky Note (ID 2)
         async function loadStickyNoteAAT() {
             if (!stickyNoteTextareaAAT) return;
             console.log("Loading AAT sticky note (ID: " + STICKY_NOTE_ID_AAT + ")...");
             try {
-                // As with loadStickyNoteMain, adjust how note_id is passed if needed
                 const data = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_AAT });
                 stickyNoteTextareaAAT.value = data?.content || '';
                 console.log("AAT sticky note loaded.");
@@ -1060,14 +1040,13 @@
             }
         }
 
-        // Save AAT Level 4 Sticky Note (ID 2)
         async function saveStickyNoteAAT() {
             if (!stickyNoteTextareaAAT || !saveStickyNoteBtnAAT || !stickyNoteMessageAAT) return;
             const contentToSave = stickyNoteTextareaAAT.value;
             saveStickyNoteBtnAAT.disabled = true;
             stickyNoteMessageAAT.textContent = 'Saving...';
-            stickyNoteMessageAAT.classList.remove('text-red-700', 'text-green-700'); // Use appropriate text colors for green bg
-            stickyNoteMessageAAT.classList.add('text-gray-700'); // Or a neutral color
+            stickyNoteMessageAAT.classList.remove('text-red-700', 'text-green-700'); 
+            stickyNoteMessageAAT.classList.add('text-gray-700'); 
             clearTimeout(stickyNoteAATSaveTimeout);
             try {
                 await apiCall('update-sticky-note', 'POST', { content: contentToSave, note_id: STICKY_NOTE_ID_AAT });
@@ -1078,7 +1057,7 @@
             } catch (error) {
                 console.error("Failed to save AAT sticky note:", error);
                 stickyNoteMessageAAT.textContent = 'Save failed!';
-                stickyNoteMessageAAT.classList.replace('text-gray-700', 'text-red-700'); // Darker red on light green
+                stickyNoteMessageAAT.classList.replace('text-gray-700', 'text-red-700');
                 stickyNoteAATSaveTimeout = setTimeout(() => { stickyNoteMessageAAT.textContent = ''; }, 3000);
             } finally {
                 saveStickyNoteBtnAAT.disabled = false;
@@ -1189,10 +1168,10 @@
         });
 
         if(saveStickyNoteBtn) {
-            saveStickyNoteBtn.addEventListener('click', saveStickyNoteMain); // Call main save function
+            saveStickyNoteBtn.addEventListener('click', saveStickyNoteMain);
         }
         if(saveStickyNoteBtnAAT) {
-            saveStickyNoteBtnAAT.addEventListener('click', saveStickyNoteAAT); // Call AAT save function
+            saveStickyNoteBtnAAT.addEventListener('click', saveStickyNoteAAT);
         }
 
         updateShiftTimesBtn.addEventListener('click', () => {
