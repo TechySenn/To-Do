@@ -17,7 +17,7 @@
         /* Ensure columns take up height */
         .kanban-column .tasks-container {
              min-height: 450px;
-             max-height: 65vh; /* Adjusted height */
+             max-height: 65vh;
         }
         /* Sticky Note Wrapper Styles */
         .sticky-note-wrapper {
@@ -26,40 +26,36 @@
             box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
-            height: 250px; /* Increased height to show ~6 lines of text */
+            height: 250px;
             margin-bottom: 1rem;
         }
         .sticky-note-wrapper:last-child {
             margin-bottom: 0;
         }
-        /* Original Sticky Note Style */
         #stickyNoteContainer {
             background-color: #fef9c3; /* yellow-100 */
             border: 1px solid #fde68a; /* yellow-200 */
         }
-        /* AAT Level 4 Sticky Note Style (Green like 'Done' column) */
         #stickyNoteContainerAAT {
-            background-color: #d1fae5; /* Tailwind green-100 (matching Done column bg) */
-            border: 1px solid #a7f3d0; /* Tailwind green-200 (lighter border) */
+            background-color: #d1fae5; /* green-100 */
+            border: 1px solid #a7f3d0; /* green-200 */
         }
-        #stickyNoteContainerAAT h3 { /* Header text color for AAT note */
-            color: #065f46; /* Tailwind green-800 (matching Done column header text) */
+        #stickyNoteContainerAAT h3 {
+            color: #065f46; /* green-800 */
         }
          #stickyNoteTextarea, #stickyNoteTextareaAAT {
              flex-grow: 1; border-radius: 4px;
-             padding: 0.5rem; font-size: 0.85rem; /* Base font size for calculation */
-             line-height: 1.4; /* Typical line height */
+             padding: 0.5rem; font-size: 0.85rem;
+             line-height: 1.4;
              resize: none;
-             margin-bottom: 0.5rem; color: #4b5563; /* Default text color for textarea */
+             margin-bottom: 0.5rem; color: #4b5563;
          }
-         /* Textarea specific backgrounds and borders */
-         #stickyNoteTextarea { /* Original yellow-ish textarea */
+         #stickyNoteTextarea {
             background-color: #fefce8; border: 1px solid #fcd34d;
          }
-         #stickyNoteTextareaAAT { /* Lighter green textarea for AAT note */
-            background-color: #f0fdf4; /* Tailwind green-50 */ border: 1px solid #6ee7b7; /* Tailwind green-300 */
+         #stickyNoteTextareaAAT {
+            background-color: #f0fdf4; border: 1px solid #6ee7b7;
          }
-
          .save-sticky-note-btn {
             align-self: flex-end;
          }
@@ -67,7 +63,8 @@
             font-size: 0.75rem; margin-top: 0.25rem; height: 1rem; text-align: right;
          }
 
-         #upcomingTasksContainer {
+        /* Upcoming Due & Highest Priority Box Styles */
+        #upcomingTasksContainer, #highestPriorityContainer {
             background-color: #e0f2fe; /* sky-100 */
             border: 1px solid #bae6fd; /* sky-200 */
             border-radius: 8px;
@@ -75,34 +72,51 @@
             box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
-            height: 250px;
+            height: 220px; /* Adjusted height for two boxes */
+            margin-bottom: 1rem; /* Space between these boxes */
         }
-         #upcomingTasksList {
+        #highestPriorityContainer {
+             background-color: #ffedd5; /* orange-100 */
+             border-color: #fed7aa; /* orange-200 */
+        }
+        #highestPriorityContainer h3 {
+            color: #9a3412; /* orange-800 */
+        }
+         #upcomingTasksList, #highestPriorityList { /* Common list style */
              flex-grow: 1; overflow-y: auto; padding-right: 4px;
          }
-         .upcoming-task {
+         .upcoming-task, .priority-task { /* Common task item style */
              font-size: 0.75rem; padding: 2px 4px; margin-bottom: 4px;
-             border-radius: 3px; background-color: #f0f9ff; /* sky-50 */
-             border: 1px solid #e0f2fe; /* sky-100 */
+             border-radius: 3px;
              display: block; line-height: 1.3;
          }
-         .upcoming-task .due-date {
-             font-weight: 600; color: #be123c; /* rose-700 */ margin-right: 4px;
+         .upcoming-task { /* Specific to upcoming due tasks */
+            background-color: #f0f9ff; /* sky-50 */
+            border: 1px solid #e0f2fe; /* sky-100 */
          }
+         .priority-task { /* Specific to highest priority tasks */
+            background-color: #fff7ed; /* orange-50 */
+            border: 1px solid #ffedd5; /* orange-100 */
+         }
+         .upcoming-task .due-date, .priority-task .priority-label {
+             font-weight: 600; margin-right: 4px;
+         }
+         .upcoming-task .due-date { color: #be123c; /* rose-700 */ }
+         .priority-task .priority-label-high { color: #c2410c; } /* orange-700 for High */
+         .priority-task .priority-label-medium { color: #ea580c; } /* orange-600 for Medium */
+         .priority-task .priority-label-low { color: #fb923c; } /* orange-500 for Low */
 
 
         /* Style for the confetti canvas */
         #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
         /* Custom scrollbar */
-        .tasks-container::-webkit-scrollbar, #upcomingTasksList::-webkit-scrollbar { width: 8px; }
-        .tasks-container::-webkit-scrollbar-track, #upcomingTasksList::-webkit-scrollbar-track { background: #dbeafe; border-radius: 10px; }
-        .tasks-container::-webkit-scrollbar-thumb, #upcomingTasksList::-webkit-scrollbar-thumb { background: #60a5fa; border-radius: 10px; }
-        .tasks-container::-webkit-scrollbar-thumb:hover, #upcomingTasksList::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
-        /* Styling for inline edit input */
+        .tasks-container::-webkit-scrollbar, #upcomingTasksList::-webkit-scrollbar, #highestPriorityList::-webkit-scrollbar { width: 8px; }
+        .tasks-container::-webkit-scrollbar-track, #upcomingTasksList::-webkit-scrollbar-track, #highestPriorityList::-webkit-scrollbar-track { background: #dbeafe; border-radius: 10px; }
+        .tasks-container::-webkit-scrollbar-thumb, #upcomingTasksList::-webkit-scrollbar-thumb, #highestPriorityList::-webkit-scrollbar-thumb { background: #60a5fa; border-radius: 10px; }
+        .tasks-container::-webkit-scrollbar-thumb:hover, #upcomingTasksList::-webkit-scrollbar-thumb:hover, #highestPriorityList::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
+
         .task-edit-input { padding: 2px 4px; border: 1px solid #93c5fd; border-radius: 4px; margin-right: 5px; background-color: #eff6ff; }
-        /* Hide elements */
         .hidden { display: none; }
-        /* Style for task metadata */
         .task-meta-row { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; gap: 6px; flex-wrap: wrap; }
         .task-meta-group { display: flex; align-items: center; gap: 8px; flex-grow: 1; min-width: 150px; }
         .task-priority-select { font-size: 0.75rem; padding: 1px 3px; border-radius: 4px; border: 1px solid #9ca3af; background-color: #f9fafb; flex-shrink: 0; height: 24px; line-height: 1; }
@@ -110,18 +124,11 @@
         .task-due-date-label { font-size: 0.75rem; color: #4b5563; white-space: nowrap; }
         .task-due-date-input { font-size: 0.75rem; padding: 1px 3px; border-radius: 4px; border: 1px solid #ccc; max-width: 110px; color: #4b5563; height: 24px; }
         .task-actions-group { display: flex; align-items: center; gap: 6px; position: relative; flex-shrink: 0; margin-left: auto; }
-        /* Task text style */
         .task-text { color: #1f2937; display: block; margin-bottom: 4px;}
-        /* Style for navigation buttons */
         .nav-button { padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; transition: background-color 0.15s ease-in-out; cursor: pointer; }
-        /* Style for confirmation/cooldown message */
         #addTaskMessage { min-height: 1.25rem; text-align: center; }
-        /* Style for summary counts */
         .summary-count { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 600; margin: 0 0.25rem; }
-        /* Style for disabled button */
         button:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        /* --- Styles for Hover Notes --- */
         .task { position: relative; }
         .task-notes {
             position: absolute;
@@ -133,18 +140,11 @@
             pointer-events: none; margin-top: 4px; width: max-content; max-width: 250px;
         }
         .task:hover .task-notes { opacity: 1; visibility: visible; }
-        /* --- End Hover Notes Styles --- */
-
-        /* Style for action buttons (individual) */
         .action-btn { background: none; border: none; padding: 0; cursor: pointer; font-size: 1rem; line-height: 1; display: flex; align-items: center; height: 24px; width: 24px; justify-content: center; }
-         /* Style for save/cancel buttons in edit mode */
          .edit-mode-buttons { display: flex; gap: 4px; align-items: center; }
          .edit-mode-buttons .action-btn { font-size: 1rem; }
-         /* Ensure task content and buttons align nicely */
          .task { align-items: flex-start; flex-direction: column; }
          .task > div:first-child { width: 100%; }
-
-         /* --- Sub-menu Styles --- */
          .task-submenu {
              position: absolute;
              right: calc(100% + 5px); top: 50%; transform: translateY(-50%);
@@ -157,16 +157,12 @@
              background: none; border: none; width: 100%; display: flex; align-items: center; gap: 4px;
          }
          .task-submenu button:hover { background-color: #f0f0f0; }
-         /* --- End Sub-menu Styles --- */
-
-
-         /* Header Layout */
          #mainHeader {
              position: relative; padding-bottom: 1rem; display: flex;
              align-items: flex-start; justify-content: center;
          }
          #taskSummaryContainerBoard { position: absolute; top: 0; left: 0; }
-         #mainTitle { flex-grow: 1; text-align: center; color: #e0f2fe; /* Lighter color for dark bg */ }
+         #mainTitle { flex-grow: 1; text-align: center; color: #e0f2fe; }
          #headerInfoRight {
              position: absolute; top: 0; right: 0;
              display: flex; flex-direction: column; align-items: flex-end;
@@ -326,6 +322,12 @@
                             <p class="text-xs text-gray-500 text-center italic">Loading...</p>
                         </div>
                     </div>
+                    <div id="highestPriorityContainer">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Highest Priority</h3>
+                        <div id="highestPriorityList">
+                            <p class="text-xs text-gray-500 text-center italic">Loading...</p>
+                        </div>
+                    </div>
                 </div>
              </div>
         </div>
@@ -340,7 +342,7 @@
         const MAX_TODO_TASKS = 50;
         const PRIORITIES = ["New", "High", "Medium", "Low"];
         const DEFAULT_PRIORITY = "New";
-        const PRIORITY_VALUES = { "New": 4, "High": 3, "Medium": 2, "Low": 1 };
+        const PRIORITY_VALUES = { "New": 4, "High": 3, "Medium": 2, "Low": 1 }; // Higher value = higher priority
         const FUNCTION_BASE_PATH = '/.netlify/functions/';
         const VALID_STATUSES = ['todo', 'inprogress', 'nonurgent', 'done'];
         let SHIFT_START_HOUR = 9;
@@ -372,6 +374,7 @@
         const saveStickyNoteBtnAAT = document.getElementById('saveStickyNoteBtnAAT');
         const stickyNoteMessageAAT = document.getElementById('stickyNoteMessageAAT');
         const upcomingTasksList = document.getElementById('upcomingTasksList');
+        const highestPriorityList = document.getElementById('highestPriorityList'); // New DOM element
         const shiftTimeControls = document.getElementById('shiftTimeControls');
         const shiftStartInput = document.getElementById('shiftStartInput');
         const shiftEndInput = document.getElementById('shiftEndInput');
@@ -396,12 +399,11 @@
             let url = `${FUNCTION_BASE_PATH}${endpoint}`;
 
             if (method === 'GET' && paramsOrBody) {
-                // For GET requests, append paramsOrBody as query string parameters
                 const queryParams = new URLSearchParams(paramsOrBody).toString();
                 if (queryParams) {
                     url += `?${queryParams}`;
                 }
-            } else if (paramsOrBody) { // For POST, PUT, DELETE etc.
+            } else if (paramsOrBody) {
                 options.headers['Content-Type'] = 'application/json';
                 options.body = JSON.stringify(paramsOrBody);
             }
@@ -569,6 +571,7 @@
                 loadStickyNoteMain();
                 loadStickyNoteAAT();
                 renderUpcomingTasks();
+                renderHighestPriorityTasks(); // Call new function
                 showInputPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500');
                 showInputPageBtn.classList.replace('hover:bg-blue-600', 'hover:bg-indigo-600');
                 showBoardPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500');
@@ -586,6 +589,7 @@
                  }
                  renderBoard();
                  renderUpcomingTasks();
+                 renderHighestPriorityTasks(); // Update priority list
              } catch (error) { /* Handled by apiCall */ }
         }
 
@@ -604,6 +608,7 @@
                     await apiCall('update-task', 'POST', { id: taskId, updates: { notes: trimmedNotes } });
                     taskRef.notes = trimmedNotes;
                     renderBoard();
+                    // Note change doesn't affect priority or due date lists directly
                 } catch (error) { /* Handled by apiCall */ }
             }
         }
@@ -619,6 +624,7 @@
                  }
                  renderBoard();
                  renderUpcomingTasks();
+                 renderHighestPriorityTasks(); // Due date change might affect secondary sort in priority list
              } catch (error) { console.error("Failed to update due date in backend."); }
         }
 
@@ -637,6 +643,7 @@
              tasks.done.push(taskToMove);
              renderBoard(); updateTaskSummary(); triggerConfetti();
              renderUpcomingTasks();
+             renderHighestPriorityTasks(); // Task removed from active lists
              try {
                  await apiCall('update-task', 'POST', { id: taskId, updates: { status: 'done' } });
                  console.log(`Task ${taskId} status updated to done in backend.`);
@@ -650,6 +657,7 @@
                   tasks[originalColumnId].splice(originalIndex, 0, taskToMove);
                   renderBoard(); updateTaskSummary();
                   renderUpcomingTasks();
+                  renderHighestPriorityTasks(); // Re-add task if reverted
              }
         }
 
@@ -881,6 +889,57 @@
             }
         }
 
+        // New function to render highest priority tasks
+        function renderHighestPriorityTasks() {
+            if (!highestPriorityList) return;
+
+            let allActiveTasks = [];
+            ['todo', 'inprogress', 'nonurgent'].forEach(status => {
+                if (tasks[status]) { allActiveTasks = allActiveTasks.concat(tasks[status]); }
+            });
+
+            // Filter out "New" priority tasks
+            const priorityFilteredTasks = allActiveTasks.filter(task => task.priority !== "New");
+
+            // Sort by priority (High > Medium > Low), then by due date (earliest), then by creation time (oldest)
+            priorityFilteredTasks.sort((a, b) => {
+                const priorityAVal = PRIORITY_VALUES[a.priority || DEFAULT_PRIORITY] || 0;
+                const priorityBVal = PRIORITY_VALUES[b.priority || DEFAULT_PRIORITY] || 0;
+                if (priorityBVal !== priorityAVal) {
+                    return priorityBVal - priorityAVal; // Higher value means higher priority
+                }
+
+                const dateA = a.due_date ? new Date(a.due_date).getTime() : null;
+                const dateB = b.due_date ? new Date(b.due_date).getTime() : null;
+                if (dateA === null && dateB !== null) return 1; // Null due dates last
+                if (dateA !== null && dateB === null) return -1; // Non-null due dates first
+                if (dateA !== null && dateB !== null && dateA !== dateB) {
+                    return dateA - dateB; // Earliest due date first
+                }
+
+                return (a.createdAt || 0) - (b.createdAt || 0); // Oldest created first
+            });
+
+            const top6PriorityTasks = priorityFilteredTasks.slice(0, 6);
+
+            highestPriorityList.innerHTML = ''; // Clear previous list
+            if (top6PriorityTasks.length === 0) {
+                highestPriorityList.innerHTML = '<p class="text-xs text-gray-500 text-center italic">No tasks with High/Medium/Low priority.</p>';
+            } else {
+                top6PriorityTasks.forEach(task => {
+                    const taskDiv = document.createElement('div');
+                    taskDiv.className = 'priority-task'; // Use new class for styling if needed
+                    let priorityLabelClass = '';
+                    if (task.priority === "High") priorityLabelClass = 'priority-label-high';
+                    else if (task.priority === "Medium") priorityLabelClass = 'priority-label-medium';
+                    else if (task.priority === "Low") priorityLabelClass = 'priority-label-low';
+
+                    taskDiv.innerHTML = `<span class="priority-label ${priorityLabelClass}">${task.priority}</span> ${task.text}`;
+                    highestPriorityList.appendChild(taskDiv);
+                });
+            }
+        }
+
 
         async function addTask() {
             if (addTaskBtn.disabled) return;
@@ -892,7 +951,7 @@
 
             const newTaskData = {
                 text: taskText, name: "Jay",
-                priority: "New",
+                priority: "New", // Default new tasks to "New"
                 notes: '', status: 'todo', due_date: null
             };
             addTaskBtn.disabled = true;
@@ -909,6 +968,7 @@
                      tasks.todo.push(addedTask);
                      updateTaskSummary();
                      renderUpcomingTasks();
+                     renderHighestPriorityTasks(); // Update this list too
                      if (!boardPage.classList.contains('hidden')) renderBoard();
                 } else { await loadTasks(); }
                 clearTimeout(successMessageTimeout); clearInterval(cooldownTimer);
@@ -944,6 +1004,7 @@
                 for (const columnId in tasks) { tasks[columnId] = tasks[columnId].filter(task => task.id !== taskId); }
                 renderBoard(); updateTaskSummary();
                 renderUpcomingTasks();
+                renderHighestPriorityTasks(); // Update this list
             } catch (error) { /* Handled by apiCall */ }
         }
 
@@ -966,7 +1027,8 @@
                     if (task) { task.text = newText; break; }
                  }
                  currentlyEditingTaskId = null; renderBoard();
-                 renderUpcomingTasks();
+                 renderUpcomingTasks(); // Task text change doesn't affect these lists' order
+                 renderHighestPriorityTasks();
             } catch (error) { currentlyEditingTaskId = null; renderBoard(); }
         }
 
@@ -994,6 +1056,7 @@
                  currentlyEditingTaskId = null;
                  updateTaskSummary();
                  renderUpcomingTasks();
+                 renderHighestPriorityTasks(); // Render this list on initial load
                  if (!boardPage.classList.contains('hidden')) { renderBoard(); }
             }
         }
@@ -1128,6 +1191,7 @@
              renderBoard();
              updateTaskSummary();
              renderUpcomingTasks();
+             renderHighestPriorityTasks(); // Update this list on drop
 
              try {
                  await apiCall('update-task', 'POST', { id: taskId, updates: { status: targetColumnId } });
@@ -1142,6 +1206,7 @@
                   tasks[originalColumnId].splice(originalIndex, 0, taskToMove);
                   renderBoard(); updateTaskSummary();
                   renderUpcomingTasks();
+                  renderHighestPriorityTasks(); // Update on rollback
              }
         }
 
@@ -1214,7 +1279,7 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
              showPage('inputPage');
-             await loadTasks();
+             await loadTasks(); // This will also call renderUpcomingTasks and renderHighestPriorityTasks
              updateDateTimeDisplay();
              if (dateTimeInterval) clearInterval(dateTimeInterval);
              dateTimeInterval = setInterval(updateDateTimeDisplay, 60000);
