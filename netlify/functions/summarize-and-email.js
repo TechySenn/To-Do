@@ -6,9 +6,8 @@ const { createClient } = require('@supabase/supabase-js');
 
 // Constants
 const STICKY_NOTE_ID_LLM_PROMPT = 5;
-const TASKS_PLACEHOLDER = "{TASKS_DATA}"; // Define a placeholder
+const TASKS_PLACEHOLDER = "{TASKS_DATA}";
 
-// Default instruction now implicitly expects tasks to be appended if it's used.
 const DEFAULT_LLM_INSTRUCTION_PREFIX = `You are Jay's helpful to-do list assistant.
 Please provide a concise summary of the following tasks.
 Highlight any urgent items (High priority, New priority, or overdue).
@@ -29,8 +28,8 @@ exports.handler = async (event) => {
         SUPABASE_ANON_KEY
     } = process.env;
 
-    // Check for essential environment variables (ensure these are complete)
     if (!GEMINI_API_KEY) return { statusCode: 500, body: 'Server Error: GEMINI_API_KEY not configured.'};
+    // ... (ensure all other env var checks are present)
     if (!MAILGUN_API_KEY) return { statusCode: 500, body: 'Server Error: MAILGUN_API_KEY not configured.'};
     if (!MAILGUN_DOMAIN) return { statusCode: 500, body: 'Server Error: MAILGUN_DOMAIN not configured.'};
     if (!RECIPIENT_EMAIL) return { statusCode: 500, body: 'Server Error: RECIPIENT_EMAIL not configured.'};
@@ -44,7 +43,7 @@ exports.handler = async (event) => {
         const body = JSON.parse(event.body);
         tasksToSummarize = body.tasks;
         if (!tasksToSummarize || !Array.isArray(tasksToSummarize)) {
-            tasksToSummarize = []; // Default to empty array if tasks are missing/invalid
+            tasksToSummarize = [];
             console.warn("Tasks not provided or in incorrect format in the request body.");
         }
     } catch (error) {
@@ -53,36 +52,37 @@ exports.handler = async (event) => {
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    let fetchedLlmInstruction = null; // Store the fetched instruction separately
+    let fetchedLlmInstruction = null; // Initialize to null
 
-    try { // Outer try for the main logic
+    try { // Outer try for the main logic (DB, Gemini, Mailgun)
         
         console.log(`Attempting to fetch LLM prompt from Supabase with ID: ${STICKY_NOTE_ID_LLM_PROMPT}`);
         try { // Inner try specifically for Supabase operation
-            const { data: promptNote, error: promptError } = await supabase
+            const { data: promptNoteData, error: supabaseError } = await supabase // Renamed 'error' to 'supabaseError'
                 .from('sticky_note')
                 .select('content')
                 .eq('id', STICKY_NOTE_ID_LLM_PROMPT)
                 .maybeSingle();
 
-            console.log("Supabase fetch response - Data:", JSON.stringify(promptNote, null, 2));
-            console.log("Supabase fetch response - Error:", JSON.stringify(promptNoteError, null, 2));
+            console.log("Supabase fetch response - Data:", JSON.stringify(promptNoteData, null, 2));
+            console.log("Supabase fetch response - Error:", JSON.stringify(supabaseError, null, 2)); // Log supabaseError
 
-            if (promptError) {
-                console.warn(`Supabase error object during fetch (ID ${STICKY_NOTE_ID_LLM_PROMPT}):`, JSON.stringify(promptError), "Will use default summary strategy if applicable.");
-            } else if (promptNote && promptNote.content && promptNote.content.trim() !== "") {
-                fetchedLlmInstruction = promptNote.content.trim();
+            if (supabaseError) { // Check the destructured supabaseError
+                console.warn(`Supabase error object during fetch (ID ${STICKY_NOTE_ID_LLM_PROMPT}):`, JSON.stringify(supabaseError), "Will use default prompt strategy.");
+            } else if (promptNoteData && promptNoteData.content && promptNoteData.content.trim() !== "") {
+                fetchedLlmInstruction = promptNoteData.content.trim();
                 console.log("Successfully fetched LLM instruction from Supabase. Content:", fetchedLlmInstruction);
-            } else if (promptNote === null) {
-                 console.warn(`LLM prompt note (ID ${STICKY_NOTE_ID_LLM_PROMPT}) not found (returned null). Will use default summary strategy if applicable.`);
-            } else {
-                console.warn(`LLM prompt note (ID ${STICKY_NOTE_ID_LLM_PROMPT}) found but content is empty or missing. Will use default summary strategy if applicable. Data was:`, JSON.stringify(promptNote));
+            } else if (promptNoteData === null) {
+                 console.warn(`LLM prompt note (ID ${STICKY_NOTE_ID_LLM_PROMPT}) not found (Supabase returned null data). Will use default prompt strategy.`);
+            } else { // promptNoteData exists but content is invalid
+                console.warn(`LLM prompt note (ID ${STICKY_NOTE_ID_LLM_PROMPT}) found but content is empty or missing. Will use default prompt strategy. Data was:`, JSON.stringify(promptNoteData));
             }
-        } catch (dbCatchError) {
-            console.error('Critical error during Supabase database operation:', dbCatchError, "Will use default summary strategy if applicable.");
+        } catch (dbCatchError) { // Catch errors FROM the await supabase call itself OR if there's a ReferenceError inside the try
+            console.error('Critical error during Supabase database operation:', dbCatchError.message || dbCatchError, "Will use default prompt strategy.");
+            // fetchedLlmInstruction remains null, so the later logic will use DEFAULT_LLM_INSTRUCTION_PREFIX
         }
 
-        // Prepare task details string (always needed if default prompt is used or if custom prompt uses placeholder)
+        // Prepare task details string
         const taskDetails = tasksToSummarize.map(
             (task, index) => `${index + 1}. ${task.text} (Status: ${task.status}, Priority: ${task.priority || 'N/A'}, Due: ${task.due_date ? new Date(task.due_date).toLocaleDateString('en-GB') : 'N/A'})`
         ).join('\n');
@@ -92,11 +92,9 @@ exports.handler = async (event) => {
         if (fetchedLlmInstruction) {
             // A custom instruction was successfully fetched from Supabase.
             if (fetchedLlmInstruction.includes(TASKS_PLACEHOLDER)) {
-                // If the custom instruction includes the placeholder, replace it with taskDetails.
                 finalPrompt = fetchedLlmInstruction.replace(TASKS_PLACEHOLDER, taskDetails);
                 console.log("Using custom instruction from Supabase and inserting task details into placeholder.");
             } else {
-                // If no placeholder, use the custom instruction as is (e.g., "What's the time?").
                 finalPrompt = fetchedLlmInstruction;
                 console.log("Using custom instruction from Supabase as the entire prompt (no task placeholder found).");
             }
@@ -118,7 +116,7 @@ exports.handler = async (event) => {
         const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
         const model = genAI.getGenerativeModel({
             model: "gemini-1.5-flash-latest",
-            safetySettings: [ /* ... your safety settings ... */ ]
+            safetySettings: [ /* your safety settings */ ]
         });
 
         let llmResponseText = "Could not get a response from the AI at this time.";
@@ -140,7 +138,6 @@ exports.handler = async (event) => {
         }
 
         // 2. Send Email with Mailgun
-        // ... (Mailgun client setup and email sending logic remains the same as the last good version)
         const mailgun = new Mailgun(formData);
         const mg = mailgun.client({
             username: 'api',
