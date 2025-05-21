@@ -222,11 +222,10 @@
         #updateShiftTimesBtn {
             font-size: 0.7rem; padding: 3px 6px;
         }
-        /* NEW: Styles for summary button and message */
         #emailSummaryMessage {
-            min-height: 1.25rem; /* 20px */
-            font-size: 0.875rem; /* text-sm */
-            margin-top: 0.5rem; /* mt-2 */
+            min-height: 1.25rem; 
+            font-size: 0.875rem; 
+            margin-top: 0.5rem; 
             text-align: center;
         }
 
@@ -258,7 +257,8 @@
                 </div>
              </div>
         </div>
-        <div class="max-w-7xl mx-auto text-center mb-6 space-x-2 sm:space-x-4"> <button id="showInputPageBtn" class="nav-button bg-blue-500 hover:bg-blue-600 text-white">Add New Task</button>
+        <div class="max-w-7xl mx-auto text-center mb-6 space-x-2 sm:space-x-4">
+            <button id="showInputPageBtn" class="nav-button bg-blue-500 hover:bg-blue-600 text-white">Add New Task</button>
             <button id="showBoardPageBtn" class="nav-button bg-indigo-500 hover:bg-indigo-600 text-white">View Board</button>
             <button id="emailSummaryBtn" class="nav-button bg-green-500 hover:bg-green-600 text-white hidden">Email Task Summary</button>
         </div>
@@ -399,7 +399,6 @@
         const shiftStartInput = document.getElementById('shiftStartInput');
         const shiftEndInput = document.getElementById('shiftEndInput');
         const updateShiftTimesBtn = document.getElementById('updateShiftTimesBtn');
-        // NEW: DOM Elements for Email Summary
         const emailSummaryBtn = document.getElementById('emailSummaryBtn');
         const emailSummaryMessageContainer = document.getElementById('emailSummaryMessageContainer');
         const emailSummaryMessage = document.getElementById('emailSummaryMessage');
@@ -417,10 +416,11 @@
         let stickyNoteSaveTimeout = null;
         let stickyNoteAATSaveTimeout = null;
         let shiftTimeSaveMessageTimeout = null;
-        let emailSummaryTimeout = null; // NEW: Timeout for email summary message
+        let emailSummaryTimeout = null;
 
 
         // --- Generic Fetch Helper ---
+        // MODIFIED apiCall to return status alongside data for successful responses
         async function apiCall(endpoint, method = 'GET', paramsOrBody = null) {
             const options = { method, headers: {} };
             let url = `${FUNCTION_BASE_PATH}${endpoint}`;
@@ -436,25 +436,39 @@
             }
 
             try {
-                const response = await fetch(url, options);
-                const isJson = response.headers.get('content-type')?.includes('application/json');
-                const data = isJson ? await response.json() : { message: await response.text(), status: response.status }; // Handle non-JSON for errors
-                if (!response.ok) {
-                    const error = (data && (data.error || data.message)) || `HTTP error! status: ${response.status}`;
-                    console.error(`API Error (${url}, Status: ${response.status}):`, error, data?.details || data);
-                    // Avoid alert for specific non-critical errors if needed
-                    if (!(endpoint === 'get-sticky-note' && method === 'GET')) {
-                         alert(`Operation failed: ${error}. Status: ${response.status}. Please check console or try again.`);
+                const fetchResponse = await fetch(url, options); // Renamed original response object
+                const isJson = fetchResponse.headers.get('content-type')?.includes('application/json');
+                // Attempt to parse JSON, but if it fails for an "ok" response, it's still an issue.
+                // However, main concern is getting data for ok, and text for not-ok if not JSON.
+                let responseData;
+                if (isJson) {
+                    responseData = await fetchResponse.json();
+                } else {
+                    // If not JSON, get text. Useful for non-JSON error messages from proxies/etc.
+                    // For "ok" responses, we typically expect JSON from our functions.
+                    responseData = { message: await fetchResponse.text() };
+                }
+
+                if (!fetchResponse.ok) {
+                    // Use message from responseData if available, otherwise generic error
+                    const error = (responseData && (responseData.error || responseData.message)) || `HTTP error! status: ${fetchResponse.status}`;
+                    console.error(`API Error (${url}, Status: ${fetchResponse.status}):`, error, responseData?.details || responseData);
+                    
+                    // Suppress alerts for known "silent fail" scenarios like initial sticky note load error
+                    if (!(endpoint === 'get-sticky-note' && method === 'GET' && fetchResponse.status === 500)) { // Example: suppress if get-sticky-note fails server-side for a new note
+                         alert(`Operation failed: ${error}. Status: ${fetchResponse.status}. Please check console or try again.`);
                     }
-                    throw new Error(error);
+                    // Throw an object that includes the status and potentially data for finer control in the caller
+                    throw { message: String(error), status: fetchResponse.status, data: responseData };
                 }
-                return data;
-            } catch (error) {
+                // Return an object containing both the parsed data and the original status for successful (ok) responses
+                return { data: responseData, status: fetchResponse.status };
+            } catch (error) { // Catches fetch network errors or errors thrown above
                 console.error(`API Call Failed (${url}):`, error);
-                if (!(endpoint === 'get-sticky-note' && method === 'GET')) {
-                     // Only alert if it's not a known "silent fail" like initial sticky note load.
-                }
-                throw error; // Re-throw to be caught by caller
+                // If error already has a status (from the custom throw above), rethrow it
+                if (error.status) throw error;
+                // Otherwise, wrap it as a generic client-side or network error
+                throw { message: error.message || "Network error or issue parsing response", status: null, data: null };
             }
         }
 
@@ -464,20 +478,11 @@
             if (!timestampOrDateString) return 'N/A';
             try {
                 const date = new Date(timestampOrDateString);
-                // Attempt to handle if it's already UTC or needs local adjustment
-                // If it's a YYYY-MM-DD string, it's treated as UTC by default by new Date()
-                // If it's a full ISO string, it includes timezone info.
-                // For simplicity, if only date part, assume it's meant as local day.
-                // The backend should ideally store dates consistently (e.g., UTC).
-                // The formatDateForInput sends YYYY-MM-DD, which new Date() interprets as UTC.
-                // To display it as that "day" locally:
                 let adjustedDate = date;
-                if (typeof timestampOrDateString === 'string' && timestampOrDateString.length === 10) { // YYYY-MM-DD
+                if (typeof timestampOrDateString === 'string' && timestampOrDateString.length === 10) { 
                     const [year, month, day] = timestampOrDateString.split('-').map(Number);
-                    adjustedDate = new Date(year, month - 1, day); // Treat as local date parts
+                    adjustedDate = new Date(year, month - 1, day); 
                 }
-
-
                 if (isNaN(adjustedDate.getTime())) return 'N/A';
                 const day = String(adjustedDate.getDate()).padStart(2, '0');
                 const month = String(adjustedDate.getMonth() + 1).padStart(2, '0');
@@ -494,12 +499,9 @@
              if (!timestampOrDateString) return '';
              try {
                  const date = new Date(timestampOrDateString);
-                 // When a date string like "YYYY-MM-DD" is parsed by new Date(), it's UTC.
-                 // To ensure the input field shows the *same* YYYY-MM-DD regardless of local timezone:
                  if (typeof timestampOrDateString === 'string' && timestampOrDateString.length === 10) {
-                     return timestampOrDateString; // It's already in YYYY-MM-DD, use as is.
+                     return timestampOrDateString; 
                  }
-                 // If it's a full timestamp, convert to local YYYY-MM-DD
                  const year = date.getFullYear();
                  const month = String(date.getMonth() + 1).padStart(2, '0');
                  const day = String(date.getDate()).padStart(2, '0');
@@ -526,27 +528,27 @@
             const shiftDurationMinutes = shiftEndMinutes - shiftStartMinutes;
 
             let progressPercent = 0;
-            let barColor = '#4ade80'; // green-500
+            let barColor = '#4ade80'; 
 
             if (currentTimeInMinutes < shiftStartMinutes) {
                 progressPercent = 0;
-                barColor = '#4ade80'; // green-500 (Shift hasn't started)
+                barColor = '#4ade80'; 
             } else if (currentTimeInMinutes >= shiftEndMinutes) {
                 progressPercent = 100;
-                barColor = '#f87171'; // red-500 (Shift has ended)
+                barColor = '#f87171'; 
             } else {
                 if (shiftDurationMinutes > 0) {
                     const timeElapsedMinutes = currentTimeInMinutes - shiftStartMinutes;
                     progressPercent = Math.max(0, Math.min(100, (timeElapsedMinutes / shiftDurationMinutes) * 100));
 
                     if (progressPercent < 33.33) {
-                        barColor = '#4ade80'; // green-500
+                        barColor = '#4ade80'; 
                     } else if (progressPercent < 66.66) {
-                        barColor = '#facc15'; // yellow-500
+                        barColor = '#facc15'; 
                     } else {
-                        barColor = '#f87171'; // red-500
+                        barColor = '#f87171'; 
                     }
-                } else { // Should not happen if validation is correct (start < end)
+                } else { 
                     progressPercent = (currentTimeInMinutes >= shiftEndMinutes) ? 100 : 0;
                     barColor = (progressPercent === 100) ? '#f87171' : '#4ade80';
                 }
@@ -589,7 +591,6 @@
 
         function showPage(pageToShowId) {
             closeOpenSubMenu();
-            // NEW: Hide summary message container when switching pages
             if (emailSummaryMessageContainer) emailSummaryMessageContainer.classList.add('hidden');
 
             if (pageToShowId === 'inputPage') {
@@ -598,7 +599,7 @@
                 taskSummaryBoardContainer.classList.add('hidden');
                 taskSummaryInputContainer.classList.remove('hidden');
                 if(shiftTimeControls) shiftTimeControls.classList.add('hidden');
-                if(emailSummaryBtn) emailSummaryBtn.classList.add('hidden'); // NEW: Hide summary btn
+                if(emailSummaryBtn) emailSummaryBtn.classList.add('hidden'); 
 
                 showInputPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500');
                 showInputPageBtn.classList.replace('hover:bg-indigo-600', 'hover:bg-blue-600');
@@ -610,7 +611,7 @@
                 taskSummaryInputContainer.classList.add('hidden');
                 taskSummaryBoardContainer.classList.remove('hidden');
                 if(shiftTimeControls) shiftTimeControls.classList.remove('hidden');
-                if(emailSummaryBtn) emailSummaryBtn.classList.remove('hidden'); // NEW: Show summary btn
+                if(emailSummaryBtn) emailSummaryBtn.classList.remove('hidden'); 
 
 
                 renderBoard();
@@ -629,15 +630,20 @@
 
         async function updateTaskPriority(taskId, newPriority) {
              try {
-                 await apiCall('update-task', 'POST', { id: taskId, updates: { priority: newPriority } });
-                 for (const colId in tasks) {
-                     const task = tasks[colId].find(t => t.id === taskId);
-                     if (task) { task.priority = newPriority; break; }
+                 // apiCall now returns { data, status }
+                 const apiResponse = await apiCall('update-task', 'POST', { id: taskId, updates: { priority: newPriority } });
+                 if (apiResponse.status === 200) { // Or other success statuses your backend might send
+                    for (const colId in tasks) {
+                        const task = tasks[colId].find(t => t.id === taskId);
+                        if (task) { task.priority = newPriority; break; }
+                    }
+                    renderBoard();
+                    renderUpcomingTasks();
+                    renderHighestPriorityTasks();
+                 } else {
+                    console.warn("Update task priority API call did not fully succeed:", apiResponse);
                  }
-                 renderBoard();
-                 renderUpcomingTasks();
-                 renderHighestPriorityTasks();
-             } catch (error) { /* Handled by apiCall */ }
+             } catch (error) { /* Error already handled by apiCall's alert/console */ }
         }
 
         async function editTaskNotes(taskId) {
@@ -652,58 +658,73 @@
             if (newNotes !== null) {
                 const trimmedNotes = newNotes.trim();
                 try {
-                    await apiCall('update-task', 'POST', { id: taskId, updates: { notes: trimmedNotes } });
-                    taskRef.notes = trimmedNotes;
-                    renderBoard();
+                    const apiResponse = await apiCall('update-task', 'POST', { id: taskId, updates: { notes: trimmedNotes } });
+                    if(apiResponse.status === 200) {
+                        taskRef.notes = trimmedNotes;
+                        renderBoard();
+                    } else {
+                        console.warn("Update task notes API call did not fully succeed:", apiResponse);
+                    }
                 } catch (error) { /* Handled by apiCall */ }
             }
         }
 
         async function updateTaskDueDate(taskId, newDate) {
-             console.log(`Updating due date for task ${taskId} to: ${newDate || 'NULL (cleared)'}`);
-             const dateValueToSend = newDate === '' ? null : newDate; // Ensure empty string means clear date
+             const dateValueToSend = newDate === '' ? null : newDate;
              try {
-                 await apiCall('update-task', 'POST', { id: taskId, updates: { due_date: dateValueToSend } });
-                 for (const colId in tasks) {
-                     const task = tasks[colId].find(t => t.id === taskId);
-                     if (task) { task.due_date = dateValueToSend; break; }
+                 const apiResponse = await apiCall('update-task', 'POST', { id: taskId, updates: { due_date: dateValueToSend } });
+                 if (apiResponse.status === 200) {
+                    for (const colId in tasks) {
+                        const task = tasks[colId].find(t => t.id === taskId);
+                        if (task) { task.due_date = dateValueToSend; break; }
+                    }
+                    renderBoard();
+                    renderUpcomingTasks();
+                    renderHighestPriorityTasks();
+                 } else {
+                    console.warn("Update task due date API call did not fully succeed:", apiResponse);
                  }
-                 renderBoard();
-                 renderUpcomingTasks();
-                 renderHighestPriorityTasks();
              } catch (error) { console.error("Failed to update due date in backend for task " + taskId, error); }
         }
 
         async function markTaskDone(taskId) {
              closeOpenSubMenu();
-             console.log(`Marking task ${taskId} as done.`);
              let taskToMove = null; let originalColumnId = ''; let originalIndex = -1;
              for (const colId in tasks) {
                  originalIndex = tasks[colId].findIndex(task => task.id === taskId);
                  if (originalIndex > -1) { originalColumnId = colId; taskToMove = tasks[colId][originalIndex]; break; }
              }
-             if (!taskToMove || originalColumnId === 'done') { console.log("Task not found or already in Done column."); return; }
+             if (!taskToMove || originalColumnId === 'done') { return; }
+             
+             const oldTaskState = JSON.parse(JSON.stringify(taskToMove)); // Deep copy for potential revert
+
              tasks[originalColumnId].splice(originalIndex, 1);
              if (!tasks.done) tasks.done = [];
              taskToMove.status = 'done';
              tasks.done.push(taskToMove);
              renderBoard(); updateTaskSummary(); triggerConfetti();
-             renderUpcomingTasks();
-             renderHighestPriorityTasks();
+             renderUpcomingTasks(); renderHighestPriorityTasks();
+             
              try {
-                 await apiCall('update-task', 'POST', { id: taskId, updates: { status: 'done' } });
-                 console.log(`Task ${taskId} status updated to done in backend.`);
+                 const apiResponse = await apiCall('update-task', 'POST', { id: taskId, updates: { status: 'done' } });
+                 if (apiResponse.status !== 200) {
+                    throw new Error(apiResponse.data.message || "Backend error marking task done");
+                 }
              } catch (error) {
                   console.error(`Failed to update task ${taskId} status to done in backend:`, error);
                   alert("Failed to mark task as done in backend. Reverting UI change.");
-                  const newIndex = tasks.done.findIndex(task => task.id === taskId);
-                  if (newIndex > -1) tasks.done.splice(newIndex, 1);
-                  taskToMove.status = originalColumnId;
+                  
+                  const newIndexInDone = tasks.done.findIndex(task => task.id === taskId);
+                  if (newIndexInDone > -1) tasks.done.splice(newIndexInDone, 1);
+                  
+                  taskToMove.status = oldTaskState.status; // Revert to original status
+                  taskToMove.priority = oldTaskState.priority; // Revert other properties if needed
+                  // Add back to original column and approximate position
                   if (!tasks[originalColumnId]) tasks[originalColumnId] = [];
                   tasks[originalColumnId].splice(originalIndex, 0, taskToMove);
+                  
                   renderBoard(); updateTaskSummary();
-                  renderUpcomingTasks();
-                  renderHighestPriorityTasks();
+                  renderUpcomingTasks(); renderHighestPriorityTasks();
              }
         }
 
@@ -742,7 +763,7 @@
             } else if (task.priority === 'Medium') {
                 bgColorClass = 'bg-orange-200';
                 borderColorClass = 'border-orange-300';
-            } // Low priority uses default blue-ish theme
+            } 
 
             div.className = `task relative ${bgColorClass} p-3 rounded-md shadow-sm border ${borderColorClass} flex flex-col`;
             div.draggable = true;
@@ -753,13 +774,11 @@
             today.setHours(0, 0, 0, 0);
             if (task.due_date) {
                 const dueDate = new Date(task.due_date);
-                // Ensure dueDate is also compared at the start of its day
                 const dueDateStartOfDay = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
                  if (dueDateStartOfDay < today && task.status !== 'done') {
                     div.classList.add('overdue');
                 }
             }
-
 
             const topSection = document.createElement('div');
             const contentSpan = document.createElement('span');
@@ -797,7 +816,7 @@
             dueDateInput.type = 'date';
             dueDateInput.id = `due-date-${task.id}`;
             dueDateInput.className = 'task-due-date-input text-gray-700';
-            dueDateInput.value = formatDateForInput(task.due_date); // Uses updated formatting
+            dueDateInput.value = formatDateForInput(task.due_date); 
             dueDateInput.onchange = (event) => updateTaskDueDate(task.id, event.target.value);
             dueDateDiv.appendChild(dueDateLabel);
             dueDateDiv.appendChild(dueDateInput);
@@ -829,7 +848,7 @@
             subMenu.appendChild(deleteBtn);
 
             const menuBtn = document.createElement('button');
-            menuBtn.innerHTML = '&#8942;'; // Vertical ellipsis
+            menuBtn.innerHTML = '&#8942;'; 
             menuBtn.className = 'action-btn text-gray-600 hover:text-gray-900';
             menuBtn.title = 'More Actions';
             menuBtn.onclick = (event) => toggleSubMenu(event, task.id);
@@ -847,12 +866,12 @@
             const editModeButtonContainer = document.createElement('div');
             editModeButtonContainer.className = 'edit-mode-buttons hidden';
             const saveBtn = document.createElement('button');
-            saveBtn.innerHTML = '💾'; // Save icon
+            saveBtn.innerHTML = '💾'; 
             saveBtn.className = 'action-btn text-blue-600 hover:text-blue-800';
             saveBtn.title = 'Save Changes';
             saveBtn.onclick = () => saveTaskEdit(task.id);
             const cancelBtn = document.createElement('button');
-            cancelBtn.textContent = '❌'; // Cancel icon
+            cancelBtn.textContent = '❌'; 
             cancelBtn.className = 'action-btn text-gray-600 hover:text-gray-800';
             cancelBtn.title = 'Cancel Edit';
             cancelBtn.onclick = () => cancelTaskEdit(task.id);
@@ -879,7 +898,7 @@
                  metaGroup.classList.add('hidden');
                  actionsGroup.classList.add('hidden');
                  editModeButtonContainer.classList.remove('hidden');
-                 bottomSection.classList.remove('hidden'); // Ensure bottom section is visible for save/cancel
+                 bottomSection.classList.remove('hidden'); 
                 setTimeout(() => editInput.focus(), 0);
             }
             return div;
@@ -910,39 +929,38 @@
                             return dueDateStartOfDay < today;
                         });
                         const otherTasks = nonNewTasks.filter(task => {
-                            if (!task.due_date) return true; // Tasks without due date are not overdue
+                            if (!task.due_date) return true; 
                             const dueDate = new Date(task.due_date);
                             const dueDateStartOfDay = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
                             return dueDateStartOfDay >= today;
                         });
 
-
-                        newTasks.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)); // Oldest "New" first
+                        newTasks.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)); 
 
                         overdueTasks.sort((a, b) => {
                             const dateA = new Date(a.due_date).getTime();
                             const dateB = new Date(b.due_date).getTime();
-                            if (dateA !== dateB) return dateA - dateB; // Most overdue first
+                            if (dateA !== dateB) return dateA - dateB; 
 
                             const priorityA = PRIORITY_VALUES[a.priority || DEFAULT_PRIORITY] || 0;
                             const priorityB = PRIORITY_VALUES[b.priority || DEFAULT_PRIORITY] || 0;
-                            if (priorityB !== priorityA) return priorityB - priorityA; // Higher priority first
+                            if (priorityB !== priorityA) return priorityB - priorityA; 
 
-                            return (a.createdAt || 0) - (b.createdAt || 0); // Fallback to creation time
+                            return (a.createdAt || 0) - (b.createdAt || 0); 
                         });
 
                         otherTasks.sort((a, b) => {
                             const priorityA = PRIORITY_VALUES[a.priority || DEFAULT_PRIORITY] || 0;
                             const priorityB = PRIORITY_VALUES[b.priority || DEFAULT_PRIORITY] || 0;
-                            if (priorityB !== priorityA) return priorityB - priorityA; // Higher priority first
+                            if (priorityB !== priorityA) return priorityB - priorityA; 
 
                             const dateA = a.due_date ? new Date(a.due_date).getTime() : null;
                             const dateB = b.due_date ? new Date(b.due_date).getTime() : null;
-                            if (dateA === null && dateB !== null) return 1; // Tasks with due dates come before those without
+                            if (dateA === null && dateB !== null) return 1; 
                             if (dateA !== null && dateB === null) return -1;
-                            if (dateA !== null && dateB !== null && dateA !== dateB) return dateA - dateB; // Earlier due date first
+                            if (dateA !== null && dateB !== null && dateA !== dateB) return dateA - dateB; 
 
-                            return (a.createdAt || 0) - (b.createdAt || 0); // Fallback to creation time
+                            return (a.createdAt || 0) - (b.createdAt || 0); 
                         });
 
                         const sortedColumnTasks = [...newTasks, ...overdueTasks, ...otherTasks];
@@ -956,7 +974,7 @@
                     const columnElement = document.getElementById(columnId)?.querySelector('.tasks-container');
                     if (columnElement) {
                         tasks[columnId]
-                            .sort((a,b) => (b.completedAt || b.createdAt || 0) - (a.completedAt || a.createdAt || 0)) // Most recently completed first
+                            .sort((a,b) => (b.completedAt || b.createdAt || 0) - (a.completedAt || a.createdAt || 0)) 
                             .forEach(task => {
                                 const taskElement = createTaskElement(task);
                                 columnElement.appendChild(taskElement);
@@ -1002,26 +1020,24 @@
                 if (tasks[status]) { allActiveTasks = allActiveTasks.concat(tasks[status]); }
             });
 
-            // Filter out "New" priority, as they have their own visual treatment on the board
             const priorityFilteredTasks = allActiveTasks.filter(task => task.priority !== "New" && PRIORITIES.includes(task.priority));
-
 
             priorityFilteredTasks.sort((a, b) => {
                 const priorityAVal = PRIORITY_VALUES[a.priority || DEFAULT_PRIORITY] || 0;
                 const priorityBVal = PRIORITY_VALUES[b.priority || DEFAULT_PRIORITY] || 0;
                 if (priorityBVal !== priorityAVal) {
-                    return priorityBVal - priorityAVal; // Higher numeric value (High priority) first
+                    return priorityBVal - priorityAVal; 
                 }
 
                 const dateA = a.due_date ? new Date(a.due_date).getTime() : null;
                 const dateB = b.due_date ? new Date(b.due_date).getTime() : null;
-                if (dateA === null && dateB !== null) return 1; // Tasks with due dates first
+                if (dateA === null && dateB !== null) return 1; 
                 if (dateA !== null && dateB === null) return -1;
                 if (dateA !== null && dateB !== null && dateA !== dateB) {
-                    return dateA - dateB; // Earlier due date first
+                    return dateA - dateB; 
                 }
 
-                return (a.createdAt || 0) - (b.createdAt || 0); // Fallback to creation time
+                return (a.createdAt || 0) - (b.createdAt || 0); 
             });
 
             const top6PriorityTasks = priorityFilteredTasks.slice(0, 6);
@@ -1054,20 +1070,20 @@
             if (taskText === '') { alert('Please enter a task description.'); newTaskInput.focus(); return; }
 
             const newTaskData = {
-                text: taskText, name: "Jay", // 'name' might be legacy, ensure backend handles it or remove if not used
-                priority: "New", // Default for new tasks
+                text: taskText,
+                priority: "New", 
                 notes: '', status: 'todo', due_date: null,
-                createdAt: Date.now() // For immediate client-side sorting if needed
+                createdAt: Date.now() 
             };
             addTaskBtn.disabled = true;
             addTaskMessage.textContent = 'Adding task...';
             addTaskMessage.classList.remove('text-green-400', 'text-gray-400', 'text-red-400');
             try {
-                // Backend should set its own `created_at` and return the full task object including ID
-                const addedTask = await apiCall('add-task', 'POST', newTaskData);
-                if (addedTask && addedTask.id) {
+                const apiResponse = await apiCall('add-task', 'POST', newTaskData);
+                const addedTask = apiResponse.data; // Data is nested in apiResponse object
+
+                if (apiResponse.status === 200 && addedTask && addedTask.id) {
                      if (!tasks.todo) tasks.todo = [];
-                     // Ensure all necessary fields from backend are present for UI consistency
                      addedTask.createdAt = addedTask.created_at ? new Date(addedTask.created_at).getTime() : newTaskData.createdAt;
                      addedTask.priority = addedTask.priority || "New";
                      addedTask.notes = addedTask.notes || '';
@@ -1078,20 +1094,19 @@
                      updateTaskSummary();
                      renderUpcomingTasks();
                      renderHighestPriorityTasks();
-                     if (!boardPage.classList.contains('hidden')) renderBoard(); // Re-render board if visible
+                     if (!boardPage.classList.contains('hidden')) renderBoard(); 
                 } else {
-                    // If backend didn't return a proper task, reload all to be safe
-                    console.warn("Add task didn't return expected object, reloading all tasks.");
+                    console.warn("Add task API call did not fully succeed or return expected object, reloading all tasks.", apiResponse);
                     await loadTasks();
                 }
                 clearTimeout(successMessageTimeout); clearInterval(cooldownTimer);
                 addTaskMessage.textContent = `Task added: "${addedTask.text || taskText}"`;
-                addTaskMessage.classList.add('text-green-400'); // Assuming Tailwind green-400 is available
+                addTaskMessage.classList.add('text-green-400'); 
                 let secondsRemaining = COOLDOWN_SECONDS;
                 successMessageTimeout = setTimeout(() => {
-                     if (addTaskBtn.disabled) { // Check if still disabled (i.e., no other action enabled it)
+                     if (addTaskBtn.disabled) { 
                          addTaskMessage.classList.remove('text-green-400');
-                         addTaskMessage.classList.add('text-gray-400'); // Assuming Tailwind gray-400
+                         addTaskMessage.classList.add('text-gray-400'); 
                          addTaskMessage.textContent = `Please wait ${secondsRemaining} seconds...`;
                          cooldownTimer = setInterval(() => {
                              secondsRemaining--;
@@ -1099,12 +1114,11 @@
                              else { clearInterval(cooldownTimer); cooldownTimer = null; addTaskBtn.disabled = false; addTaskMessage.textContent = ''; }
                          }, 1000);
                      }
-                }, 1500); // Display success message for 1.5s then start cooldown text
+                }, 1500); 
             } catch (error) {
-                // Error already alerted by apiCall, just reset button state
                 addTaskBtn.disabled = false;
-                addTaskMessage.textContent = 'Error adding task.';
-                addTaskMessage.classList.add('text-red-400'); // Assuming Tailwind red-400
+                addTaskMessage.textContent = error.message || 'Error adding task.'; // Display error message from apiCall
+                addTaskMessage.classList.add('text-red-400'); 
             } finally {
                  newTaskInput.value = '';
                  newTaskInput.focus();
@@ -1113,21 +1127,25 @@
 
         async function deleteTask(taskId) {
              closeOpenSubMenu();
-            if (currentlyEditingTaskId === taskId) return; // Don't delete if mid-edit
+            if (currentlyEditingTaskId === taskId) return; 
             if (!confirm('Are you sure you want to delete this task?')) return;
             try {
-                await apiCall('delete-task', 'POST', { id: taskId });
-                for (const columnId in tasks) { tasks[columnId] = tasks[columnId].filter(task => task.id !== taskId); }
-                renderBoard(); updateTaskSummary();
-                renderUpcomingTasks();
-                renderHighestPriorityTasks();
+                const apiResponse = await apiCall('delete-task', 'POST', { id: taskId });
+                if(apiResponse.status === 200) { // Or other success status your backend sends for delete
+                    for (const columnId in tasks) { tasks[columnId] = tasks[columnId].filter(task => task.id !== taskId); }
+                    renderBoard(); updateTaskSummary();
+                    renderUpcomingTasks();
+                    renderHighestPriorityTasks();
+                } else {
+                    console.warn("Delete task API call did not fully succeed:", apiResponse);
+                }
             } catch (error) { /* Handled by apiCall */ }
         }
 
         function startEditTask(taskId) {
              closeOpenSubMenu();
             if (currentlyEditingTaskId && currentlyEditingTaskId !== taskId) { cancelTaskEdit(currentlyEditingTaskId); }
-            currentlyEditingTaskId = taskId; renderBoard(); // Re-render will show input for this task
+            currentlyEditingTaskId = taskId; renderBoard(); 
         }
 
         async function saveTaskEdit(taskId) {
@@ -1137,18 +1155,21 @@
             const newText = inputElement.value.trim();
             if (newText === '') { alert('Task description cannot be empty.'); inputElement.focus(); return; }
             try {
-                 await apiCall('update-task', 'POST', { id: taskId, updates: { text: newText } });
-                 for (const colId in tasks) {
-                    const task = tasks[colId].find(t => t.id === taskId);
-                    if (task) { task.text = newText; break; }
+                 const apiResponse = await apiCall('update-task', 'POST', { id: taskId, updates: { text: newText } });
+                 if(apiResponse.status === 200) {
+                    for (const colId in tasks) {
+                        const task = tasks[colId].find(t => t.id === taskId);
+                        if (task) { task.text = newText; break; }
+                    }
+                    currentlyEditingTaskId = null; renderBoard();
+                    renderUpcomingTasks(); 
+                    renderHighestPriorityTasks();
+                 } else {
+                    console.warn("Save task edit API call did not fully succeed:", apiResponse);
+                    currentlyEditingTaskId = null; renderBoard(); // Still stop editing
                  }
-                 currentlyEditingTaskId = null; renderBoard();
-                 renderUpcomingTasks(); // Task text might appear here
-                 renderHighestPriorityTasks(); // Task text might appear here
-            } catch (error) {
-                // Error alerted by apiCall. Optionally revert UI or leave as is for retry.
-                // For now, just stop editing mode.
-                currentlyEditingTaskId = null; renderBoard();
+            } catch (error) { 
+                currentlyEditingTaskId = null; renderBoard(); 
             }
         }
 
@@ -1157,31 +1178,36 @@
         async function loadTasks() {
             console.log("Loading tasks...");
             try {
-                const fetchedTasks = await apiCall('get-tasks');
-                tasks = { todo: [], inprogress: [], nonurgent: [], done: [] }; // Reset tasks
-                fetchedTasks.forEach(task => {
-                    task.priority = task.priority || DEFAULT_PRIORITY;
-                    task.notes = task.notes || '';
-                    task.createdAt = task.created_at ? new Date(task.created_at).getTime() : Date.now();
-                    task.due_date = task.due_date || null; // Ensure it's null if not set
-                    const status = task.status || 'todo'; // Default to 'todo' if status is missing
-                    if (VALID_STATUSES.includes(status)) {
-                        if (!tasks[status]) tasks[status] = []; // Ensure column array exists
-                        tasks[status].push(task);
-                    } else {
-                        console.warn(`Invalid task status "${status}" for task ID ${task.id}. Placing in 'todo'.`);
-                        if (!tasks.todo) tasks.todo = [];
-                        tasks.todo.push(task);
-                    }
-                });
-                console.log("Tasks loaded and processed:", tasks);
+                const apiResponse = await apiCall('get-tasks');
+                const fetchedTasks = apiResponse.data; // Data is nested
+
+                if (apiResponse.status === 200 && Array.isArray(fetchedTasks)) {
+                    tasks = { todo: [], inprogress: [], nonurgent: [], done: [] }; 
+                    fetchedTasks.forEach(task => {
+                        task.priority = task.priority || DEFAULT_PRIORITY;
+                        task.notes = task.notes || '';
+                        task.createdAt = task.created_at ? new Date(task.created_at).getTime() : Date.now();
+                        task.due_date = task.due_date || null; 
+                        const status = task.status || 'todo'; 
+                        if (VALID_STATUSES.includes(status)) {
+                            if (!tasks[status]) tasks[status] = []; 
+                            tasks[status].push(task);
+                        } else {
+                            console.warn(`Invalid task status "${status}" for task ID ${task.id}. Placing in 'todo'.`);
+                            if (!tasks.todo) tasks.todo = [];
+                            tasks.todo.push(task);
+                        }
+                    });
+                    console.log("Tasks loaded and processed:", tasks);
+                } else {
+                    console.error("Error fetching tasks or tasks format incorrect:", apiResponse);
+                    tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };
+                }
             } catch (error) {
                 console.error("Error loading tasks from backend:", error);
-                // Keep existing tasks or clear them? For now, clear on failed load to avoid stale data.
                 tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };
-                // Optionally display an error message to the user on the board
             } finally {
-                 currentlyEditingTaskId = null; // Reset editing state
+                 currentlyEditingTaskId = null; 
                  updateTaskSummary();
                  renderUpcomingTasks();
                  renderHighestPriorityTasks();
@@ -1195,11 +1221,14 @@
              if (!stickyNoteTextarea) return;
              console.log("Loading main sticky note (ID: " + STICKY_NOTE_ID_MAIN + ")...");
              try {
-                 const data = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_MAIN });
-                 stickyNoteTextarea.value = data?.content || '';
-                 console.log("Main sticky note loaded.");
+                 const apiResponse = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_MAIN });
+                 if (apiResponse.status === 200 && apiResponse.data) {
+                    stickyNoteTextarea.value = apiResponse.data.content || '';
+                    console.log("Main sticky note loaded.");
+                 } else {
+                    stickyNoteTextarea.value = "Error loading note (or note not found).";
+                 }
              } catch (error) {
-                 // Error already logged by apiCall, and alert is suppressed for this one.
                  stickyNoteTextarea.value = "Error loading note.";
              }
         }
@@ -1213,11 +1242,15 @@
              stickyNoteMessage.classList.add('text-gray-500');
              clearTimeout(stickyNoteSaveTimeout);
              try {
-                 await apiCall('update-sticky-note', 'POST', { content: contentToSave, note_id: STICKY_NOTE_ID_MAIN });
-                 console.log("Main sticky note saved.");
-                 stickyNoteMessage.textContent = 'Note saved!';
-                 stickyNoteMessage.classList.replace('text-gray-500', 'text-green-600');
-                 stickyNoteSaveTimeout = setTimeout(() => { stickyNoteMessage.textContent = ''; }, 2000);
+                 const apiResponse = await apiCall('update-sticky-note', 'POST', { content: contentToSave, note_id: STICKY_NOTE_ID_MAIN });
+                 if(apiResponse.status === 200) {
+                    console.log("Main sticky note saved.");
+                    stickyNoteMessage.textContent = 'Note saved!';
+                    stickyNoteMessage.classList.replace('text-gray-500', 'text-green-600');
+                    stickyNoteSaveTimeout = setTimeout(() => { stickyNoteMessage.textContent = ''; }, 2000);
+                 } else {
+                    throw new Error(apiResponse.data.message || "Failed to save note");
+                 }
              } catch (error) {
                  console.error("Failed to save main sticky note:", error);
                  stickyNoteMessage.textContent = 'Save failed!';
@@ -1232,9 +1265,13 @@
             if (!stickyNoteTextareaAAT) return;
             console.log("Loading AAT sticky note (ID: " + STICKY_NOTE_ID_AAT + ")...");
             try {
-                const data = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_AAT });
-                stickyNoteTextareaAAT.value = data?.content || '';
-                console.log("AAT sticky note loaded.");
+                const apiResponse = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_AAT });
+                if (apiResponse.status === 200 && apiResponse.data) {
+                    stickyNoteTextareaAAT.value = apiResponse.data.content || '';
+                    console.log("AAT sticky note loaded.");
+                } else {
+                    stickyNoteTextareaAAT.value = "Error loading AAT note (or note not found).";
+                }
             } catch (error) {
                 stickyNoteTextareaAAT.value = "Error loading AAT note.";
             }
@@ -1249,11 +1286,15 @@
             stickyNoteMessageAAT.classList.add('text-gray-700');
             clearTimeout(stickyNoteAATSaveTimeout);
             try {
-                await apiCall('update-sticky-note', 'POST', { content: contentToSave, note_id: STICKY_NOTE_ID_AAT });
-                console.log("AAT sticky note saved.");
-                stickyNoteMessageAAT.textContent = 'Note saved!';
-                stickyNoteMessageAAT.classList.replace('text-gray-700', 'text-green-700');
-                stickyNoteAATSaveTimeout = setTimeout(() => { stickyNoteMessageAAT.textContent = ''; }, 2000);
+                const apiResponse = await apiCall('update-sticky-note', 'POST', { content: contentToSave, note_id: STICKY_NOTE_ID_AAT });
+                if (apiResponse.status === 200) {
+                    console.log("AAT sticky note saved.");
+                    stickyNoteMessageAAT.textContent = 'Note saved!';
+                    stickyNoteMessageAAT.classList.replace('text-gray-700', 'text-green-700');
+                    stickyNoteAATSaveTimeout = setTimeout(() => { stickyNoteMessageAAT.textContent = ''; }, 2000);
+                } else {
+                    throw new Error(apiResponse.data.message || "Failed to save AAT note");
+                }
             } catch (error) {
                 console.error("Failed to save AAT sticky note:", error);
                 stickyNoteMessageAAT.textContent = 'Save failed!';
@@ -1266,21 +1307,20 @@
 
         // --- Shift Time Persistence Functions ---
         async function loadShiftTimes() {
-            console.log("Loading shift times from Supabase (via sticky notes)...");
+            console.log("Loading shift times...");
             let startHourLoaded = false;
             let endHourLoaded = false;
 
             try {
-                const startTimeData = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_SHIFT_START });
-                if (startTimeData && startTimeData.content && startTimeData.content.includes(':')) {
-                    const [hoursStr, minutesStr] = startTimeData.content.split(':');
+                const apiResponseStart = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_SHIFT_START });
+                if (apiResponseStart.status === 200 && apiResponseStart.data && apiResponseStart.data.content && apiResponseStart.data.content.includes(':')) {
+                    const [hoursStr, minutesStr] = apiResponseStart.data.content.split(':');
                     const hours = parseInt(hoursStr);
-                    const minutes = parseInt(minutesStr);
-                    if (!isNaN(hours) && !isNaN(minutes)) {
-                        SHIFT_START_HOUR = hours; // Keep main hour for logic
-                        shiftStartInput.value = startTimeData.content;
+                    if (!isNaN(hours)) { // Minutes can be 0
+                        SHIFT_START_HOUR = hours; 
+                        shiftStartInput.value = apiResponseStart.data.content;
                         startHourLoaded = true;
-                        console.log("Shift start time loaded:", startTimeData.content);
+                        console.log("Shift start time loaded:", apiResponseStart.data.content);
                     }
                 }
             } catch (error) {
@@ -1288,16 +1328,15 @@
             }
 
             try {
-                const endTimeData = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_SHIFT_END });
-                if (endTimeData && endTimeData.content && endTimeData.content.includes(':')) {
-                    const [hoursStr, minutesStr] = endTimeData.content.split(':');
+                const apiResponseEnd = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_SHIFT_END });
+                if (apiResponseEnd.status === 200 && apiResponseEnd.data && apiResponseEnd.data.content && apiResponseEnd.data.content.includes(':')) {
+                    const [hoursStr, minutesStr] = apiResponseEnd.data.content.split(':');
                     const hours = parseInt(hoursStr);
-                    const minutes = parseInt(minutesStr);
-                    if (!isNaN(hours) && !isNaN(minutes)) {
-                        SHIFT_END_HOUR = hours; // Keep main hour for logic
-                        shiftEndInput.value = endTimeData.content;
+                     if (!isNaN(hours)) { // Minutes can be 0
+                        SHIFT_END_HOUR = hours; 
+                        shiftEndInput.value = apiResponseEnd.data.content;
                         endHourLoaded = true;
-                        console.log("Shift end time loaded:", endTimeData.content);
+                        console.log("Shift end time loaded:", apiResponseEnd.data.content);
                     }
                 }
             } catch (error) {
@@ -1305,11 +1344,11 @@
             }
 
             if (!startHourLoaded) {
-                shiftStartInput.value = formatTimeToHHMM(SHIFT_START_HOUR, 0); // Default to :00 if not loaded
+                shiftStartInput.value = formatTimeToHHMM(SHIFT_START_HOUR, 0); 
                 console.log("Default shift start time set to input:", shiftStartInput.value);
             }
             if (!endHourLoaded) {
-                shiftEndInput.value = formatTimeToHHMM(SHIFT_END_HOUR, 0); // Default to :00 if not loaded
+                shiftEndInput.value = formatTimeToHHMM(SHIFT_END_HOUR, 0); 
                 console.log("Default shift end time set to input:", shiftEndInput.value);
             }
             updateDateTimeDisplay();
@@ -1317,14 +1356,16 @@
 
         async function saveShiftTime(noteId, timeValueString) {
             console.log(`Saving shift time for ID ${noteId}: ${timeValueString}`);
-            // No separate message area for individual shift time saves, general button will handle feedback
             try {
-                await apiCall('update-sticky-note', 'POST', { content: timeValueString, note_id: noteId });
+                const apiResponse = await apiCall('update-sticky-note', 'POST', { content: timeValueString, note_id: noteId });
+                if (apiResponse.status !== 200) {
+                    throw new Error(apiResponse.data.message || `Failed to save shift time ID ${noteId}`);
+                }
                 console.log(`Shift time for ID ${noteId} saved successfully.`);
             } catch (error) {
                 console.error(`Failed to save shift time for ID ${noteId}:`, error);
-                alert(`Failed to save shift ${noteId === STICKY_NOTE_ID_SHIFT_START ? 'start' : 'end'} time.`);
-                throw error; // Re-throw to be caught by the caller Promise.all
+                alert(`Failed to save shift ${noteId === STICKY_NOTE_ID_SHIFT_START ? 'start' : 'end'} time: ${error.message}`);
+                throw error; 
             }
         }
 
@@ -1334,32 +1375,31 @@
             if (currentlyEditingTaskId || document.activeElement.tagName === 'SELECT' || document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
                  event.preventDefault(); return;
             }
-            draggedTask = event.currentTarget; // The div.task itself
+            draggedTask = event.currentTarget; 
             event.dataTransfer.setData('text/plain', draggedTask.id);
             event.dataTransfer.effectAllowed = 'move';
-            setTimeout(() => { if(draggedTask) draggedTask.classList.add('dragging'); }, 0); // Add dragging class after a tick
+            setTimeout(() => { if(draggedTask) draggedTask.classList.add('dragging'); }, 0); 
         }
 
         function dragEnd(event) {
             if (draggedTask) draggedTask.classList.remove('dragging');
             draggedTask = null;
-            try { event.dataTransfer.clearData(); } catch(e) { /* ignore potential errors in some browsers */ }
+            try { event.dataTransfer.clearData(); } catch(e) { /* ignore */ }
         }
 
         function allowDrop(event) {
-            // Prevent drop on tasks, buttons, or selects within the column
             if (event.target.closest('.task') || event.target.closest('button') || event.target.closest('select') || event.target.closest('input') || event.target.closest('textarea')) {
                 return;
             }
-            event.preventDefault(); // Allow drop on the column itself
+            event.preventDefault(); 
         }
 
         function drop(event) {
             event.preventDefault();
             if (!draggedTask) return;
-            if (event.target.closest('.task')) return; // Don't allow dropping directly ON another task element
+            if (event.target.closest('.task')) return; 
 
-            const targetColumnElement = event.currentTarget; // This should be the .kanban-column div
+            const targetColumnElement = event.currentTarget; 
             if (!targetColumnElement || !targetColumnElement.classList.contains('kanban-column')) {
                 console.warn("Drop target is not a kanban column:", event.target);
                 return;
@@ -1372,54 +1412,50 @@
              const taskId = taskElement.id;
              const sourceColumnId = taskElement.closest('.kanban-column')?.id;
 
-             if (!sourceColumnId || sourceColumnId === targetColumnId) {
-                 console.log("Source and target column are the same or source not found. No action.");
-                 return;
-             }
+             if (!sourceColumnId || sourceColumnId === targetColumnId) { return; }
              if (!VALID_STATUSES.includes(targetColumnId)) {
                  console.error(`Invalid drop target column ID: ${targetColumnId}`); return;
              }
 
              let taskToMove = null; let originalIndex = -1;
-             // Find task in the local `tasks` object
              for (const colId in tasks) {
                  originalIndex = tasks[colId].findIndex(task => task.id === taskId);
                  if (originalIndex > -1) {
                      taskToMove = tasks[colId][originalIndex];
-                     tasks[colId].splice(originalIndex, 1); // Remove from old column in local state
+                     tasks[colId].splice(originalIndex, 1); 
                      break;
                  }
              }
+             if (!taskToMove) { console.error("Could not find task in local state during drop:", taskId); return; }
+            
+             const oldTaskStatus = taskToMove.status; // Save for revert
 
-             if (!taskToMove) {
-                 console.error("Could not find task in local state during drop:", taskId);
-                 // Potentially reload tasks if state is inconsistent
-                 return;
-             }
+             if (!tasks[targetColumnId]) tasks[targetColumnId] = []; 
+             tasks[targetColumnId].push(taskToMove); 
+             taskToMove.status = targetColumnId; 
 
-             if (!tasks[targetColumnId]) tasks[targetColumnId] = []; // Ensure target column array exists
-             tasks[targetColumnId].push(taskToMove); // Add to new column in local state
-             taskToMove.status = targetColumnId; // Update task's status property
-
-             renderBoard(); // Re-render the board with optimistic update
+             renderBoard(); 
              updateTaskSummary();
-             renderUpcomingTasks(); // Status change can affect these lists
+             renderUpcomingTasks(); 
              renderHighestPriorityTasks();
 
              try {
-                 await apiCall('update-task', 'POST', { id: taskId, updates: { status: targetColumnId } });
+                 const apiResponse = await apiCall('update-task', 'POST', { id: taskId, updates: { status: targetColumnId } });
+                 if (apiResponse.status !== 200) {
+                    throw new Error(apiResponse.data.message || `Backend error moving task ${taskId}`);
+                 }
                  console.log(`Task ${taskId} moved to ${targetColumnId} in backend.`);
                  if (targetColumnId === 'done' && sourceColumnId !== 'done') triggerConfetti();
              } catch (error) {
                   console.error(`Failed to update task ${taskId} status in backend after drop:`, error);
-                  alert("Failed to move task on the server. Reverting UI change.");
-                  // Revert UI change
+                  alert(`Failed to move task on the server: ${error.message}. Reverting UI change.`);
+                  
                   const newIndexInTarget = tasks[targetColumnId].findIndex(task => task.id === taskId);
                   if (newIndexInTarget > -1) tasks[targetColumnId].splice(newIndexInTarget, 1);
 
                   if (!tasks[sourceColumnId]) tasks[sourceColumnId] = [];
-                  tasks[sourceColumnId].splice(originalIndex, 0, taskToMove); // Add back to original position
-                  taskToMove.status = sourceColumnId; // Reset status
+                  tasks[sourceColumnId].splice(originalIndex, 0, taskToMove); 
+                  taskToMove.status = oldTaskStatus; 
 
                   renderBoard();
                   updateTaskSummary();
@@ -1433,22 +1469,20 @@
             myConfetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
         }
 
-        // --- NEW: Email Summary Function ---
+        // --- Email Summary Function (MODIFIED for simpler message) ---
         async function handleEmailSummary() {
             if (!emailSummaryBtn || emailSummaryBtn.disabled) return;
 
             emailSummaryBtn.disabled = true;
             emailSummaryMessageContainer.classList.remove('hidden');
             emailSummaryMessage.textContent = 'Gathering tasks and generating summary...';
-            emailSummaryMessage.className = 'text-yellow-400 text-sm'; // Tailwind yellow
+            emailSummaryMessage.className = 'text-yellow-400 text-sm'; 
 
-            // Collect tasks (e.g., from 'todo' and 'inprogress')
-            // We send raw task objects so backend can choose details for the prompt
             const tasksForSummary = [
                 ...(tasks.todo || []),
                 ...(tasks.inprogress || []),
-                ...(tasks.nonurgent || []) // Optionally include non-urgent as well
-            ].filter(task => task.status !== 'done'); // Ensure no done tasks are sent
+                ...(tasks.nonurgent || []) 
+            ].filter(task => task.status !== 'done'); 
 
             if (tasksForSummary.length === 0) {
                 emailSummaryMessage.textContent = 'No active tasks to summarize.';
@@ -1463,26 +1497,39 @@
             }
 
             try {
-                const response = await apiCall('summarize-and-email', 'POST', { tasks: tasksForSummary });
-                console.log("Summarize and email response:", response);
-                if (response.status === 207) { // Multi-status, e.g. summary OK, email failed
-                     emailSummaryMessage.textContent = `Summary generated, but email failed: ${response.emailError || 'Unknown email error'}`;
-                     emailSummaryMessage.className = 'text-orange-400 text-sm'; // Tailwind orange
+                // apiCall now returns an object: { data: parsedJsonBody, status: httpStatusCode }
+                const apiResponse = await apiCall('summarize-and-email', 'POST', { tasks: tasksForSummary });
+                
+                console.log("Summarize and email response object:", apiResponse);
+
+                if (apiResponse.status === 200) { // Full success from backend function
+                    emailSummaryMessage.textContent = 'Email sent!';
+                    emailSummaryMessage.className = 'text-green-400 text-sm';
+                } else if (apiResponse.status === 207) { // Partial success (e.g., summary OK, email failed)
+                    emailSummaryMessage.textContent = `Summary generated, but email failed: ${apiResponse.data.emailError || 'Unknown email error'}`;
+                    emailSummaryMessage.className = 'text-orange-400 text-sm';
                 } else {
-                    emailSummaryMessage.textContent = response.message || 'Summary emailed successfully!';
-                    emailSummaryMessage.className = 'text-green-400 text-sm'; // Tailwind green
+                    // For other 2xx statuses that might have a specific message from the backend,
+                    // or if the backend sent an unexpected 2xx status code.
+                    emailSummaryMessage.textContent = apiResponse.data.message || 'Request processed with an unexpected status.';
+                    emailSummaryMessage.className = 'text-yellow-400 text-sm';
                 }
-            } catch (error) {
+
+            } catch (error) { // This catch receives { message, status, data } from apiCall if !fetchResponse.ok
                 console.error('Error calling summarize-and-email function:', error);
-                emailSummaryMessage.textContent = `Error: ${error.message || 'Could not process summary request.'}`;
-                emailSummaryMessage.className = 'text-red-400 text-sm'; // Tailwind red
+                let displayError = `Error: ${error.message || 'Could not process summary request.'}`;
+                if (error.status) { // Add status code if available from the error object
+                    displayError += ` (Status: ${error.status})`;
+                }
+                emailSummaryMessage.textContent = displayError;
+                emailSummaryMessage.className = 'text-red-400 text-sm';
             } finally {
                 emailSummaryBtn.disabled = false;
                 clearTimeout(emailSummaryTimeout);
                 emailSummaryTimeout = setTimeout(() => {
                     emailSummaryMessageContainer.classList.add('hidden');
                     emailSummaryMessage.textContent = '';
-                }, 7000); // Keep message displayed longer
+                }, 7000); 
             }
         }
 
@@ -1493,13 +1540,13 @@
         showBoardPageBtn.addEventListener('click', async () => {
             if (isPinCooldownActive) { alert("Please wait before trying the pin again."); return; }
             const pinInput = prompt("Please enter the pin code to view the board:");
-            if (pinInput === null) return; // User cancelled prompt
+            if (pinInput === null) return; 
             try {
-                 const result = await apiCall('check-pin', 'POST', { enteredPin: pinInput });
-                 if (result && result.valid) {
+                 const apiResponse = await apiCall('check-pin', 'POST', { enteredPin: pinInput });
+                 if (apiResponse.status === 200 && apiResponse.data && apiResponse.data.valid) {
                      showPage('boardPage');
                  } else {
-                     alert("Incorrect pin code.");
+                     alert(apiResponse.data.message || "Incorrect pin code."); // Use message from backend if available
                      isPinCooldownActive = true;
                      showBoardPageBtn.disabled = true;
                      console.log(`Pin cooldown started for ${PIN_COOLDOWN_SECONDS} seconds.`);
@@ -1509,7 +1556,7 @@
                          console.log("Pin cooldown finished.");
                      }, PIN_COOLDOWN_SECONDS * 1000);
                  }
-            } catch (error) { /* Error already alerted by apiCall */ }
+            } catch (error) { /* Error already handled/alerted by apiCall */ }
         });
 
         if(saveStickyNoteBtn) {
@@ -1531,11 +1578,11 @@
                     alert("Shift start time must be before end time.");
                     return;
                 }
-                SHIFT_START_HOUR = startH; // Update global hour for progress logic
-                SHIFT_END_HOUR = endH;   // Update global hour for progress logic
+                SHIFT_START_HOUR = startH; 
+                SHIFT_END_HOUR = endH;   
 
                 console.log(`Shift times updated locally: Start ${newStartString}, End ${newEndString}`);
-                updateDateTimeDisplay(); // Immediately reflect change in progress bar
+                updateDateTimeDisplay(); 
 
                 updateShiftTimesBtn.disabled = true;
                 let originalButtonText = updateShiftTimesBtn.textContent;
@@ -1547,10 +1594,9 @@
                         saveShiftTime(STICKY_NOTE_ID_SHIFT_END, newEndString)
                     ]);
                     console.log("Both shift times attempted to save.");
-                    // Add a success message indicator near the button
                     let msgElement = document.getElementById('shiftTimeSaveMessage');
                     if (!msgElement) {
-                        msgElement = document.createElement('span'); // Use span for inline
+                        msgElement = document.createElement('span'); 
                         msgElement.id = 'shiftTimeSaveMessage';
                         msgElement.className = 'text-xs text-green-400 ml-2';
                         updateShiftTimesBtn.insertAdjacentElement('afterend', msgElement);
@@ -1562,8 +1608,8 @@
                     }, 2000);
 
                 } catch (error) {
-                    // Errors are alerted by saveShiftTime, no need for duplicate alert here.
                     console.error("Error during saving one or both shift times to backend:", error);
+                    // Individual errors are alerted by saveShiftTime
                 } finally {
                     updateShiftTimesBtn.disabled = false;
                     updateShiftTimesBtn.textContent = originalButtonText;
@@ -1574,7 +1620,6 @@
             }
         });
 
-        // NEW: Event listener for Email Summary button
         if (emailSummaryBtn) {
             emailSummaryBtn.addEventListener('click', handleEmailSummary);
         }
@@ -1582,18 +1627,18 @@
 
          document.addEventListener('click', (event) => {
              const clickedSubMenu = event.target.closest('.task-submenu');
-             const clickedMenuButton = event.target.closest('.action-btn[title="More Actions"]'); // More specific selector
+             const clickedMenuButton = event.target.closest('.action-btn[title="More Actions"]'); 
              if (!clickedSubMenu && !clickedMenuButton && openSubMenuId) {
                  closeOpenSubMenu();
              }
          });
 
         document.addEventListener('DOMContentLoaded', async () => {
-             showPage('inputPage'); // Default to input page
+             showPage('inputPage'); 
              await loadTasks();
-             await loadShiftTimes(); // This also calls updateDateTimeDisplay
+             await loadShiftTimes(); 
              if (dateTimeInterval) clearInterval(dateTimeInterval);
-             dateTimeInterval = setInterval(updateDateTimeDisplay, 60000); // Update time/progress every minute
+             dateTimeInterval = setInterval(updateDateTimeDisplay, 60000); 
         });
 
     </script>
