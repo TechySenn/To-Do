@@ -73,7 +73,7 @@
             display: flex;
             flex-direction: column;
             height: 250px; /* MATCHING STICKY NOTE HEIGHT */
-            margin-bottom: 1rem; 
+            margin-bottom: 1rem;
         }
         #highestPriorityContainer {
              background-color: #ffedd5; /* orange-100 */
@@ -82,29 +82,29 @@
         #highestPriorityContainer h3 { /* Header text color for highest priority */
             color: #9a3412; /* orange-800 */
         }
-         #upcomingTasksList, #highestPriorityList { 
+         #upcomingTasksList, #highestPriorityList {
              flex-grow: 1; overflow-y: auto; padding-right: 4px;
          }
-         .upcoming-task, .priority-task { 
+         .upcoming-task, .priority-task {
              font-size: 0.75rem; padding: 2px 4px; margin-bottom: 4px;
              border-radius: 3px;
              display: block; line-height: 1.3;
          }
-         .upcoming-task { 
-            background-color: #f0f9ff; 
-            border: 1px solid #e0f2fe; 
+         .upcoming-task {
+            background-color: #f0f9ff;
+            border: 1px solid #e0f2fe;
          }
-         .priority-task { 
-            background-color: #fff7ed; 
-            border: 1px solid #ffedd5; 
+         .priority-task {
+            background-color: #fff7ed;
+            border: 1px solid #ffedd5;
          }
          .upcoming-task .due-date, .priority-task .priority-label {
              font-weight: 600; margin-right: 4px;
          }
          .upcoming-task .due-date { color: #be123c; }
-         .priority-task .priority-label-high { color: #c2410c; } 
-         .priority-task .priority-label-medium { color: #ea580c; } 
-         .priority-task .priority-label-low { color: #fb923c; } 
+         .priority-task .priority-label-high { color: #c2410c; }
+         .priority-task .priority-label-medium { color: #ea580c; }
+         .priority-task .priority-label-low { color: #fb923c; }
 
         /* Overdue Task Styling */
         .task.overdue {
@@ -222,6 +222,13 @@
         #updateShiftTimesBtn {
             font-size: 0.7rem; padding: 3px 6px;
         }
+        /* NEW: Styles for summary button and message */
+        #emailSummaryMessage {
+            min-height: 1.25rem; /* 20px */
+            font-size: 0.875rem; /* text-sm */
+            margin-top: 0.5rem; /* mt-2 */
+            text-align: center;
+        }
 
     </style>
 </head>
@@ -251,10 +258,14 @@
                 </div>
              </div>
         </div>
-        <div class="max-w-7xl mx-auto text-center mb-6 space-x-4">
-            <button id="showInputPageBtn" class="nav-button bg-blue-500 hover:bg-blue-600 text-white">Add New Task</button>
+        <div class="max-w-7xl mx-auto text-center mb-6 space-x-2 sm:space-x-4"> <button id="showInputPageBtn" class="nav-button bg-blue-500 hover:bg-blue-600 text-white">Add New Task</button>
             <button id="showBoardPageBtn" class="nav-button bg-indigo-500 hover:bg-indigo-600 text-white">View Board</button>
+            <button id="emailSummaryBtn" class="nav-button bg-green-500 hover:bg-green-600 text-white hidden">Email Task Summary</button>
         </div>
+        <div id="emailSummaryMessageContainer" class="text-center mb-4 hidden">
+            <p id="emailSummaryMessage" class="text-gray-300"></p>
+        </div>
+
 
         <div id="inputPage" class="">
             <h2 class="text-2xl font-semibold text-center text-blue-200 mb-2">Add a New Task</h2>
@@ -295,7 +306,7 @@
                 </div>
 
                 <div class="flex-grow order-3 md:order-2 flex justify-center">
-                    <div class="w-full max-w-7xl"> 
+                    <div class="w-full max-w-7xl">
                         <div class="space-y-6">
                             <div id="kanbanBoardTopRow" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <div id="todo" class="kanban-column bg-blue-100 rounded-lg shadow p-4" ondragover="allowDrop(event)" ondrop="drop(event)">
@@ -350,11 +361,11 @@
         const PRIORITY_VALUES = { "New": 4, "High": 3, "Medium": 2, "Low": 1 };
         const FUNCTION_BASE_PATH = '/.netlify/functions/';
         const VALID_STATUSES = ['todo', 'inprogress', 'nonurgent', 'done'];
-        
+
         let SHIFT_START_HOUR = 9;
         let SHIFT_END_HOUR = 16;
-        
-        const STICKY_NOTE_ID_MAIN = 1; 
+
+        const STICKY_NOTE_ID_MAIN = 1;
         const STICKY_NOTE_ID_AAT = 2;
         const STICKY_NOTE_ID_SHIFT_START = 3;
         const STICKY_NOTE_ID_SHIFT_END = 4;
@@ -388,6 +399,10 @@
         const shiftStartInput = document.getElementById('shiftStartInput');
         const shiftEndInput = document.getElementById('shiftEndInput');
         const updateShiftTimesBtn = document.getElementById('updateShiftTimesBtn');
+        // NEW: DOM Elements for Email Summary
+        const emailSummaryBtn = document.getElementById('emailSummaryBtn');
+        const emailSummaryMessageContainer = document.getElementById('emailSummaryMessageContainer');
+        const emailSummaryMessage = document.getElementById('emailSummaryMessage');
 
 
         // --- State ---
@@ -402,6 +417,8 @@
         let stickyNoteSaveTimeout = null;
         let stickyNoteAATSaveTimeout = null;
         let shiftTimeSaveMessageTimeout = null;
+        let emailSummaryTimeout = null; // NEW: Timeout for email summary message
+
 
         // --- Generic Fetch Helper ---
         async function apiCall(endpoint, method = 'GET', paramsOrBody = null) {
@@ -417,23 +434,27 @@
                 options.headers['Content-Type'] = 'application/json';
                 options.body = JSON.stringify(paramsOrBody);
             }
-            
+
             try {
                 const response = await fetch(url, options);
                 const isJson = response.headers.get('content-type')?.includes('application/json');
-                const data = isJson ? await response.json() : null;
+                const data = isJson ? await response.json() : { message: await response.text(), status: response.status }; // Handle non-JSON for errors
                 if (!response.ok) {
                     const error = (data && (data.error || data.message)) || `HTTP error! status: ${response.status}`;
-                    console.error(`API Error (${url}):`, error, data?.details);
+                    console.error(`API Error (${url}, Status: ${response.status}):`, error, data?.details || data);
+                    // Avoid alert for specific non-critical errors if needed
+                    if (!(endpoint === 'get-sticky-note' && method === 'GET')) {
+                         alert(`Operation failed: ${error}. Status: ${response.status}. Please check console or try again.`);
+                    }
                     throw new Error(error);
                 }
                 return data;
             } catch (error) {
                 console.error(`API Call Failed (${url}):`, error);
-                if (!(endpoint === 'get-sticky-note' && method === 'GET')) { 
-                     alert(`Operation failed: ${error.message}. Please check console or try again.`);
+                if (!(endpoint === 'get-sticky-note' && method === 'GET')) {
+                     // Only alert if it's not a known "silent fail" like initial sticky note load.
                 }
-                throw error;
+                throw error; // Re-throw to be caught by caller
             }
         }
 
@@ -443,9 +464,19 @@
             if (!timestampOrDateString) return 'N/A';
             try {
                 const date = new Date(timestampOrDateString);
-                const userTimezoneOffset = date.getTimezoneOffset() * 60000;
-                const adjustedTimestamp = date.getTime() + (timestampOrDateString.length === 10 ? userTimezoneOffset : 0);
-                const adjustedDate = new Date(adjustedTimestamp);
+                // Attempt to handle if it's already UTC or needs local adjustment
+                // If it's a YYYY-MM-DD string, it's treated as UTC by default by new Date()
+                // If it's a full ISO string, it includes timezone info.
+                // For simplicity, if only date part, assume it's meant as local day.
+                // The backend should ideally store dates consistently (e.g., UTC).
+                // The formatDateForInput sends YYYY-MM-DD, which new Date() interprets as UTC.
+                // To display it as that "day" locally:
+                let adjustedDate = date;
+                if (typeof timestampOrDateString === 'string' && timestampOrDateString.length === 10) { // YYYY-MM-DD
+                    const [year, month, day] = timestampOrDateString.split('-').map(Number);
+                    adjustedDate = new Date(year, month - 1, day); // Treat as local date parts
+                }
+
 
                 if (isNaN(adjustedDate.getTime())) return 'N/A';
                 const day = String(adjustedDate.getDate()).padStart(2, '0');
@@ -453,7 +484,7 @@
                 const year = adjustedDate.getFullYear();
                 return `${day}/${month}/${year}`;
             } catch (e) {
-                 console.error("Error formatting display date:", e);
+                 console.error("Error formatting display date:", e, "Input:", timestampOrDateString);
                  return 'N/A';
             }
         }
@@ -463,14 +494,17 @@
              if (!timestampOrDateString) return '';
              try {
                  const date = new Date(timestampOrDateString);
-                 if (isNaN(date.getTime())) return '';
-                  const userTimezoneOffset = date.getTimezoneOffset() * 60000;
-                  const adjustedDate = new Date(date.getTime() + userTimezoneOffset);
-                 const year = adjustedDate.getFullYear();
-                 const month = String(adjustedDate.getMonth() + 1).padStart(2, '0');
-                 const day = String(adjustedDate.getDate()).padStart(2, '0');
+                 // When a date string like "YYYY-MM-DD" is parsed by new Date(), it's UTC.
+                 // To ensure the input field shows the *same* YYYY-MM-DD regardless of local timezone:
+                 if (typeof timestampOrDateString === 'string' && timestampOrDateString.length === 10) {
+                     return timestampOrDateString; // It's already in YYYY-MM-DD, use as is.
+                 }
+                 // If it's a full timestamp, convert to local YYYY-MM-DD
+                 const year = date.getFullYear();
+                 const month = String(date.getMonth() + 1).padStart(2, '0');
+                 const day = String(date.getDate()).padStart(2, '0');
                  return `${year}-${month}-${day}`;
-             } catch (e) { return ''; }
+             } catch (e) { console.error("Error formatting input date:", e, "Input:", timestampOrDateString); return ''; }
         }
 
         function formatTimeToHHMM(hours, minutes = 0) {
@@ -487,34 +521,34 @@
             const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             currentDateDisplay.textContent = now.toLocaleDateString('en-GB', dateOptions);
 
-            const shiftStartMinutes = SHIFT_START_HOUR * 60; 
-            const shiftEndMinutes = SHIFT_END_HOUR * 60;   
+            const shiftStartMinutes = SHIFT_START_HOUR * 60 + (parseInt(String(shiftStartInput.value).split(':')[1]) || 0) ;
+            const shiftEndMinutes = SHIFT_END_HOUR * 60 + (parseInt(String(shiftEndInput.value).split(':')[1]) || 0);
             const shiftDurationMinutes = shiftEndMinutes - shiftStartMinutes;
 
             let progressPercent = 0;
-            let barColor = '#4ade80';
+            let barColor = '#4ade80'; // green-500
 
             if (currentTimeInMinutes < shiftStartMinutes) {
                 progressPercent = 0;
-                barColor = '#4ade80';
+                barColor = '#4ade80'; // green-500 (Shift hasn't started)
             } else if (currentTimeInMinutes >= shiftEndMinutes) {
                 progressPercent = 100;
-                barColor = '#f87171';
+                barColor = '#f87171'; // red-500 (Shift has ended)
             } else {
                 if (shiftDurationMinutes > 0) {
                     const timeElapsedMinutes = currentTimeInMinutes - shiftStartMinutes;
                     progressPercent = Math.max(0, Math.min(100, (timeElapsedMinutes / shiftDurationMinutes) * 100));
 
                     if (progressPercent < 33.33) {
-                        barColor = '#4ade80';
+                        barColor = '#4ade80'; // green-500
                     } else if (progressPercent < 66.66) {
-                        barColor = '#facc15';
+                        barColor = '#facc15'; // yellow-500
                     } else {
-                        barColor = '#f87171';
+                        barColor = '#f87171'; // red-500
                     }
-                } else {
-                    progressPercent = 100;
-                    barColor = '#f87171';
+                } else { // Should not happen if validation is correct (start < end)
+                    progressPercent = (currentTimeInMinutes >= shiftEndMinutes) ? 100 : 0;
+                    barColor = (progressPercent === 100) ? '#f87171' : '#4ade80';
                 }
             }
 
@@ -555,12 +589,16 @@
 
         function showPage(pageToShowId) {
             closeOpenSubMenu();
+            // NEW: Hide summary message container when switching pages
+            if (emailSummaryMessageContainer) emailSummaryMessageContainer.classList.add('hidden');
+
             if (pageToShowId === 'inputPage') {
                 inputPage.classList.remove('hidden');
                 boardPage.classList.add('hidden');
                 taskSummaryBoardContainer.classList.add('hidden');
                 taskSummaryInputContainer.classList.remove('hidden');
                 if(shiftTimeControls) shiftTimeControls.classList.add('hidden');
+                if(emailSummaryBtn) emailSummaryBtn.classList.add('hidden'); // NEW: Hide summary btn
 
                 showInputPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500');
                 showInputPageBtn.classList.replace('hover:bg-indigo-600', 'hover:bg-blue-600');
@@ -572,6 +610,8 @@
                 taskSummaryInputContainer.classList.add('hidden');
                 taskSummaryBoardContainer.classList.remove('hidden');
                 if(shiftTimeControls) shiftTimeControls.classList.remove('hidden');
+                if(emailSummaryBtn) emailSummaryBtn.classList.remove('hidden'); // NEW: Show summary btn
+
 
                 renderBoard();
                 updateTaskSummary();
@@ -594,9 +634,9 @@
                      const task = tasks[colId].find(t => t.id === taskId);
                      if (task) { task.priority = newPriority; break; }
                  }
-                 renderBoard(); 
-                 renderUpcomingTasks(); 
-                 renderHighestPriorityTasks(); 
+                 renderBoard();
+                 renderUpcomingTasks();
+                 renderHighestPriorityTasks();
              } catch (error) { /* Handled by apiCall */ }
         }
 
@@ -614,24 +654,24 @@
                 try {
                     await apiCall('update-task', 'POST', { id: taskId, updates: { notes: trimmedNotes } });
                     taskRef.notes = trimmedNotes;
-                    renderBoard(); 
+                    renderBoard();
                 } catch (error) { /* Handled by apiCall */ }
             }
         }
 
         async function updateTaskDueDate(taskId, newDate) {
-             console.log(`Updating due date for task ${taskId} to: ${newDate || 'NULL'}`);
-             const dateValueToSend = newDate === '' ? null : newDate;
+             console.log(`Updating due date for task ${taskId} to: ${newDate || 'NULL (cleared)'}`);
+             const dateValueToSend = newDate === '' ? null : newDate; // Ensure empty string means clear date
              try {
                  await apiCall('update-task', 'POST', { id: taskId, updates: { due_date: dateValueToSend } });
                  for (const colId in tasks) {
                      const task = tasks[colId].find(t => t.id === taskId);
                      if (task) { task.due_date = dateValueToSend; break; }
                  }
-                 renderBoard(); 
-                 renderUpcomingTasks(); 
-                 renderHighestPriorityTasks(); 
-             } catch (error) { console.error("Failed to update due date in backend."); }
+                 renderBoard();
+                 renderUpcomingTasks();
+                 renderHighestPriorityTasks();
+             } catch (error) { console.error("Failed to update due date in backend for task " + taskId, error); }
         }
 
         async function markTaskDone(taskId) {
@@ -655,7 +695,7 @@
                  console.log(`Task ${taskId} status updated to done in backend.`);
              } catch (error) {
                   console.error(`Failed to update task ${taskId} status to done in backend:`, error);
-                  alert("Failed to mark task as done. Reverting.");
+                  alert("Failed to mark task as done in backend. Reverting UI change.");
                   const newIndex = tasks.done.findIndex(task => task.id === taskId);
                   if (newIndex > -1) tasks.done.splice(newIndex, 1);
                   taskToMove.status = originalColumnId;
@@ -690,19 +730,19 @@
         function createTaskElement(task) {
             const div = document.createElement('div');
             div.id = task.id;
-            let bgColorClass = 'bg-blue-200'; 
+            let bgColorClass = 'bg-blue-200';
             let borderColorClass = 'border-blue-300';
 
             if (task.priority === 'New') {
-                bgColorClass = 'bg-red-200'; 
+                bgColorClass = 'bg-red-200';
                 borderColorClass = 'border-red-300';
             } else if (task.priority === 'High') {
-                bgColorClass = 'bg-red-200'; 
+                bgColorClass = 'bg-red-200';
                 borderColorClass = 'border-red-300';
             } else if (task.priority === 'Medium') {
-                bgColorClass = 'bg-orange-200'; 
+                bgColorClass = 'bg-orange-200';
                 borderColorClass = 'border-orange-300';
-            }
+            } // Low priority uses default blue-ish theme
 
             div.className = `task relative ${bgColorClass} p-3 rounded-md shadow-sm border ${borderColorClass} flex flex-col`;
             div.draggable = true;
@@ -710,9 +750,14 @@
             div.addEventListener('dragend', dragEnd);
 
             const today = new Date();
-            today.setHours(0, 0, 0, 0); 
-            if (task.due_date && new Date(task.due_date) < today && task.status !== 'done') {
-                div.classList.add('overdue');
+            today.setHours(0, 0, 0, 0);
+            if (task.due_date) {
+                const dueDate = new Date(task.due_date);
+                // Ensure dueDate is also compared at the start of its day
+                const dueDateStartOfDay = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+                 if (dueDateStartOfDay < today && task.status !== 'done') {
+                    div.classList.add('overdue');
+                }
             }
 
 
@@ -752,7 +797,7 @@
             dueDateInput.type = 'date';
             dueDateInput.id = `due-date-${task.id}`;
             dueDateInput.className = 'task-due-date-input text-gray-700';
-            dueDateInput.value = formatDateForInput(task.due_date);
+            dueDateInput.value = formatDateForInput(task.due_date); // Uses updated formatting
             dueDateInput.onchange = (event) => updateTaskDueDate(task.id, event.target.value);
             dueDateDiv.appendChild(dueDateLabel);
             dueDateDiv.appendChild(dueDateInput);
@@ -784,7 +829,7 @@
             subMenu.appendChild(deleteBtn);
 
             const menuBtn = document.createElement('button');
-            menuBtn.innerHTML = '&#8942;';
+            menuBtn.innerHTML = '&#8942;'; // Vertical ellipsis
             menuBtn.className = 'action-btn text-gray-600 hover:text-gray-900';
             menuBtn.title = 'More Actions';
             menuBtn.onclick = (event) => toggleSubMenu(event, task.id);
@@ -802,12 +847,12 @@
             const editModeButtonContainer = document.createElement('div');
             editModeButtonContainer.className = 'edit-mode-buttons hidden';
             const saveBtn = document.createElement('button');
-            saveBtn.innerHTML = '💾';
+            saveBtn.innerHTML = '💾'; // Save icon
             saveBtn.className = 'action-btn text-blue-600 hover:text-blue-800';
             saveBtn.title = 'Save Changes';
             saveBtn.onclick = () => saveTaskEdit(task.id);
             const cancelBtn = document.createElement('button');
-            cancelBtn.textContent = '❌';
+            cancelBtn.textContent = '❌'; // Cancel icon
             cancelBtn.className = 'action-btn text-gray-600 hover:text-gray-800';
             cancelBtn.title = 'Cancel Edit';
             cancelBtn.onclick = () => cancelTaskEdit(task.id);
@@ -834,7 +879,7 @@
                  metaGroup.classList.add('hidden');
                  actionsGroup.classList.add('hidden');
                  editModeButtonContainer.classList.remove('hidden');
-                 bottomSection.classList.remove('hidden');
+                 bottomSection.classList.remove('hidden'); // Ensure bottom section is visible for save/cancel
                 setTimeout(() => editInput.focus(), 0);
             }
             return div;
@@ -844,51 +889,62 @@
         function renderBoard() {
             if (boardPage.classList.contains('hidden')) return;
             const taskContainers = document.querySelectorAll('.tasks-container');
-            taskContainers.forEach(colContainer => colContainer.innerHTML = ''); 
+            taskContainers.forEach(colContainer => colContainer.innerHTML = '');
 
             const today = new Date();
-            today.setHours(0, 0, 0, 0); 
+            today.setHours(0, 0, 0, 0);
 
             for (const columnId in tasks) {
                 if (tasks.hasOwnProperty(columnId) && ['todo', 'inprogress', 'nonurgent'].includes(columnId)) {
                     const columnElement = document.getElementById(columnId)?.querySelector('.tasks-container');
                     if (columnElement) {
-                        let columnTasks = [...tasks[columnId]]; 
+                        let columnTasks = [...tasks[columnId]];
 
                         const newTasks = columnTasks.filter(task => task.priority === "New");
                         const nonNewTasks = columnTasks.filter(task => task.priority !== "New");
-                        
-                        const overdueTasks = nonNewTasks.filter(task => task.due_date && new Date(task.due_date) < today);
-                        const otherTasks = nonNewTasks.filter(task => !(task.due_date && new Date(task.due_date) < today));
 
-                        newTasks.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+                        const overdueTasks = nonNewTasks.filter(task => {
+                            if (!task.due_date) return false;
+                            const dueDate = new Date(task.due_date);
+                            const dueDateStartOfDay = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+                            return dueDateStartOfDay < today;
+                        });
+                        const otherTasks = nonNewTasks.filter(task => {
+                            if (!task.due_date) return true; // Tasks without due date are not overdue
+                            const dueDate = new Date(task.due_date);
+                            const dueDateStartOfDay = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+                            return dueDateStartOfDay >= today;
+                        });
+
+
+                        newTasks.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)); // Oldest "New" first
 
                         overdueTasks.sort((a, b) => {
                             const dateA = new Date(a.due_date).getTime();
                             const dateB = new Date(b.due_date).getTime();
-                            if (dateA !== dateB) return dateA - dateB;
+                            if (dateA !== dateB) return dateA - dateB; // Most overdue first
 
                             const priorityA = PRIORITY_VALUES[a.priority || DEFAULT_PRIORITY] || 0;
                             const priorityB = PRIORITY_VALUES[b.priority || DEFAULT_PRIORITY] || 0;
-                            if (priorityB !== priorityA) return priorityB - priorityA;
-                            
-                            return (a.createdAt || 0) - (b.createdAt || 0);
+                            if (priorityB !== priorityA) return priorityB - priorityA; // Higher priority first
+
+                            return (a.createdAt || 0) - (b.createdAt || 0); // Fallback to creation time
                         });
 
                         otherTasks.sort((a, b) => {
                             const priorityA = PRIORITY_VALUES[a.priority || DEFAULT_PRIORITY] || 0;
                             const priorityB = PRIORITY_VALUES[b.priority || DEFAULT_PRIORITY] || 0;
-                            if (priorityB !== priorityA) return priorityB - priorityA;
+                            if (priorityB !== priorityA) return priorityB - priorityA; // Higher priority first
 
                             const dateA = a.due_date ? new Date(a.due_date).getTime() : null;
                             const dateB = b.due_date ? new Date(b.due_date).getTime() : null;
-                            if (dateA === null && dateB !== null) return 1; 
-                            if (dateA !== null && dateB === null) return -1; 
-                            if (dateA !== null && dateB !== null && dateA !== dateB) return dateA - dateB;
-                            
-                            return (a.createdAt || 0) - (b.createdAt || 0);
+                            if (dateA === null && dateB !== null) return 1; // Tasks with due dates come before those without
+                            if (dateA !== null && dateB === null) return -1;
+                            if (dateA !== null && dateB !== null && dateA !== dateB) return dateA - dateB; // Earlier due date first
+
+                            return (a.createdAt || 0) - (b.createdAt || 0); // Fallback to creation time
                         });
-                        
+
                         const sortedColumnTasks = [...newTasks, ...overdueTasks, ...otherTasks];
 
                         sortedColumnTasks.forEach(task => {
@@ -900,7 +956,7 @@
                     const columnElement = document.getElementById(columnId)?.querySelector('.tasks-container');
                     if (columnElement) {
                         tasks[columnId]
-                            .sort((a,b) => (b.completedAt || b.createdAt || 0) - (a.completedAt || a.createdAt || 0)) 
+                            .sort((a,b) => (b.completedAt || b.createdAt || 0) - (a.completedAt || a.createdAt || 0)) // Most recently completed first
                             .forEach(task => {
                                 const taskElement = createTaskElement(task);
                                 columnElement.appendChild(taskElement);
@@ -946,35 +1002,37 @@
                 if (tasks[status]) { allActiveTasks = allActiveTasks.concat(tasks[status]); }
             });
 
-            const priorityFilteredTasks = allActiveTasks.filter(task => task.priority !== "New");
+            // Filter out "New" priority, as they have their own visual treatment on the board
+            const priorityFilteredTasks = allActiveTasks.filter(task => task.priority !== "New" && PRIORITIES.includes(task.priority));
+
 
             priorityFilteredTasks.sort((a, b) => {
                 const priorityAVal = PRIORITY_VALUES[a.priority || DEFAULT_PRIORITY] || 0;
                 const priorityBVal = PRIORITY_VALUES[b.priority || DEFAULT_PRIORITY] || 0;
                 if (priorityBVal !== priorityAVal) {
-                    return priorityBVal - priorityAVal; 
+                    return priorityBVal - priorityAVal; // Higher numeric value (High priority) first
                 }
 
                 const dateA = a.due_date ? new Date(a.due_date).getTime() : null;
                 const dateB = b.due_date ? new Date(b.due_date).getTime() : null;
-                if (dateA === null && dateB !== null) return 1; 
-                if (dateA !== null && dateB === null) return -1; 
+                if (dateA === null && dateB !== null) return 1; // Tasks with due dates first
+                if (dateA !== null && dateB === null) return -1;
                 if (dateA !== null && dateB !== null && dateA !== dateB) {
-                    return dateA - dateB; 
+                    return dateA - dateB; // Earlier due date first
                 }
 
-                return (a.createdAt || 0) - (b.createdAt || 0); 
+                return (a.createdAt || 0) - (b.createdAt || 0); // Fallback to creation time
             });
 
             const top6PriorityTasks = priorityFilteredTasks.slice(0, 6);
 
-            highestPriorityList.innerHTML = ''; 
+            highestPriorityList.innerHTML = '';
             if (top6PriorityTasks.length === 0) {
                 highestPriorityList.innerHTML = '<p class="text-xs text-gray-500 text-center italic">No tasks with High/Medium/Low priority.</p>';
             } else {
                 top6PriorityTasks.forEach(task => {
                     const taskDiv = document.createElement('div');
-                    taskDiv.className = 'priority-task'; 
+                    taskDiv.className = 'priority-task';
                     let priorityLabelClass = '';
                     if (task.priority === "High") priorityLabelClass = 'priority-label-high';
                     else if (task.priority === "Medium") priorityLabelClass = 'priority-label-medium';
@@ -996,36 +1054,44 @@
             if (taskText === '') { alert('Please enter a task description.'); newTaskInput.focus(); return; }
 
             const newTaskData = {
-                text: taskText, name: "Jay",
-                priority: "New", 
+                text: taskText, name: "Jay", // 'name' might be legacy, ensure backend handles it or remove if not used
+                priority: "New", // Default for new tasks
                 notes: '', status: 'todo', due_date: null,
-                createdAt: Date.now() 
+                createdAt: Date.now() // For immediate client-side sorting if needed
             };
             addTaskBtn.disabled = true;
             addTaskMessage.textContent = 'Adding task...';
             addTaskMessage.classList.remove('text-green-400', 'text-gray-400', 'text-red-400');
             try {
-                const addedTask = await apiCall('add-task', 'POST', newTaskData); 
+                // Backend should set its own `created_at` and return the full task object including ID
+                const addedTask = await apiCall('add-task', 'POST', newTaskData);
                 if (addedTask && addedTask.id) {
                      if (!tasks.todo) tasks.todo = [];
+                     // Ensure all necessary fields from backend are present for UI consistency
                      addedTask.createdAt = addedTask.created_at ? new Date(addedTask.created_at).getTime() : newTaskData.createdAt;
                      addedTask.priority = addedTask.priority || "New";
                      addedTask.notes = addedTask.notes || '';
                      addedTask.due_date = addedTask.due_date || null;
+                     addedTask.status = addedTask.status || 'todo';
+
                      tasks.todo.push(addedTask);
                      updateTaskSummary();
                      renderUpcomingTasks();
-                     renderHighestPriorityTasks(); 
-                     if (!boardPage.classList.contains('hidden')) renderBoard();
-                } else { await loadTasks(); }
+                     renderHighestPriorityTasks();
+                     if (!boardPage.classList.contains('hidden')) renderBoard(); // Re-render board if visible
+                } else {
+                    // If backend didn't return a proper task, reload all to be safe
+                    console.warn("Add task didn't return expected object, reloading all tasks.");
+                    await loadTasks();
+                }
                 clearTimeout(successMessageTimeout); clearInterval(cooldownTimer);
                 addTaskMessage.textContent = `Task added: "${addedTask.text || taskText}"`;
-                addTaskMessage.classList.add('text-green-400');
+                addTaskMessage.classList.add('text-green-400'); // Assuming Tailwind green-400 is available
                 let secondsRemaining = COOLDOWN_SECONDS;
                 successMessageTimeout = setTimeout(() => {
-                     if (addTaskBtn.disabled) {
+                     if (addTaskBtn.disabled) { // Check if still disabled (i.e., no other action enabled it)
                          addTaskMessage.classList.remove('text-green-400');
-                         addTaskMessage.classList.add('text-gray-400');
+                         addTaskMessage.classList.add('text-gray-400'); // Assuming Tailwind gray-400
                          addTaskMessage.textContent = `Please wait ${secondsRemaining} seconds...`;
                          cooldownTimer = setInterval(() => {
                              secondsRemaining--;
@@ -1033,9 +1099,12 @@
                              else { clearInterval(cooldownTimer); cooldownTimer = null; addTaskBtn.disabled = false; addTaskMessage.textContent = ''; }
                          }, 1000);
                      }
-                }, 1500);
+                }, 1500); // Display success message for 1.5s then start cooldown text
             } catch (error) {
-                addTaskBtn.disabled = false; addTaskMessage.textContent = 'Error adding task.'; addTaskMessage.classList.add('text-red-400');
+                // Error already alerted by apiCall, just reset button state
+                addTaskBtn.disabled = false;
+                addTaskMessage.textContent = 'Error adding task.';
+                addTaskMessage.classList.add('text-red-400'); // Assuming Tailwind red-400
             } finally {
                  newTaskInput.value = '';
                  newTaskInput.focus();
@@ -1044,21 +1113,21 @@
 
         async function deleteTask(taskId) {
              closeOpenSubMenu();
-            if (currentlyEditingTaskId === taskId) return;
+            if (currentlyEditingTaskId === taskId) return; // Don't delete if mid-edit
             if (!confirm('Are you sure you want to delete this task?')) return;
             try {
                 await apiCall('delete-task', 'POST', { id: taskId });
                 for (const columnId in tasks) { tasks[columnId] = tasks[columnId].filter(task => task.id !== taskId); }
                 renderBoard(); updateTaskSummary();
                 renderUpcomingTasks();
-                renderHighestPriorityTasks(); 
+                renderHighestPriorityTasks();
             } catch (error) { /* Handled by apiCall */ }
         }
 
         function startEditTask(taskId) {
              closeOpenSubMenu();
             if (currentlyEditingTaskId && currentlyEditingTaskId !== taskId) { cancelTaskEdit(currentlyEditingTaskId); }
-            currentlyEditingTaskId = taskId; renderBoard();
+            currentlyEditingTaskId = taskId; renderBoard(); // Re-render will show input for this task
         }
 
         async function saveTaskEdit(taskId) {
@@ -1074,9 +1143,13 @@
                     if (task) { task.text = newText; break; }
                  }
                  currentlyEditingTaskId = null; renderBoard();
-                 renderUpcomingTasks(); 
-                 renderHighestPriorityTasks();
-            } catch (error) { currentlyEditingTaskId = null; renderBoard(); }
+                 renderUpcomingTasks(); // Task text might appear here
+                 renderHighestPriorityTasks(); // Task text might appear here
+            } catch (error) {
+                // Error alerted by apiCall. Optionally revert UI or leave as is for retry.
+                // For now, just stop editing mode.
+                currentlyEditingTaskId = null; renderBoard();
+            }
         }
 
         function cancelTaskEdit(taskId) { currentlyEditingTaskId = null; renderBoard(); }
@@ -1085,25 +1158,33 @@
             console.log("Loading tasks...");
             try {
                 const fetchedTasks = await apiCall('get-tasks');
-                tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };
+                tasks = { todo: [], inprogress: [], nonurgent: [], done: [] }; // Reset tasks
                 fetchedTasks.forEach(task => {
                     task.priority = task.priority || DEFAULT_PRIORITY;
                     task.notes = task.notes || '';
-                    task.createdAt = task.created_at ? new Date(task.created_at).getTime() : Date.now(); 
-                    task.due_date = task.due_date || null;
-                    const status = task.status || 'todo';
-                    if (VALID_STATUSES.includes(status)) { tasks[status].push(task); }
-                    else { console.warn(`Invalid task status "${status}" for task ID ${task.id}. Placing in 'todo'.`); tasks.todo.push(task); }
+                    task.createdAt = task.created_at ? new Date(task.created_at).getTime() : Date.now();
+                    task.due_date = task.due_date || null; // Ensure it's null if not set
+                    const status = task.status || 'todo'; // Default to 'todo' if status is missing
+                    if (VALID_STATUSES.includes(status)) {
+                        if (!tasks[status]) tasks[status] = []; // Ensure column array exists
+                        tasks[status].push(task);
+                    } else {
+                        console.warn(`Invalid task status "${status}" for task ID ${task.id}. Placing in 'todo'.`);
+                        if (!tasks.todo) tasks.todo = [];
+                        tasks.todo.push(task);
+                    }
                 });
                 console.log("Tasks loaded and processed:", tasks);
             } catch (error) {
                 console.error("Error loading tasks from backend:", error);
+                // Keep existing tasks or clear them? For now, clear on failed load to avoid stale data.
                 tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };
+                // Optionally display an error message to the user on the board
             } finally {
-                 currentlyEditingTaskId = null;
+                 currentlyEditingTaskId = null; // Reset editing state
                  updateTaskSummary();
                  renderUpcomingTasks();
-                 renderHighestPriorityTasks(); 
+                 renderHighestPriorityTasks();
                  if (!boardPage.classList.contains('hidden')) { renderBoard(); }
             }
         }
@@ -1118,6 +1199,7 @@
                  stickyNoteTextarea.value = data?.content || '';
                  console.log("Main sticky note loaded.");
              } catch (error) {
+                 // Error already logged by apiCall, and alert is suppressed for this one.
                  stickyNoteTextarea.value = "Error loading note.";
              }
         }
@@ -1163,8 +1245,8 @@
             const contentToSave = stickyNoteTextareaAAT.value;
             saveStickyNoteBtnAAT.disabled = true;
             stickyNoteMessageAAT.textContent = 'Saving...';
-            stickyNoteMessageAAT.classList.remove('text-red-700', 'text-green-700'); 
-            stickyNoteMessageAAT.classList.add('text-gray-700'); 
+            stickyNoteMessageAAT.classList.remove('text-red-700', 'text-green-700');
+            stickyNoteMessageAAT.classList.add('text-gray-700');
             clearTimeout(stickyNoteAATSaveTimeout);
             try {
                 await apiCall('update-sticky-note', 'POST', { content: contentToSave, note_id: STICKY_NOTE_ID_AAT });
@@ -1181,22 +1263,24 @@
                 saveStickyNoteBtnAAT.disabled = false;
             }
         }
-        
+
         // --- Shift Time Persistence Functions ---
         async function loadShiftTimes() {
-            console.log("Loading shift times from Supabase...");
+            console.log("Loading shift times from Supabase (via sticky notes)...");
             let startHourLoaded = false;
             let endHourLoaded = false;
 
             try {
                 const startTimeData = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_SHIFT_START });
-                if (startTimeData && startTimeData.content) {
-                    const [hours] = startTimeData.content.split(':').map(Number);
-                    if (!isNaN(hours)) {
-                        SHIFT_START_HOUR = hours;
-                        shiftStartInput.value = startTimeData.content; 
+                if (startTimeData && startTimeData.content && startTimeData.content.includes(':')) {
+                    const [hoursStr, minutesStr] = startTimeData.content.split(':');
+                    const hours = parseInt(hoursStr);
+                    const minutes = parseInt(minutesStr);
+                    if (!isNaN(hours) && !isNaN(minutes)) {
+                        SHIFT_START_HOUR = hours; // Keep main hour for logic
+                        shiftStartInput.value = startTimeData.content;
                         startHourLoaded = true;
-                        console.log("Shift start time loaded:", SHIFT_START_HOUR, "(Full:", startTimeData.content, ")");
+                        console.log("Shift start time loaded:", startTimeData.content);
                     }
                 }
             } catch (error) {
@@ -1205,54 +1289,42 @@
 
             try {
                 const endTimeData = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_SHIFT_END });
-                if (endTimeData && endTimeData.content) {
-                    const [hours] = endTimeData.content.split(':').map(Number);
-                    if (!isNaN(hours)) {
-                        SHIFT_END_HOUR = hours;
-                        shiftEndInput.value = endTimeData.content; 
+                if (endTimeData && endTimeData.content && endTimeData.content.includes(':')) {
+                    const [hoursStr, minutesStr] = endTimeData.content.split(':');
+                    const hours = parseInt(hoursStr);
+                    const minutes = parseInt(minutesStr);
+                    if (!isNaN(hours) && !isNaN(minutes)) {
+                        SHIFT_END_HOUR = hours; // Keep main hour for logic
+                        shiftEndInput.value = endTimeData.content;
                         endHourLoaded = true;
-                        console.log("Shift end time loaded:", SHIFT_END_HOUR, "(Full:", endTimeData.content, ")");
+                        console.log("Shift end time loaded:", endTimeData.content);
                     }
                 }
             } catch (error) {
                 console.warn("Could not load shift end time, using default. Error:", error.message);
             }
 
-            if (!startHourLoaded) { 
-                shiftStartInput.value = formatTimeToHHMM(SHIFT_START_HOUR);
-                console.log("Default shift start time set to input:", SHIFT_START_HOUR);
+            if (!startHourLoaded) {
+                shiftStartInput.value = formatTimeToHHMM(SHIFT_START_HOUR, 0); // Default to :00 if not loaded
+                console.log("Default shift start time set to input:", shiftStartInput.value);
             }
-            if (!endHourLoaded) { 
-                shiftEndInput.value = formatTimeToHHMM(SHIFT_END_HOUR);
-                console.log("Default shift end time set to input:", SHIFT_END_HOUR);
+            if (!endHourLoaded) {
+                shiftEndInput.value = formatTimeToHHMM(SHIFT_END_HOUR, 0); // Default to :00 if not loaded
+                console.log("Default shift end time set to input:", shiftEndInput.value);
             }
-            updateDateTimeDisplay(); 
+            updateDateTimeDisplay();
         }
 
         async function saveShiftTime(noteId, timeValueString) {
             console.log(`Saving shift time for ID ${noteId}: ${timeValueString}`);
+            // No separate message area for individual shift time saves, general button will handle feedback
             try {
                 await apiCall('update-sticky-note', 'POST', { content: timeValueString, note_id: noteId });
                 console.log(`Shift time for ID ${noteId} saved successfully.`);
-                const shiftTimeMessageArea = document.getElementById('shiftTimeControls'); 
-                if (shiftTimeMessageArea) {
-                    let msgElement = document.getElementById('shiftTimeSaveMessage');
-                    if (!msgElement) {
-                        msgElement = document.createElement('p');
-                        msgElement.id = 'shiftTimeSaveMessage';
-                        msgElement.className = 'text-xs text-green-400 ml-2'; 
-                        updateShiftTimesBtn.insertAdjacentElement('afterend', msgElement);
-                    }
-                    msgElement.textContent = 'Times saved!';
-                    clearTimeout(shiftTimeSaveMessageTimeout);
-                    shiftTimeSaveMessageTimeout = setTimeout(() => {
-                        if(msgElement) msgElement.textContent = '';
-                    }, 2000);
-                }
-
             } catch (error) {
                 console.error(`Failed to save shift time for ID ${noteId}:`, error);
                 alert(`Failed to save shift ${noteId === STICKY_NOTE_ID_SHIFT_START ? 'start' : 'end'} time.`);
+                throw error; // Re-throw to be caught by the caller Promise.all
             }
         }
 
@@ -1262,73 +1334,97 @@
             if (currentlyEditingTaskId || document.activeElement.tagName === 'SELECT' || document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
                  event.preventDefault(); return;
             }
-            draggedTask = event.currentTarget;
+            draggedTask = event.currentTarget; // The div.task itself
             event.dataTransfer.setData('text/plain', draggedTask.id);
             event.dataTransfer.effectAllowed = 'move';
-            setTimeout(() => { if(draggedTask) draggedTask.classList.add('dragging'); }, 0);
+            setTimeout(() => { if(draggedTask) draggedTask.classList.add('dragging'); }, 0); // Add dragging class after a tick
         }
 
         function dragEnd(event) {
             if (draggedTask) draggedTask.classList.remove('dragging');
             draggedTask = null;
-            try { event.dataTransfer.clearData(); } catch(e) {}
+            try { event.dataTransfer.clearData(); } catch(e) { /* ignore potential errors in some browsers */ }
         }
 
         function allowDrop(event) {
-            if (event.target.closest('.task') || event.target.closest('button') || event.target.closest('select')) {
+            // Prevent drop on tasks, buttons, or selects within the column
+            if (event.target.closest('.task') || event.target.closest('button') || event.target.closest('select') || event.target.closest('input') || event.target.closest('textarea')) {
                 return;
             }
-            event.preventDefault();
+            event.preventDefault(); // Allow drop on the column itself
         }
 
         function drop(event) {
             event.preventDefault();
             if (!draggedTask) return;
-            if (event.target.closest('.task')) return; 
-            const targetColumnElement = event.currentTarget; // This is the .kanban-column div
-            const targetColumnId = targetColumnElement.id;   // Get the ID directly from it
+            if (event.target.closest('.task')) return; // Don't allow dropping directly ON another task element
+
+            const targetColumnElement = event.currentTarget; // This should be the .kanban-column div
+            if (!targetColumnElement || !targetColumnElement.classList.contains('kanban-column')) {
+                console.warn("Drop target is not a kanban column:", event.target);
+                return;
+            }
+            const targetColumnId = targetColumnElement.id;
             handleDropLogic(targetColumnId, draggedTask);
         }
 
         async function handleDropLogic(targetColumnId, taskElement) {
              const taskId = taskElement.id;
              const sourceColumnId = taskElement.closest('.kanban-column')?.id;
-             if (!sourceColumnId || sourceColumnId === targetColumnId) return;
+
+             if (!sourceColumnId || sourceColumnId === targetColumnId) {
+                 console.log("Source and target column are the same or source not found. No action.");
+                 return;
+             }
              if (!VALID_STATUSES.includes(targetColumnId)) {
                  console.error(`Invalid drop target column ID: ${targetColumnId}`); return;
              }
-             let taskToMove = null; let originalIndex = -1; let originalColumnId = '';
+
+             let taskToMove = null; let originalIndex = -1;
+             // Find task in the local `tasks` object
              for (const colId in tasks) {
                  originalIndex = tasks[colId].findIndex(task => task.id === taskId);
-                 if (originalIndex > -1) { originalColumnId = colId; taskToMove = tasks[colId][originalIndex]; break; }
+                 if (originalIndex > -1) {
+                     taskToMove = tasks[colId][originalIndex];
+                     tasks[colId].splice(originalIndex, 1); // Remove from old column in local state
+                     break;
+                 }
              }
-             if (!taskToMove) { console.error("Could not find task in local state during drop:", taskId); return; }
 
-             tasks[originalColumnId].splice(originalIndex, 1);
-             if (!tasks[targetColumnId]) tasks[targetColumnId] = [];
-             tasks[targetColumnId].push(taskToMove);
-             taskToMove.status = targetColumnId;
+             if (!taskToMove) {
+                 console.error("Could not find task in local state during drop:", taskId);
+                 // Potentially reload tasks if state is inconsistent
+                 return;
+             }
 
-             renderBoard(); 
+             if (!tasks[targetColumnId]) tasks[targetColumnId] = []; // Ensure target column array exists
+             tasks[targetColumnId].push(taskToMove); // Add to new column in local state
+             taskToMove.status = targetColumnId; // Update task's status property
+
+             renderBoard(); // Re-render the board with optimistic update
              updateTaskSummary();
-             renderUpcomingTasks();
-             renderHighestPriorityTasks(); 
+             renderUpcomingTasks(); // Status change can affect these lists
+             renderHighestPriorityTasks();
 
              try {
                  await apiCall('update-task', 'POST', { id: taskId, updates: { status: targetColumnId } });
+                 console.log(`Task ${taskId} moved to ${targetColumnId} in backend.`);
                  if (targetColumnId === 'done' && sourceColumnId !== 'done') triggerConfetti();
              } catch (error) {
-                  console.error(`Failed to update task ${taskId} status in backend:`, error);
-                  alert("Failed to move task. Reverting.");
-                  const newIndex = tasks[targetColumnId].findIndex(task => task.id === taskId);
-                  if (newIndex > -1) tasks[targetColumnId].splice(newIndex, 1);
-                  taskToMove.status = originalColumnId;
-                  if (!tasks[originalColumnId]) tasks[originalColumnId] = [];
-                  tasks[originalColumnId].splice(originalIndex, 0, taskToMove);
-                  renderBoard(); 
+                  console.error(`Failed to update task ${taskId} status in backend after drop:`, error);
+                  alert("Failed to move task on the server. Reverting UI change.");
+                  // Revert UI change
+                  const newIndexInTarget = tasks[targetColumnId].findIndex(task => task.id === taskId);
+                  if (newIndexInTarget > -1) tasks[targetColumnId].splice(newIndexInTarget, 1);
+
+                  if (!tasks[sourceColumnId]) tasks[sourceColumnId] = [];
+                  tasks[sourceColumnId].splice(originalIndex, 0, taskToMove); // Add back to original position
+                  taskToMove.status = sourceColumnId; // Reset status
+
+                  renderBoard();
                   updateTaskSummary();
                   renderUpcomingTasks();
-                  renderHighestPriorityTasks(); 
+                  renderHighestPriorityTasks();
              }
         }
 
@@ -1337,13 +1433,67 @@
             myConfetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
         }
 
+        // --- NEW: Email Summary Function ---
+        async function handleEmailSummary() {
+            if (!emailSummaryBtn || emailSummaryBtn.disabled) return;
+
+            emailSummaryBtn.disabled = true;
+            emailSummaryMessageContainer.classList.remove('hidden');
+            emailSummaryMessage.textContent = 'Gathering tasks and generating summary...';
+            emailSummaryMessage.className = 'text-yellow-400 text-sm'; // Tailwind yellow
+
+            // Collect tasks (e.g., from 'todo' and 'inprogress')
+            // We send raw task objects so backend can choose details for the prompt
+            const tasksForSummary = [
+                ...(tasks.todo || []),
+                ...(tasks.inprogress || []),
+                ...(tasks.nonurgent || []) // Optionally include non-urgent as well
+            ].filter(task => task.status !== 'done'); // Ensure no done tasks are sent
+
+            if (tasksForSummary.length === 0) {
+                emailSummaryMessage.textContent = 'No active tasks to summarize.';
+                emailSummaryMessage.className = 'text-gray-300 text-sm';
+                emailSummaryBtn.disabled = false;
+                clearTimeout(emailSummaryTimeout);
+                emailSummaryTimeout = setTimeout(() => {
+                    emailSummaryMessageContainer.classList.add('hidden');
+                    emailSummaryMessage.textContent = '';
+                }, 3000);
+                return;
+            }
+
+            try {
+                const response = await apiCall('summarize-and-email', 'POST', { tasks: tasksForSummary });
+                console.log("Summarize and email response:", response);
+                if (response.status === 207) { // Multi-status, e.g. summary OK, email failed
+                     emailSummaryMessage.textContent = `Summary generated, but email failed: ${response.emailError || 'Unknown email error'}`;
+                     emailSummaryMessage.className = 'text-orange-400 text-sm'; // Tailwind orange
+                } else {
+                    emailSummaryMessage.textContent = response.message || 'Summary emailed successfully!';
+                    emailSummaryMessage.className = 'text-green-400 text-sm'; // Tailwind green
+                }
+            } catch (error) {
+                console.error('Error calling summarize-and-email function:', error);
+                emailSummaryMessage.textContent = `Error: ${error.message || 'Could not process summary request.'}`;
+                emailSummaryMessage.className = 'text-red-400 text-sm'; // Tailwind red
+            } finally {
+                emailSummaryBtn.disabled = false;
+                clearTimeout(emailSummaryTimeout);
+                emailSummaryTimeout = setTimeout(() => {
+                    emailSummaryMessageContainer.classList.add('hidden');
+                    emailSummaryMessage.textContent = '';
+                }, 7000); // Keep message displayed longer
+            }
+        }
+
+
         // --- Initialization & Event Listeners ---
         addTaskBtn.addEventListener('click', addTask);
         showInputPageBtn.addEventListener('click', () => showPage('inputPage'));
         showBoardPageBtn.addEventListener('click', async () => {
             if (isPinCooldownActive) { alert("Please wait before trying the pin again."); return; }
             const pinInput = prompt("Please enter the pin code to view the board:");
-            if (pinInput === null) return;
+            if (pinInput === null) return; // User cancelled prompt
             try {
                  const result = await apiCall('check-pin', 'POST', { enteredPin: pinInput });
                  if (result && result.valid) {
@@ -1359,7 +1509,7 @@
                          console.log("Pin cooldown finished.");
                      }, PIN_COOLDOWN_SECONDS * 1000);
                  }
-            } catch (error) { /* Handled by apiCall */ }
+            } catch (error) { /* Error already alerted by apiCall */ }
         });
 
         if(saveStickyNoteBtn) {
@@ -1370,8 +1520,8 @@
         }
 
         updateShiftTimesBtn.addEventListener('click', async () => {
-            const newStartString = shiftStartInput.value; 
-            const newEndString = shiftEndInput.value;   
+            const newStartString = shiftStartInput.value;
+            const newEndString = shiftEndInput.value;
 
             if (newStartString && newEndString) {
                 const [startH, startM] = newStartString.split(':').map(Number);
@@ -1381,23 +1531,42 @@
                     alert("Shift start time must be before end time.");
                     return;
                 }
-                SHIFT_START_HOUR = startH;
-                SHIFT_END_HOUR = endH; 
-                
-                console.log(`Shift times updated locally: Start ${SHIFT_START_HOUR}, End ${SHIFT_END_HOUR}`);
-                updateDateTimeDisplay(); 
+                SHIFT_START_HOUR = startH; // Update global hour for progress logic
+                SHIFT_END_HOUR = endH;   // Update global hour for progress logic
 
-                updateShiftTimesBtn.disabled = true; 
+                console.log(`Shift times updated locally: Start ${newStartString}, End ${newEndString}`);
+                updateDateTimeDisplay(); // Immediately reflect change in progress bar
+
+                updateShiftTimesBtn.disabled = true;
+                let originalButtonText = updateShiftTimesBtn.textContent;
+                updateShiftTimesBtn.textContent = "Saving...";
+
                 try {
                     await Promise.all([
                         saveShiftTime(STICKY_NOTE_ID_SHIFT_START, newStartString),
                         saveShiftTime(STICKY_NOTE_ID_SHIFT_END, newEndString)
                     ]);
-                    console.log("Both shift times attempted to save to Supabase.");
+                    console.log("Both shift times attempted to save.");
+                    // Add a success message indicator near the button
+                    let msgElement = document.getElementById('shiftTimeSaveMessage');
+                    if (!msgElement) {
+                        msgElement = document.createElement('span'); // Use span for inline
+                        msgElement.id = 'shiftTimeSaveMessage';
+                        msgElement.className = 'text-xs text-green-400 ml-2';
+                        updateShiftTimesBtn.insertAdjacentElement('afterend', msgElement);
+                    }
+                    msgElement.textContent = 'Times saved!';
+                    clearTimeout(shiftTimeSaveMessageTimeout);
+                    shiftTimeSaveMessageTimeout = setTimeout(() => {
+                        if(msgElement) msgElement.textContent = '';
+                    }, 2000);
+
                 } catch (error) {
-                    console.error("Error during saving one or both shift times:", error);
+                    // Errors are alerted by saveShiftTime, no need for duplicate alert here.
+                    console.error("Error during saving one or both shift times to backend:", error);
                 } finally {
-                    updateShiftTimesBtn.disabled = false; 
+                    updateShiftTimesBtn.disabled = false;
+                    updateShiftTimesBtn.textContent = originalButtonText;
                 }
 
             } else {
@@ -1405,21 +1574,26 @@
             }
         });
 
+        // NEW: Event listener for Email Summary button
+        if (emailSummaryBtn) {
+            emailSummaryBtn.addEventListener('click', handleEmailSummary);
+        }
+
 
          document.addEventListener('click', (event) => {
              const clickedSubMenu = event.target.closest('.task-submenu');
-             const clickedMenuButton = event.target.closest('.action-btn[title="More Actions"]');
+             const clickedMenuButton = event.target.closest('.action-btn[title="More Actions"]'); // More specific selector
              if (!clickedSubMenu && !clickedMenuButton && openSubMenuId) {
                  closeOpenSubMenu();
              }
          });
 
         document.addEventListener('DOMContentLoaded', async () => {
-             showPage('inputPage');
-             await loadTasks(); 
-             await loadShiftTimes(); 
+             showPage('inputPage'); // Default to input page
+             await loadTasks();
+             await loadShiftTimes(); // This also calls updateDateTimeDisplay
              if (dateTimeInterval) clearInterval(dateTimeInterval);
-             dateTimeInterval = setInterval(updateDateTimeDisplay, 60000);
+             dateTimeInterval = setInterval(updateDateTimeDisplay, 60000); // Update time/progress every minute
         });
 
     </script>
