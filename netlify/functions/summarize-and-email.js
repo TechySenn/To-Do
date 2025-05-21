@@ -77,7 +77,13 @@ Concise Summary:`; // Ensure this closing backtick is present and correct
 
         // 2. Send Email with Mailgun
         const mailgun = new Mailgun(formData); // formData is required by mailgun.js
-        const mg = mailgun.client({ username: 'api', key: MAILGUN_API_KEY });
+        
+        // UPDATED FOR EU REGION:
+        const mg = mailgun.client({
+            username: 'api',
+            key: MAILGUN_API_KEY,
+            url: 'https://api.eu.mailgun.net' // Specify EU endpoint
+        });
 
         const emailSubject = `Jay's To-Do List Summary - ${new Date().toLocaleDateString('en-GB')}`;
         const emailHtmlBody = `<p>Hi Jay,</p>
@@ -97,14 +103,17 @@ Concise Summary:`; // Ensure this closing backtick is present and correct
         try {
             await mg.messages.create(MAILGUN_DOMAIN, emailData);
         } catch (mailgunError) {
+            // Log the full error object for better debugging if issues persist
+            console.error('Full Mailgun Error Object:', JSON.stringify(mailgunError, Object.getOwnPropertyNames(mailgunError), 2));
             console.error('Error sending email with Mailgun:', mailgunError.details || mailgunError.message || mailgunError);
+            
             // If email fails, still return the summary if it was generated
             return {
                 statusCode: 207, // Multi-Status: Indicates part of the operation failed
                 body: JSON.stringify({
                     message: 'Summary generated, but sending email failed.',
-                    summary: summaryText, // Send back the summary even if email fails
-                    emailError: mailgunError.message
+                    summary: summaryText, 
+                    emailError: mailgunError.message || 'An unknown error occurred with Mailgun.'
                 })
             };
         }
