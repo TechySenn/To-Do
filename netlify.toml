@@ -10,7 +10,7 @@
 #   command = "" # No build command needed for simple static site + functions
 #   publish = "." # Publish the root directory
 
-[functions."summarize-and-email"]
+# [functions."summarize-and-email"]
   # schedule = "@daily" # This is a predefined expression for once a day, midnight UTC
   # Or for a specific time, e.g., 7 AM UTC:
-  schedule = "23 11 * * *"
+ # schedule = "23 11 * * *"
