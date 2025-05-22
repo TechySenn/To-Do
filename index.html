@@ -324,7 +324,7 @@
         const PRIORITY_VALUES = { "New": 4, "High": 3, "Medium": 2, "Low": 1 };
         const FUNCTION_BASE_PATH = '/.netlify/functions/';
         const VALID_STATUSES = ['todo', 'inprogress', 'nonurgent', 'done'];
-        let SHIFT_START_HOUR = 9; let SHIFT_END_HOUR = 16; // Corrected from 17 to 16 as per your original working file
+        let SHIFT_START_HOUR = 9; let SHIFT_END_HOUR = 16; 
         const STICKY_NOTE_ID_MAIN = 1; const STICKY_NOTE_ID_AAT = 2;
         const STICKY_NOTE_ID_SHIFT_START = 3; const STICKY_NOTE_ID_SHIFT_END = 4;
 
@@ -373,15 +373,14 @@
 
 
         // --- Generic Fetch Helper ---
+        // CORRECTED apiCall function
         async function apiCall(endpoint, method = 'GET', paramsOrBody = null) {
             const options = { method, headers: {} };
             let url = `${FUNCTION_BASE_PATH}${endpoint}`;
 
             if (method === 'GET' && paramsOrBody) {
                 const queryParams = new URLSearchParams(paramsOrBody).toString();
-                if (queryParams) {
-                    url += `?${queryParams}`;
-                }
+                if (queryParams) url += `?${queryParams}`;
             } else if (paramsOrBody) {
                 options.headers['Content-Type'] = 'application/json';
                 options.body = JSON.stringify(paramsOrBody);
@@ -389,41 +388,43 @@
             
             try {
                 const fetchResponse = await fetch(url, options);
+                const responseStatus = fetchResponse.status; // Get status first
                 const isJson = fetchResponse.headers.get('content-type')?.includes('application/json');
                 let responseData; 
 
                 if (isJson) {
                     responseData = await fetchResponse.json();
                 } else {
-                    responseData = { message: await fetchResponse.text() };
+                    // If not JSON, create an object with a message. Useful for non-JSON error messages.
+                    responseData = { message: await fetchResponse.text() }; 
                 }
                 
-                // Add status to responseData so it's available to the caller
-                // This was a key part of making the response handling consistent
-                responseData.status = fetchResponse.status;
-
-
                 if (!fetchResponse.ok) {
-                    const error = (responseData && (responseData.error || responseData.message)) || `HTTP error! status: ${fetchResponse.status}`;
-                    console.error(`API Error (${url}, Status: ${fetchResponse.status}):`, error, responseData?.details || responseData);
+                    // Use message from responseData if available (e.g. from a JSON error body), otherwise construct a generic one
+                    const errorMessage = (responseData && (responseData.error || responseData.message)) || `HTTP error! Status: ${responseStatus}`;
+                    console.error(`API Error (${url}, Status: ${responseStatus}):`, errorMessage, responseData?.details);
                     
-                    if (!(endpoint === 'get-sticky-note' && method === 'GET' && fetchResponse.status === 500)) { 
-                         alert(`Operation failed: ${error}. Status: ${fetchResponse.status}. Please check console or try again.`);
+                    // Suppress alerts for known "silent fail" scenarios like initial sticky note load error
+                    if (!(endpoint === 'get-sticky-note' && method === 'GET' && responseStatus === 500)) { 
+                         alert(`Operation failed: ${errorMessage}. Status: ${responseStatus}. Please check console or try again.`);
                     }
-                    throw { message: String(error), status: fetchResponse.status, data: responseData };
+                    // Throw an object that includes the status and the actual data received for finer control in the caller
+                    throw { message: String(errorMessage), status: responseStatus, data: responseData };
                 }
-                return { data: responseData, status: fetchResponse.status }; 
+                // Return an object containing both the actual data payload and the status separately
+                return { data: responseData, status: responseStatus }; 
             } catch (error) { 
                 console.error(`API Call Failed (${url}):`, error);
+                // If error already has a status (from the custom throw above), rethrow it
                 if (error.status !== undefined) { 
                     throw error;
                 }
+                // Otherwise, wrap it as a generic client-side or network error
                 throw { message: error.message || "Network error or issue parsing response", status: null, data: null };
             }
         }
 
         // --- Functions ---
-        // Functions from your working file, with modifications for calendar
         function formatDate(timestampOrDateString) {
             if (!timestampOrDateString) return 'N/A';
             try {
@@ -451,11 +452,8 @@
              try {
                  const date = new Date(timestampOrDateString);
                  if (typeof timestampOrDateString === 'string' && timestampOrDateString.length === 10 && timestampOrDateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                     // If it's already YYYY-MM-DD, ensure it's treated as local if it came from a date input.
-                     // Supabase might store it as YYYY-MM-DD (which JS Date() treats as UTC midnight).
-                     // For consistency in comparison, let's parse and reformat to local YYYY-MM-DD.
                      const [year, month, day] = timestampOrDateString.split('-').map(Number);
-                     const localDate = new Date(Date.UTC(year, month - 1, day)); // Treat as UTC then get local parts
+                     const localDate = new Date(Date.UTC(year, month - 1, day)); 
                      return `${localDate.getFullYear()}-${String(localDate.getMonth() + 1).padStart(2, '0')}-${String(localDate.getDate()).padStart(2, '0')}`;
                  }
                  if (isNaN(date.getTime())) return '';
@@ -478,7 +476,6 @@
             const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             if (currentDateDisplay) currentDateDisplay.textContent = now.toLocaleDateString('en-GB', dateOptions);
             
-            // Defensive coding for shift inputs
             const startVal = shiftStartInput?.value || `${SHIFT_START_HOUR}:00`;
             const endVal = shiftEndInput?.value || `${SHIFT_END_HOUR}:00`;
 
@@ -556,7 +553,7 @@
                 const currentDateOfCell = new Date(year, month, day); currentDateOfCell.setHours(0,0,0,0);
                 if (currentDateOfCell.getTime() === today.getTime()) dayCell.classList.add('current-day');
                 let tasksDueOnThisDay = 0; const calendarDayString = formatDateForInput(currentDateOfCell);
-                for (const status of ['todo', 'inprogress', 'nonurgent']) {
+                for (const status of ['todo', 'inprogress', 'nonurgent']) { // Only count active tasks
                     if (tasks[status]) {
                         for (const task of tasks[status]) {
                             if (task.due_date) {
@@ -575,13 +572,12 @@
         }
 
         // Task modification functions (ensure they call renderCalendar if board is visible)
-        // These need to be the full functions from your working file, with renderCalendar() calls added
         async function updateTaskPriority(taskId, newPriority) {
              try {
                  const apiResponse = await apiCall('update-task', 'POST', { id: taskId, updates: { priority: newPriority } });
                  if (apiResponse.status === 200) {
                     for (const colId in tasks) { const task = tasks[colId].find(t => t.id === taskId); if (task) { task.priority = newPriority; break; } }
-                    renderBoard(); renderUpcomingTasks(); if (!boardPage.classList.contains('hidden')) renderCalendar();
+                    renderBoard(); renderUpcomingTasks(); if (boardPage && !boardPage.classList.contains('hidden')) renderCalendar();
                  } else { console.warn("Update task priority API call failed:", apiResponse); }
              } catch (error) { /* Handled by apiCall */ }
         }
@@ -605,7 +601,7 @@
                  const apiResponse = await apiCall('update-task', 'POST', { id: taskId, updates: { due_date: dateValueToSend } });
                  if (apiResponse.status === 200) {
                     for (const colId in tasks) { const task = tasks[colId].find(t => t.id === taskId); if (task) { task.due_date = dateValueToSend; break; } }
-                    renderBoard(); renderUpcomingTasks(); if (!boardPage.classList.contains('hidden')) renderCalendar();
+                    renderBoard(); renderUpcomingTasks(); if (boardPage && !boardPage.classList.contains('hidden')) renderCalendar();
                  } else { console.warn("Update task due date API call failed:", apiResponse); }
              } catch (error) { console.error("Failed to update due date for task " + taskId, error); }
         }
@@ -622,7 +618,7 @@
              if (!tasks.done) tasks.done = [];
              taskToMove.status = 'done'; tasks.done.push(taskToMove);
              renderBoard(); updateTaskSummary(); triggerConfetti();
-             renderUpcomingTasks(); if (!boardPage.classList.contains('hidden')) renderCalendar();
+             renderUpcomingTasks(); if (boardPage && !boardPage.classList.contains('hidden')) renderCalendar();
              try {
                  const apiResponse = await apiCall('update-task', 'POST', { id: taskId, updates: { status: 'done' } });
                  if (apiResponse.status !== 200) throw new Error(apiResponse.data.message || "Backend error");
@@ -633,7 +629,7 @@
                   taskToMove.status = oldTaskState.status; taskToMove.priority = oldTaskState.priority;
                   if (!tasks[originalColumnId]) tasks[originalColumnId] = [];
                   tasks[originalColumnId].splice(originalIndex, 0, taskToMove);
-                  renderBoard(); updateTaskSummary(); renderUpcomingTasks(); if (!boardPage.classList.contains('hidden')) renderCalendar();
+                  renderBoard(); updateTaskSummary(); renderUpcomingTasks(); if (boardPage && !boardPage.classList.contains('hidden')) renderCalendar();
              }
         }
         function toggleSubMenu(event, taskId) { /* ... from your working file ... */ }
@@ -652,7 +648,7 @@
             if(addTaskMessage) addTaskMessage.classList.remove('text-green-400', 'text-gray-400', 'text-red-400');
             try {
                 const apiResponse = await apiCall('add-task', 'POST', newTaskData);
-                const addedTask = apiResponse.data;
+                const addedTask = apiResponse.data; // Correctly access .data
                 if (apiResponse.status === 201 && addedTask && addedTask.id) {
                      if (!tasks.todo) tasks.todo = [];
                      addedTask.createdAt = addedTask.created_at ? new Date(addedTask.created_at).getTime() : Date.now();
@@ -660,7 +656,7 @@
                      addedTask.due_date = addedTask.due_date || null; addedTask.status = addedTask.status || 'todo';
                      tasks.todo.push(addedTask);
                      updateTaskSummary(); renderUpcomingTasks(); 
-                     if (!boardPage.classList.contains('hidden')) { renderBoard(); renderCalendar(); }
+                     if (boardPage && !boardPage.classList.contains('hidden')) { renderBoard(); renderCalendar(); }
                      clearTimeout(successMessageTimeout); clearInterval(cooldownTimer);
                      if(addTaskMessage) addTaskMessage.textContent = `Task added: "${addedTask.text || taskText}"`;
                      if(addTaskMessage) addTaskMessage.classList.add('text-green-400');
@@ -691,7 +687,7 @@
                 if(apiResponse.status === 200) {
                     for (const colId in tasks) { tasks[colId] = tasks[colId].filter(task => task.id !== taskId); }
                     renderBoard(); updateTaskSummary(); renderUpcomingTasks(); 
-                    if (!boardPage.classList.contains('hidden')) renderCalendar();
+                    if (boardPage && !boardPage.classList.contains('hidden')) renderCalendar();
                 }
             } catch (error) { /* ... */ }
         }
@@ -708,38 +704,45 @@
                  if(apiResponse.status === 200) {
                     for (const colId in tasks) { const task = tasks[colId].find(t => t.id === taskId); if (task) { task.text = newText; break; } }
                     currentlyEditingTaskId = null; renderBoard(); renderUpcomingTasks(); 
-                    if (!boardPage.classList.contains('hidden')) renderCalendar();
+                    if (boardPage && !boardPage.classList.contains('hidden')) renderCalendar();
                  } else { currentlyEditingTaskId = null; renderBoard(); }
             } catch (error) { currentlyEditingTaskId = null; renderBoard(); }
         }
         function cancelTaskEdit(taskId) { /* ... from your working file ... */ }
         
         async function loadTasks() {
-            console.log("loadTasks: Start");
+            console.log("loadTasks: Start"); // DEBUG
             try {
                 const apiResponse = await apiCall('get-tasks');
-                console.log("loadTasks: Raw apiResponse from get-tasks:", JSON.stringify(apiResponse, null, 2)); // ADDED LOG
+                console.log("loadTasks: Raw apiResponse from get-tasks:", JSON.stringify(apiResponse, null, 2)); // DEBUG
                 
-                // Ensure apiResponse.data is what we expect (the array of tasks)
-                const fetchedTasks = apiResponse.data; 
+                const fetchedTasks = apiResponse.data; // This should now be the clean array of tasks
 
                 if (apiResponse.status === 200 && Array.isArray(fetchedTasks)) {
-                    tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };
+                    tasks = { todo: [], inprogress: [], nonurgent: [], done: [] }; // Reset tasks
                     fetchedTasks.forEach(task => {
-                        task.priority = task.priority || DEFAULT_PRIORITY; task.notes = task.notes || '';
+                        task.priority = task.priority || DEFAULT_PRIORITY; 
+                        task.notes = task.notes || '';
                         task.createdAt = task.created_at ? new Date(task.created_at).getTime() : Date.now();
-                        task.due_date = task.due_date || null; const status = task.status || 'todo';
-                        if (VALID_STATUSES.includes(status)) { if (!tasks[status]) tasks[status] = []; tasks[status].push(task); }
-                        else { console.warn(`Invalid status "${status}" for task ${task.id}.`); if (!tasks.todo) tasks.todo = []; tasks.todo.push(task); }
+                        task.due_date = task.due_date || null; 
+                        const status = task.status || 'todo'; 
+                        if (VALID_STATUSES.includes(status)) { 
+                            if (!tasks[status]) tasks[status] = []; 
+                            tasks[status].push(task);
+                        } else { 
+                            console.warn(`Invalid task status "${status}" for task ID ${task.id}. Placing in 'todo'.`);
+                            if (!tasks.todo) tasks.todo = [];
+                            tasks.todo.push(task);
+                        }
                     });
-                    console.log("loadTasks: Tasks object populated:", JSON.parse(JSON.stringify(tasks)));
+                    console.log("loadTasks: Tasks object populated:", JSON.parse(JSON.stringify(tasks))); // DEBUG
                 } else { 
                     console.error("loadTasks: Failed to fetch tasks or tasks format incorrect. Status:", apiResponse.status, "Data:", fetchedTasks); 
-                    tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };
+                    tasks = { todo: [], inprogress: [], nonurgent: [], done: [] }; // Reset on failure
                 }
             } catch (error) { 
                 console.error("loadTasks: Error during API call or processing:", error); 
-                tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };
+                tasks = { todo: [], inprogress: [], nonurgent: [], done: [] }; // Reset on failure
             }
             finally {
                  currentlyEditingTaskId = null; 
@@ -761,7 +764,7 @@
             if (!stickyNoteTextarea) return;
             try {
                 const apiResponse = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_MAIN });
-                console.log("loadStickyNoteMain: Raw apiResponse:", JSON.stringify(apiResponse, null, 2)); // ADDED LOG
+                console.log("loadStickyNoteMain: Raw apiResponse:", JSON.stringify(apiResponse, null, 2));
                 if (apiResponse.status === 200 && apiResponse.data && typeof apiResponse.data.content === 'string') {
                     stickyNoteTextarea.value = apiResponse.data.content;
                 } else {
@@ -776,7 +779,7 @@
             if (!stickyNoteTextareaAAT) return;
             try {
                 const apiResponse = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_AAT });
-                console.log("loadStickyNoteAAT: Raw apiResponse:", JSON.stringify(apiResponse, null, 2)); // ADDED LOG
+                console.log("loadStickyNoteAAT: Raw apiResponse:", JSON.stringify(apiResponse, null, 2));
                 if (apiResponse.status === 200 && apiResponse.data && typeof apiResponse.data.content === 'string') {
                     stickyNoteTextareaAAT.value = apiResponse.data.content;
                 } else {
@@ -793,7 +796,7 @@
             try {
                 console.log("loadShiftTimes: Calling apiCall for START time...");
                 const apiResponseStart = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_SHIFT_START });
-                console.log("loadShiftTimes: Raw apiResponse for START time:", JSON.stringify(apiResponseStart, null, 2)); // ADDED LOG
+                console.log("loadShiftTimes: Raw apiResponse for START time:", JSON.stringify(apiResponseStart, null, 2));
                 if (apiResponseStart && apiResponseStart.status === 200 && apiResponseStart.data && typeof apiResponseStart.data.content === 'string' && apiResponseStart.data.content.includes(':')) {
                     const [hoursStr] = apiResponseStart.data.content.split(':'); const hours = parseInt(hoursStr);
                     if (!isNaN(hours)) { SHIFT_START_HOUR = hours; if(shiftStartInput) shiftStartInput.value = apiResponseStart.data.content; startHourLoaded = true; console.log("Shift start time loaded:", apiResponseStart.data.content); }
@@ -802,7 +805,7 @@
             try {
                 console.log("loadShiftTimes: Calling apiCall for END time...");
                 const apiResponseEnd = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_SHIFT_END });
-                console.log("loadShiftTimes: Raw apiResponse for END time:", JSON.stringify(apiResponseEnd, null, 2)); // ADDED LOG
+                console.log("loadShiftTimes: Raw apiResponse for END time:", JSON.stringify(apiResponseEnd, null, 2));
                 if (apiResponseEnd && apiResponseEnd.status === 200 && apiResponseEnd.data && typeof apiResponseEnd.data.content === 'string' && apiResponseEnd.data.content.includes(':')) {
                     const [hoursStr] = apiResponseEnd.data.content.split(':'); const hours = parseInt(hoursStr);
                     if (!isNaN(hours)) { SHIFT_END_HOUR = hours; if(shiftEndInput) shiftEndInput.value = apiResponseEnd.data.content; endHourLoaded = true; console.log("Shift end time loaded:", apiResponseEnd.data.content); }
@@ -825,12 +828,12 @@
         async function handleDropLogic(targetColumnId, taskElement) {
              /* ... existing logic from your working file ... */
              renderUpcomingTasks(); 
-             if (!boardPage.classList.contains('hidden')) renderCalendar(); 
+             if (boardPage && !boardPage.classList.contains('hidden')) renderCalendar(); 
              /* ... */
              try { /* ... */ } catch (error) {
                   /* ... revert logic ... */
                   renderUpcomingTasks();
-                  if (!boardPage.classList.contains('hidden')) renderCalendar(); 
+                  if (boardPage && !boardPage.classList.contains('hidden')) renderCalendar(); 
             }
         }
         function triggerConfetti() { /* ... from your working file ... */ }
