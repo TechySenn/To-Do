@@ -2,12 +2,16 @@
 const { createClient } = require('@supabase/supabase-js');
 
 exports.handler = async function(event, context) {
-    // --- Check Environment Variables and Initialize Client INSIDE Handler ---
     const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
+    // IMPORTANT: For write operations, it's generally recommended to use the SERVICE_ROLE_KEY
+    // if your RLS policies for 'tasks' table don't allow 'anon' key to insert.
+    // If your RLS policies DO allow anon key to insert, then SUPABASE_ANON_KEY can be used.
+    // For simplicity and common setup, SERVICE_ROLE_KEY is often used for server-side functions
+    // that need to bypass RLS for direct table writes.
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
-        console.error('Supabase URL or Service Key environment variable is missing.');
+        console.error('Supabase URL or Key environment variable is missing.');
         return {
             statusCode: 500,
             body: JSON.stringify({ error: 'Server configuration error: Missing Supabase credentials.' })
@@ -15,55 +19,82 @@ exports.handler = async function(event, context) {
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
-    // --- End Check and Initialization ---
 
-    // Only allow POST requests
     if (event.httpMethod !== 'POST') {
-        return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }), headers: { 'Allow': 'POST' } };
+        return { 
+            statusCode: 405, 
+            body: JSON.stringify({ error: 'Method Not Allowed' }), 
+            headers: { 'Allow': 'POST' } 
+        };
     }
 
     try {
-        const taskData = JSON.parse(event.body);
-        console.log("Received task data:", taskData);
+        const requestBody = JSON.parse(event.body);
+        console.log("Received data for new task:", requestBody);
 
-        // Validate required fields
-        if (!taskData || !taskData.text || !taskData.name || !taskData.priority || !taskData.status) {
-             console.error("Validation Error: Missing required task fields.");
-             return { statusCode: 400, body: JSON.stringify({ error: 'Missing required task fields (text, name, priority, status).' }) };
+        // 1. Validate that 'text' (task description) is provided
+        if (!requestBody || !requestBody.text || typeof requestBody.text !== 'string' || requestBody.text.trim() === '') {
+             console.error("Validation Error: Missing or invalid 'text' field for the task.");
+             return { 
+                 statusCode: 400, 
+                 body: JSON.stringify({ error: "Missing required task field: text." }) 
+             };
         }
 
+        // 2. Set defaults for priority and status.
+        //    Frontend should ideally send these, but backend ensures they are set.
+        const priorityToInsert = requestBody.priority || "New";
+        const statusToInsert = requestBody.status || "todo";
+        const notesToInsert = requestBody.notes || '';
+        const dueDateToInsert = requestBody.due_date || null;
+
+        // 3. Construct the object to be inserted into Supabase
+        //    'name' field is completely removed.
         const newTask = {
-            text: taskData.text,
-            name: taskData.name,
-            priority: taskData.priority,
-            notes: taskData.notes || '',
-            status: taskData.status,
+            text: requestBody.text.trim(),
+            priority: priorityToInsert,
+            status: statusToInsert,
+            notes: notesToInsert,
+            due_date: dueDateToInsert,
+            created_at: new Date().toISOString(), // Backend sets the authoritative creation timestamp
+            // If you have an 'updated_at' column, you might want to set it here as well:
+            // updated_at: new Date().toISOString(), 
         };
 
-        console.log("Inserting new task:", newTask);
-        // Using .select().single() again, assuming RLS/connection is okay now that get-tasks works
+        console.log("Inserting new task into Supabase:", newTask);
+        
         const { data, error } = await supabase
-            .from('tasks')
+            .from('tasks') // Ensure 'tasks' is your correct table name
             .insert([newTask])
-            .select()
-            .single();
+            .select() // Select the inserted row(s) to return
+            .single(); // Assuming insert results in a single new row
 
         if (error) {
             console.error('Supabase insert error:', error);
-            return { statusCode: 500, body: JSON.stringify({ error: 'Failed to add task', details: error.message }) };
+            return { 
+                statusCode: 500, 
+                body: JSON.stringify({ error: 'Failed to add task to database.', details: error.message }) 
+            };
         }
 
-        console.log("Task added successfully:", data);
+        console.log("Task added successfully to Supabase:", data);
         return {
-            statusCode: 201, // 201 Created
-            body: JSON.stringify(data), // Send the newly created task back
+            statusCode: 201, // HTTP 201 Created is standard for successful resource creation
+            body: JSON.stringify(data), // Send the newly created task back (includes ID from DB)
             headers: { 'Content-Type': 'application/json' },
         };
-    } catch (err) {
-         console.error('Function execution error:', err);
-         if (err instanceof SyntaxError) {
-             return { statusCode: 400, body: JSON.stringify({ error: 'Invalid JSON format in request body.' }) };
+
+    } catch (err) { // Catches errors from JSON.parse or other unexpected issues
+         console.error('Function execution error in add-task:', err);
+         if (err instanceof SyntaxError) { // Specifically for JSON.parse errors
+             return { 
+                 statusCode: 400, 
+                 body: JSON.stringify({ error: 'Invalid JSON format in request body.' }) 
+             };
          }
-        return { statusCode: 500, body: JSON.stringify({ error: 'Internal Server Error', details: err.message }) };
+        return { 
+            statusCode: 500, 
+            body: JSON.stringify({ error: 'Internal Server Error', details: err.message }) 
+        };
     }
 };
