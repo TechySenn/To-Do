@@ -26,7 +26,7 @@
             box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
-            height: 250px; /* Base height for all boxes in the side columns */
+            height: 270px; /* MODIFIED - Increased from 250px */
             margin-bottom: 1rem;
         }
         .sticky-note-wrapper:last-child {
@@ -48,7 +48,8 @@
              padding: 0.5rem; font-size: 0.85rem;
              line-height: 1.4;
              resize: none;
-             margin-bottom: 0.5rem; color: #4b5563;
+             margin-bottom: 0.25rem; /* MODIFIED - Reduced from 0.5rem */
+             color: #4b5563;
          }
          #stickyNoteTextarea {
             background-color: #fefce8; border: 1px solid #fcd34d;
@@ -75,7 +76,7 @@
         #upcomingTasksContainer {
             background-color: #e0f2fe; /* sky-100 default for upcoming */
             border: 1px solid #bae6fd; /* sky-200 default for upcoming */
-            height: 250px; /* MATCHING STICKY NOTE HEIGHT */
+            height: 250px; /* Kept original height for upcoming tasks */
         }
         #highestPriorityContainer { /* This is now the Calendar container */
              background-color: #ffedd5; /* orange-100 */
@@ -89,7 +90,6 @@
          #upcomingTasksList { /* Keep styles for upcoming tasks */
              flex-grow: 1; overflow-y: auto; padding-right: 4px;
          }
-         /* REMOVE #highestPriorityList styles as it's being replaced */
 
          .upcoming-task { /* Keep styles for upcoming tasks */
              font-size: 0.75rem; padding: 2px 4px; margin-bottom: 4px;
@@ -179,10 +179,10 @@
         /* Style for the confetti canvas */
         #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
         /* Custom scrollbar */
-        .tasks-container::-webkit-scrollbar, #upcomingTasksList::-webkit-scrollbar { width: 8px; } /* Removed #highestPriorityList */
-        .tasks-container::-webkit-scrollbar-track, #upcomingTasksList::-webkit-scrollbar-track { background: #dbeafe; border-radius: 10px; } /* Removed #highestPriorityList */
-        .tasks-container::-webkit-scrollbar-thumb, #upcomingTasksList::-webkit-scrollbar-thumb { background: #60a5fa; border-radius: 10px; } /* Removed #highestPriorityList */
-        .tasks-container::-webkit-scrollbar-thumb:hover, #upcomingTasksList::-webkit-scrollbar-thumb:hover { background: #3b82f6; } /* Removed #highestPriorityList */
+        .tasks-container::-webkit-scrollbar, #upcomingTasksList::-webkit-scrollbar { width: 8px; } 
+        .tasks-container::-webkit-scrollbar-track, #upcomingTasksList::-webkit-scrollbar-track { background: #dbeafe; border-radius: 10px; } 
+        .tasks-container::-webkit-scrollbar-thumb, #upcomingTasksList::-webkit-scrollbar-thumb { background: #60a5fa; border-radius: 10px; } 
+        .tasks-container::-webkit-scrollbar-thumb:hover, #upcomingTasksList::-webkit-scrollbar-thumb:hover { background: #3b82f6; } 
 
         .task-edit-input { padding: 2px 4px; border: 1px solid #93c5fd; border-radius: 4px; margin-right: 5px; background-color: #eff6ff; }
         .hidden { display: none; }
@@ -358,14 +358,12 @@
                     <div id="stickyNoteContainer" class="sticky-note-wrapper">
                         <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Notes</h3>
                         <textarea id="stickyNoteTextarea"></textarea>
-                        <button id="saveStickyNoteBtn" class="nav-button bg-yellow-500 hover:bg-yellow-600 text-yellow-900 text-sm py-1 px-3 mt-2 save-sticky-note-btn">Save Note</button>
-                        <p id="stickyNoteMessage" class="sticky-note-message text-green-600"></p>
+                        <button id="saveStickyNoteBtn" class="nav-button bg-yellow-500 hover:bg-yellow-600 text-yellow-900 text-sm py-1 px-3 mt-1 save-sticky-note-btn">Save Note</button> <p id="stickyNoteMessage" class="sticky-note-message text-green-600"></p>
                     </div>
                     <div id="stickyNoteContainerAAT" class="sticky-note-wrapper">
                         <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Studying</h3>
                         <textarea id="stickyNoteTextareaAAT"></textarea>
-                        <button id="saveStickyNoteBtnAAT" class="nav-button bg-green-600 hover:bg-green-700 text-white text-sm py-1 px-3 mt-2 save-sticky-note-btn">Save Note</button>
-                        <p id="stickyNoteMessageAAT" class="sticky-note-message text-green-700"></p>
+                        <button id="saveStickyNoteBtnAAT" class="nav-button bg-green-600 hover:bg-green-700 text-white text-sm py-1 px-3 mt-1 save-sticky-note-btn">Save Note</button> <p id="stickyNoteMessageAAT" class="sticky-note-message text-green-700"></p>
                     </div>
                 </div>
 
@@ -402,7 +400,8 @@
                             <p class="text-xs text-gray-500 text-center italic">Loading...</p>
                         </div>
                     </div>
-                    <div id="highestPriorityContainer"> <h3 class="text-lg font-semibold text-orange-800 mb-2 text-center">Calendar</h3>
+                    <div id="highestPriorityContainer"> 
+                        <h3 class="text-lg font-semibold text-orange-800 mb-2 text-center">Calendar</h3>
                         <div id="calendarControls">
                             <button id="prevMonthBtn" class="nav-button bg-orange-400 hover:bg-orange-500 text-white">&lt;</button>
                             <h4 id="monthYearDisplay">Loading...</h4>
@@ -416,9 +415,9 @@
                             <div class="calendar-day-header">T</div>
                             <div class="calendar-day-header">F</div>
                             <div class="calendar-day-header">S</div>
-                            </div>
+                        </div>
                     </div>
-                    </div>
+                </div>
              </div>
         </div>
     </div>
@@ -468,9 +467,7 @@
         const saveStickyNoteBtnAAT = document.getElementById('saveStickyNoteBtnAAT');
         const stickyNoteMessageAAT = document.getElementById('stickyNoteMessageAAT');
         const upcomingTasksList = document.getElementById('upcomingTasksList');
-        // const highestPriorityList = document.getElementById('highestPriorityList'); // REMOVED
         
-        // NEW Calendar DOM Elements
         const prevMonthBtn = document.getElementById('prevMonthBtn');
         const nextMonthBtn = document.getElementById('nextMonthBtn');
         const monthYearDisplay = document.getElementById('monthYearDisplay');
@@ -498,11 +495,10 @@
         let stickyNoteAATSaveTimeout = null;
         let shiftTimeSaveMessageTimeout = null;
         let emailSummaryTimeout = null;
-        let currentCalendarDate = new Date(); // For calendar navigation
+        let currentCalendarDate = new Date(); 
 
 
         // --- Generic Fetch Helper ---
-        // MODIFIED apiCall to return status alongside data for successful responses
         async function apiCall(endpoint, method = 'GET', paramsOrBody = null) {
             const options = { method, headers: {} };
             let url = `${FUNCTION_BASE_PATH}${endpoint}`;
@@ -518,7 +514,7 @@
             }
 
             try {
-                const fetchResponse = await fetch(url, options); // Renamed original response object
+                const fetchResponse = await fetch(url, options); 
                 const isJson = fetchResponse.headers.get('content-type')?.includes('application/json');
                 let responseData;
                 if (isJson) {
@@ -545,7 +541,6 @@
         }
 
         // --- Functions ---
-
         function formatDate(timestampOrDateString) {
             if (!timestampOrDateString) return 'N/A';
             try {
@@ -566,7 +561,6 @@
             }
         }
 
-
         function formatDateForInput(timestampOrDateString) {
              if (!timestampOrDateString) return '';
              try {
@@ -584,7 +578,6 @@
         function formatTimeToHHMM(hours, minutes = 0) {
             return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
         }
-
 
         function updateDateTimeDisplay() {
             const now = new Date();
@@ -631,7 +624,6 @@
                 shiftProgressBar.style.backgroundColor = barColor;
             }
         }
-
 
         function updateTaskSummary() {
             const todoCount = tasks.todo?.length || 0;
@@ -690,15 +682,13 @@
                 loadStickyNoteMain();
                 loadStickyNoteAAT();
                 renderUpcomingTasks();
-                // renderHighestPriorityTasks(); // REMOVED
-                renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); // ADDED
+                renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth());
                 showInputPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500');
                 showInputPageBtn.classList.replace('hover:bg-blue-600', 'hover:bg-indigo-600');
                 showBoardPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500');
                 showBoardPageBtn.classList.replace('hover:bg-indigo-600', 'hover:bg-blue-600');
             }
         }
-
 
         async function updateTaskPriority(taskId, newPriority) {
              try {
@@ -710,8 +700,7 @@
                     }
                     renderBoard();
                     renderUpcomingTasks();
-                    // renderHighestPriorityTasks(); // REMOVED
-                    renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); // ADDED
+                    renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth());
                  } else {
                     console.warn("Update task priority API call did not fully succeed:", apiResponse);
                  }
@@ -733,7 +722,7 @@
                     const apiResponse = await apiCall('update-task', 'POST', { id: taskId, updates: { notes: trimmedNotes } });
                     if(apiResponse.status === 200) {
                         taskRef.notes = trimmedNotes;
-                        renderBoard();
+                        renderBoard(); // Re-render board to show notes icon update if any
                     } else {
                         console.warn("Update task notes API call did not fully succeed:", apiResponse);
                     }
@@ -750,10 +739,9 @@
                         const task = tasks[colId].find(t => t.id === taskId);
                         if (task) { task.due_date = dateValueToSend; break; }
                     }
-                    renderBoard();
+                    renderBoard(); // Re-render board for overdue styling changes
                     renderUpcomingTasks();
-                    // renderHighestPriorityTasks(); // REMOVED
-                    renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); // ADDED
+                    renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth());
                  } else {
                     console.warn("Update task due date API call did not fully succeed:", apiResponse);
                  }
@@ -777,8 +765,7 @@
              tasks.done.push(taskToMove);
              renderBoard(); updateTaskSummary(); triggerConfetti();
              renderUpcomingTasks(); 
-             // renderHighestPriorityTasks(); // REMOVED
-             renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); // ADDED
+             renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); 
              
              try {
                  const apiResponse = await apiCall('update-task', 'POST', { id: taskId, updates: { status: 'done' } });
@@ -799,8 +786,7 @@
                   
                   renderBoard(); updateTaskSummary();
                   renderUpcomingTasks();
-                  // renderHighestPriorityTasks(); // REMOVED
-                  renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); // ADDED
+                  renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth());
              }
         }
 
@@ -849,7 +835,13 @@
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             if (task.due_date) {
-                const dueDate = new Date(task.due_date);
+                let dueDate; // Handle YYYY-MM-DD string
+                if (typeof task.due_date === 'string' && task.due_date.includes('-')) {
+                    const parts = task.due_date.split('-').map(Number);
+                    dueDate = new Date(parts[0], parts[1] - 1, parts[2]);
+                } else {
+                    dueDate = new Date(task.due_date);
+                }
                 const dueDateStartOfDay = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
                  if (dueDateStartOfDay < today && task.status !== 'done') {
                     div.classList.add('overdue');
@@ -980,7 +972,6 @@
             return div;
         }
 
-
         function renderBoard() {
             if (boardPage.classList.contains('hidden')) return;
             const taskContainers = document.querySelectorAll('.tasks-container');
@@ -1000,13 +991,25 @@
 
                         const overdueTasks = nonNewTasks.filter(task => {
                             if (!task.due_date) return false;
-                            const dueDate = new Date(task.due_date);
+                            let dueDate;
+                            if (typeof task.due_date === 'string' && task.due_date.includes('-')) {
+                                const parts = task.due_date.split('-').map(Number);
+                                dueDate = new Date(parts[0], parts[1] - 1, parts[2]);
+                            } else {
+                                dueDate = new Date(task.due_date);
+                            }
                             const dueDateStartOfDay = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
                             return dueDateStartOfDay < today;
                         });
                         const otherTasks = nonNewTasks.filter(task => {
                             if (!task.due_date) return true; 
-                            const dueDate = new Date(task.due_date);
+                            let dueDate;
+                             if (typeof task.due_date === 'string' && task.due_date.includes('-')) {
+                                const parts = task.due_date.split('-').map(Number);
+                                dueDate = new Date(parts[0], parts[1] - 1, parts[2]);
+                            } else {
+                                dueDate = new Date(task.due_date);
+                            }
                             const dueDateStartOfDay = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
                             return dueDateStartOfDay >= today;
                         });
@@ -1030,11 +1033,9 @@
                             const priorityB = PRIORITY_VALUES[b.priority || DEFAULT_PRIORITY] || 0;
                             if (priorityB !== priorityA) return priorityB - priorityA; 
 
-                            const dateA = a.due_date ? new Date(a.due_date).getTime() : null;
-                            const dateB = b.due_date ? new Date(b.due_date).getTime() : null;
-                            if (dateA === null && dateB !== null) return 1; 
-                            if (dateA !== null && dateB === null) return -1;
-                            if (dateA !== null && dateB !== null && dateA !== dateB) return dateA - dateB; 
+                            const dateA = a.due_date ? new Date(a.due_date).getTime() : Infinity; // Treat null due dates as far in the future
+                            const dateB = b.due_date ? new Date(b.due_date).getTime() : Infinity;
+                            if (dateA !== dateB) return dateA - dateB; 
 
                             return (a.createdAt || 0) - (b.createdAt || 0); 
                         });
@@ -1060,7 +1061,6 @@
             }
         }
 
-
         function renderUpcomingTasks() {
             if (!upcomingTasksList) return;
 
@@ -1070,7 +1070,24 @@
             });
 
             const tasksWithDueDate = allUpcoming.filter(task => task.due_date);
-            tasksWithDueDate.sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
+            tasksWithDueDate.sort((a, b) => {
+                 // Handle YYYY-MM-DD strings for sorting
+                let dateA, dateB;
+                if (typeof a.due_date === 'string' && a.due_date.includes('-')) {
+                    const partsA = a.due_date.split('-').map(Number);
+                    dateA = new Date(partsA[0], partsA[1] - 1, partsA[2]).getTime();
+                } else {
+                    dateA = new Date(a.due_date).getTime();
+                }
+                if (typeof b.due_date === 'string' && b.due_date.includes('-')) {
+                    const partsB = b.due_date.split('-').map(Number);
+                    dateB = new Date(partsB[0], partsB[1] - 1, partsB[2]).getTime();
+                } else {
+                    dateB = new Date(b.due_date).getTime();
+                }
+                return dateA - dateB;
+            });
+
 
             const top6Tasks = tasksWithDueDate.slice(0, 6);
 
@@ -1088,18 +1105,14 @@
             }
         }
 
-        // REMOVED renderHighestPriorityTasks() function
-
-        // --- NEW Calendar Functions ---
         function getTaskCountsForMonth(year, month_0_indexed) {
-            const counts = {}; // Key: "DD", Value: count (for the given year/month_0_indexed)
+            const counts = {}; 
             ['todo', 'inprogress', 'nonurgent'].forEach(statusKey => {
                 (tasks[statusKey] || []).forEach(task => {
                     if (task.due_date && typeof task.due_date === 'string' && task.due_date.includes('-')) {
-                        // Assuming task.due_date is "YYYY-MM-DD"
                         const [dueYear, dueMonth_1_indexed, dueDay] = task.due_date.split('-').map(Number);
                         if (dueYear === year && (dueMonth_1_indexed - 1) === month_0_indexed) {
-                            const dayKey = String(dueDay).padStart(2, '0'); // Use day as key for this month
+                            const dayKey = String(dueDay).padStart(2, '0'); 
                             counts[dayKey] = (counts[dayKey] || 0) + 1;
                         }
                     }
@@ -1114,42 +1127,34 @@
                 return;
             }
 
-            currentCalendarDate.setFullYear(year); // Ensure currentCalendarDate is up-to-date
+            currentCalendarDate.setFullYear(year); 
             currentCalendarDate.setMonth(month_0_indexed);
-            currentCalendarDate.setDate(1); // Set to first of the month to avoid month skipping issues
+            currentCalendarDate.setDate(1); 
 
             monthYearDisplay.textContent = new Date(year, month_0_indexed).toLocaleDateString('en-US', {
                 month: 'long',
                 year: 'numeric'
             });
             
-            // Clear only day cells, keep headers if they are separate and static in HTML
-            // If headers are part of calendarGrid.innerHTML, they'll be cleared.
-            // The current HTML adds headers statically, then JS adds cells. So, clear all children of calendarGrid EXCEPT headers.
-            // Simpler: just clear all and re-add headers if they are dynamic, or ensure static headers are outside the element cleared by innerHTML.
-            // The provided HTML has static headers, so this is fine:
             let child = calendarGrid.lastElementChild;
-            while (child && calendarGrid.children.length > 7) { // Keep the 7 header divs
+            while (child && calendarGrid.children.length > 7) { 
                 calendarGrid.removeChild(child);
                 child = calendarGrid.lastElementChild;
             }
 
-
             const taskCounts = getTaskCountsForMonth(year, month_0_indexed);
-            const firstDayOfMonth = new Date(year, month_0_indexed, 1).getDay(); // 0=Sun, 1=Mon,...
+            const firstDayOfMonth = new Date(year, month_0_indexed, 1).getDay(); 
             const daysInMonth = new Date(year, month_0_indexed + 1, 0).getDate();
             
             const today = new Date();
-            today.setHours(0,0,0,0); // For accurate 'today' comparison
+            today.setHours(0,0,0,0); 
 
-            // Create blank cells for days before the first day of the month
             for (let i = 0; i < firstDayOfMonth; i++) {
                 const emptyCell = document.createElement('div');
                 emptyCell.className = 'calendar-day-cell other-month'; 
                 calendarGrid.appendChild(emptyCell);
             }
 
-            // Create cells for each day of the month
             for (let day = 1; day <= daysInMonth; day++) {
                 const dayCell = document.createElement('div');
                 dayCell.className = 'calendar-day-cell';
@@ -1175,7 +1180,6 @@
                 calendarGrid.appendChild(dayCell);
             }
 
-            // Add blank cells for days after the last day of the month to fill the grid
             const totalCellsAfterHeaders = firstDayOfMonth + daysInMonth;
             const remainingCells = (7 - (totalCellsAfterHeaders % 7)) % 7; 
              for (let i = 0; i < remainingCells; i++) {
@@ -1184,8 +1188,6 @@
                 calendarGrid.appendChild(emptyCell);
             }
         }
-        // --- END NEW Calendar Functions ---
-
 
         async function addTask() {
             if (addTaskBtn.disabled) return;
@@ -1208,7 +1210,7 @@
                 const apiResponse = await apiCall('add-task', 'POST', newTaskData);
                 const addedTask = apiResponse.data; 
 
-                if (apiResponse.status === 201 && addedTask && addedTask.id) { // Status 201 for add-task
+                if (apiResponse.status === 201 && addedTask && addedTask.id) { 
                      if (!tasks.todo) tasks.todo = [];
                      addedTask.createdAt = addedTask.created_at ? new Date(addedTask.created_at).getTime() : newTaskData.createdAt;
                      addedTask.priority = addedTask.priority || "New";
@@ -1219,12 +1221,11 @@
                      tasks.todo.push(addedTask);
                      updateTaskSummary();
                      renderUpcomingTasks();
-                     // renderHighestPriorityTasks(); // REMOVED
-                     renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); // ADDED
+                     renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); 
                      if (!boardPage.classList.contains('hidden')) renderBoard(); 
                 } else {
                     console.warn("Add task API call did not fully succeed or return expected object, reloading all tasks.", apiResponse);
-                    await loadTasks(); // This will also update calendar
+                    await loadTasks(); 
                 }
                 clearTimeout(successMessageTimeout); clearInterval(cooldownTimer);
                 addTaskMessage.textContent = `Task added: "${addedTask.text || taskText}"`;
@@ -1262,8 +1263,7 @@
                     for (const columnId in tasks) { tasks[columnId] = tasks[columnId].filter(task => task.id !== taskId); }
                     renderBoard(); updateTaskSummary();
                     renderUpcomingTasks();
-                    // renderHighestPriorityTasks(); // REMOVED
-                    renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); // ADDED
+                    renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); 
                 } else {
                     console.warn("Delete task API call did not fully succeed:", apiResponse);
                 }
@@ -1291,8 +1291,7 @@
                     }
                     currentlyEditingTaskId = null; renderBoard();
                     renderUpcomingTasks(); 
-                    // renderHighestPriorityTasks(); // REMOVED
-                    renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); // ADDED
+                    renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); 
                  } else {
                     console.warn("Save task edit API call did not fully succeed:", apiResponse);
                     currentlyEditingTaskId = null; renderBoard(); 
@@ -1339,13 +1338,10 @@
                  currentlyEditingTaskId = null; 
                  updateTaskSummary();
                  renderUpcomingTasks();
-                 // renderHighestPriorityTasks(); // REMOVED
-                 renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); // ADDED
+                 renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); 
                  if (!boardPage.classList.contains('hidden')) { renderBoard(); }
             }
         }
-
-        // --- Sticky Note Functions ---
 
         async function loadStickyNoteMain() {
              if (!stickyNoteTextarea) return;
@@ -1435,7 +1431,6 @@
             }
         }
 
-        // --- Shift Time Persistence Functions ---
         async function loadShiftTimes() {
             console.log("Loading shift times...");
             let startHourLoaded = false;
@@ -1499,8 +1494,6 @@
             }
         }
 
-
-        // --- Drag and Drop Event Handlers ---
         function dragStart(event) {
             if (currentlyEditingTaskId || document.activeElement.tagName === 'SELECT' || document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
                  event.preventDefault(); return;
@@ -1567,8 +1560,7 @@
              renderBoard(); 
              updateTaskSummary();
              renderUpcomingTasks(); 
-             // renderHighestPriorityTasks(); // REMOVED
-             renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); // ADDED
+             renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); 
 
              try {
                  const apiResponse = await apiCall('update-task', 'POST', { id: taskId, updates: { status: targetColumnId } });
@@ -1591,8 +1583,7 @@
                   renderBoard();
                   updateTaskSummary();
                   renderUpcomingTasks();
-                  // renderHighestPriorityTasks(); // REMOVED
-                  renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); // ADDED
+                  renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); 
              }
         }
 
@@ -1601,7 +1592,6 @@
             myConfetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
         }
 
-        // --- Email Summary Function (MODIFIED for simpler message) ---
         async function handleEmailSummary() {
             if (!emailSummaryBtn || emailSummaryBtn.disabled) return;
 
@@ -1661,7 +1651,6 @@
                 }, 7000); 
             }
         }
-
 
         // --- Initialization & Event Listeners ---
         addTaskBtn.addEventListener('click', addTask);
@@ -1752,7 +1741,6 @@
             emailSummaryBtn.addEventListener('click', handleEmailSummary);
         }
 
-        // --- Calendar Navigation Event Listeners ---
         if (prevMonthBtn) {
             prevMonthBtn.addEventListener('click', () => {
                 currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
@@ -1777,9 +1765,8 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
              showPage('inputPage'); 
-             await loadTasks(); // This will call renderCalendar
+             await loadTasks(); 
              await loadShiftTimes(); 
-             // renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); // Called by loadTasks
              if (dateTimeInterval) clearInterval(dateTimeInterval);
              dateTimeInterval = setInterval(updateDateTimeDisplay, 60000); 
         });
