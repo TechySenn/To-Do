@@ -36,7 +36,7 @@
             background-color: #fef9c3; /* yellow-100 */
             border: 1px solid #fde68a; /* yellow-200 */
         }
-        #stickyNoteContainerAAT { /* ID kept for JS, but visually it's "Studying" */
+        #stickyNoteContainerAAT {
             background-color: #d1fae5; /* green-100 */
             border: 1px solid #a7f3d0; /* green-200 */
         }
@@ -63,8 +63,8 @@
             font-size: 0.75rem; margin-top: 0.25rem; height: 1rem; text-align: right;
          }
 
-        /* Upcoming Due & Calendar (formerly Highest Priority) Box Styles */
-        #upcomingTasksContainer, #calendarContainer { /* highestPriorityContainer is now calendarContainer */
+        /* Upcoming Due & Highest Priority Box Styles */
+        #upcomingTasksContainer, #highestPriorityContainer {
             background-color: #e0f2fe; /* sky-100 default for upcoming */
             border: 1px solid #bae6fd; /* sky-200 default for upcoming */
             border-radius: 8px;
@@ -73,106 +73,53 @@
             display: flex;
             flex-direction: column;
             height: 250px; /* MATCHING STICKY NOTE HEIGHT */
-            margin-bottom: 1rem; 
+            margin-bottom: 1rem;
         }
-        #calendarContainer { /* Styles for the new calendar box */
+        #highestPriorityContainer {
              background-color: #ffedd5; /* orange-100 */
              border-color: #fed7aa; /* orange-200 */
         }
-         #upcomingTasksList { 
+        #highestPriorityContainer h3 { /* Header text color for highest priority */
+            color: #9a3412; /* orange-800 */
+        }
+         #upcomingTasksList, #highestPriorityList {
              flex-grow: 1; overflow-y: auto; padding-right: 4px;
          }
-         .upcoming-task { 
+         .upcoming-task, .priority-task {
              font-size: 0.75rem; padding: 2px 4px; margin-bottom: 4px;
              border-radius: 3px;
              display: block; line-height: 1.3;
-             background-color: #f0f9ff; 
-             border: 1px solid #e0f2fe; 
          }
-         .upcoming-task .due-date {
+         .upcoming-task {
+            background-color: #f0f9ff;
+            border: 1px solid #e0f2fe;
+         }
+         .priority-task {
+            background-color: #fff7ed;
+            border: 1px solid #ffedd5;
+         }
+         .upcoming-task .due-date, .priority-task .priority-label {
              font-weight: 600; margin-right: 4px;
-             color: #be123c; 
          }
+         .upcoming-task .due-date { color: #be123c; }
+         .priority-task .priority-label-high { color: #c2410c; }
+         .priority-task .priority-label-medium { color: #ea580c; }
+         .priority-task .priority-label-low { color: #fb923c; }
 
-        /* CSS for New Calendar View */
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.1rem 0 0.25rem 0;
-        }
-        .calendar-nav-btn {
-            background-color: #fff7ed; /* orange-50 */
-            border: 1px solid #fed7aa; /* orange-200 */
-            border-radius: 4px;
-            padding: 0.1rem 0.4rem;
-            font-size: 0.9rem;
-            cursor: pointer;
-            color: #c2410c; /* orange-700 */
-        }
-        .calendar-nav-btn:hover {
-            background-color: #fed7aa; /* orange-200 */
-        }
-        #monthYearDisplay {
-            color: #9a3412; /* orange-800 */
-            font-size: 0.9rem; 
-            font-weight: 600;
-        }
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 1px; 
-            flex-grow: 1;
-            overflow: hidden; 
-        }
-        .calendar-day-header {
-            font-size: 0.6rem; 
-            text-align: center;
-            font-weight: 600;
-            color: #7c2d12; /* orange-900 */
-            padding-bottom: 1px;
-        }
-        .calendar-day-cell {
-            font-size: 0.65rem; 
-            text-align: center;
-            padding: 1px;
-            border: 1px solid #ffedd5; /* orange-100 */
-            background-color: #fff7ed; /* orange-50 */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start; 
-            min-height: 26px; 
-            position: relative; 
-            color: #7c2d12;
-        }
-        .calendar-day-cell.other-month .calendar-day-number {
-            color: #fdba74; /* orange-300 */
-            opacity: 0.6;
-        }
-        .calendar-day-cell.current-day .calendar-day-number { 
-            font-weight: bold;
-            color: #ea580c; /* orange-600 */
-            background-color: #fed7aa; /* orange-200 */
-            border-radius: 50%; 
-            padding: 1px 3px;
-            display: inline-block;
-            line-height: 1.1;
-        }
-        .calendar-task-count {
-            font-size: 0.7rem; 
-            font-weight: bold;
-            color: red;
-            margin-top: 0px; 
-            line-height: 1;
+        /* Overdue Task Styling */
+        .task.overdue {
+            border: 3px solid #dc2626; /* Tailwind red-600, thick border */
         }
 
-        .task.overdue { border: 3px solid #dc2626; }
+
+        /* Style for the confetti canvas */
         #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
-        .tasks-container::-webkit-scrollbar, #upcomingTasksList::-webkit-scrollbar, /* #highestPriorityList::-webkit-scrollbar, */ .calendar-grid::-webkit-scrollbar { width: 8px; }
-        .tasks-container::-webkit-scrollbar-track, #upcomingTasksList::-webkit-scrollbar-track, /* #highestPriorityList::-webkit-scrollbar-track, */ .calendar-grid::-webkit-scrollbar-track { background: #dbeafe; border-radius: 10px; }
-        .tasks-container::-webkit-scrollbar-thumb, #upcomingTasksList::-webkit-scrollbar-thumb, /* #highestPriorityList::-webkit-scrollbar-thumb, */ .calendar-grid::-webkit-scrollbar-thumb { background: #60a5fa; border-radius: 10px; }
-        .tasks-container::-webkit-scrollbar-thumb:hover, #upcomingTasksList::-webkit-scrollbar-thumb:hover, /* #highestPriorityList::-webkit-scrollbar-thumb:hover, */ .calendar-grid::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
+        /* Custom scrollbar */
+        .tasks-container::-webkit-scrollbar, #upcomingTasksList::-webkit-scrollbar, #highestPriorityList::-webkit-scrollbar { width: 8px; }
+        .tasks-container::-webkit-scrollbar-track, #upcomingTasksList::-webkit-scrollbar-track, #highestPriorityList::-webkit-scrollbar-track { background: #dbeafe; border-radius: 10px; }
+        .tasks-container::-webkit-scrollbar-thumb, #upcomingTasksList::-webkit-scrollbar-thumb, #highestPriorityList::-webkit-scrollbar-thumb { background: #60a5fa; border-radius: 10px; }
+        .tasks-container::-webkit-scrollbar-thumb:hover, #upcomingTasksList::-webkit-scrollbar-thumb:hover, #highestPriorityList::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
+
         .task-edit-input { padding: 2px 4px; border: 1px solid #93c5fd; border-radius: 4px; margin-right: 5px; background-color: #eff6ff; }
         .hidden { display: none; }
         .task-meta-row { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; gap: 6px; flex-wrap: wrap; }
@@ -188,26 +135,101 @@
         .summary-count { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 600; margin: 0 0.25rem; }
         button:disabled { opacity: 0.5; cursor: not-allowed; }
         .task { position: relative; }
-        .task-notes { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); background-color: #374151; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; white-space: pre-wrap; z-index: 10; opacity: 0; visibility: hidden; transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out; pointer-events: none; margin-top: 4px; width: max-content; max-width: 250px; }
+        .task-notes {
+            position: absolute;
+            top: 100%; left: 50%; transform: translateX(-50%);
+            background-color: #374151; color: white; padding: 4px 8px;
+            border-radius: 4px; font-size: 0.75rem; white-space: pre-wrap;
+            z-index: 10; opacity: 0; visibility: hidden;
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+            pointer-events: none; margin-top: 4px; width: max-content; max-width: 250px;
+        }
         .task:hover .task-notes { opacity: 1; visibility: visible; }
         .action-btn { background: none; border: none; padding: 0; cursor: pointer; font-size: 1rem; line-height: 1; display: flex; align-items: center; height: 24px; width: 24px; justify-content: center; }
-        .edit-mode-buttons { display: flex; gap: 4px; align-items: center; } .edit-mode-buttons .action-btn { font-size: 1rem; }
-        .task { align-items: flex-start; flex-direction: column; } .task > div:first-child { width: 100%; }
-        .task-submenu { position: absolute; right: calc(100% + 5px); top: 50%; transform: translateY(-50%); background-color: white; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); padding: 4px; z-index: 20; display: flex; flex-direction: column; gap: 3px; min-width: 100px; }
-        .task-submenu button { text-align: left; padding: 2px 5px; font-size: 0.8rem; white-space: nowrap; background: none; border: none; width: 100%; display: flex; align-items: center; gap: 4px; }
-        .task-submenu button:hover { background-color: #f0f0f0; }
-        #mainHeader { position: relative; padding-bottom: 1rem; display: flex; align-items: flex-start; justify-content: center; }
-        #taskSummaryContainerBoard { position: absolute; top: 0; left: 0; } #mainTitle { flex-grow: 1; text-align: center; color: #e0f2fe; }
-        #headerInfoRight { position: absolute; top: 0; right: 0; display: flex; flex-direction: column; align-items: flex-end; }
-        #currentDateDisplay { font-size: 1rem; font-weight: 600; color: #d1d5db; margin-bottom: 5px; white-space: nowrap; width: 220px; text-align: right; }
-        #shiftProgressBarContainer { width: 220px; height: 16px; background-color: #4b5563; border-radius: 8px; overflow: hidden; border: 1px solid #374151; }
-        #shiftProgressBar { height: 100%; width: 0%; transition: width 0.5s ease-out, background-color 0.5s ease-out; border-radius: 7px; }
-        #shiftTimeControls { margin-top: 6px; display: flex; gap: 8px; align-items: center; width: 220px; justify-content: space-around; }
-        #shiftTimeControls > div { display: flex; align-items: center; gap: 4px; }
-        #shiftTimeControls label { font-size: 0.75rem; color: #9ca3af; white-space: nowrap; }
-        #shiftTimeControls input[type="time"] { font-size: 0.75rem; padding: 1px 3px; border-radius: 4px; border: 1px solid #4b5563; background-color: #374151; color: #e5e7eb; width: 75px; }
-        #updateShiftTimesBtn { font-size: 0.7rem; padding: 3px 6px; }
-        #emailSummaryMessage { min-height: 1.25rem; font-size: 0.875rem; margin-top: 0.5rem; text-align: center; }
+         .edit-mode-buttons { display: flex; gap: 4px; align-items: center; }
+         .edit-mode-buttons .action-btn { font-size: 1rem; }
+         .task { align-items: flex-start; flex-direction: column; }
+         .task > div:first-child { width: 100%; }
+         .task-submenu {
+             position: absolute;
+             right: calc(100% + 5px); top: 50%; transform: translateY(-50%);
+             background-color: white; border: 1px solid #ccc; border-radius: 4px;
+             box-shadow: 0 2px 5px rgba(0,0,0,0.1); padding: 4px; z-index: 20;
+             display: flex; flex-direction: column; gap: 3px; min-width: 100px;
+         }
+         .task-submenu button {
+             text-align: left; padding: 2px 5px; font-size: 0.8rem; white-space: nowrap;
+             background: none; border: none; width: 100%; display: flex; align-items: center; gap: 4px;
+         }
+         .task-submenu button:hover { background-color: #f0f0f0; }
+         #mainHeader {
+             position: relative; padding-bottom: 1rem; display: flex;
+             align-items: flex-start; justify-content: center;
+         }
+         #taskSummaryContainerBoard { position: absolute; top: 0; left: 0; }
+         #mainTitle { flex-grow: 1; text-align: center; color: #e0f2fe; }
+         #headerInfoRight {
+             position: absolute; top: 0; right: 0;
+             display: flex; flex-direction: column; align-items: flex-end;
+         }
+         #currentDateDisplay {
+             font-size: 1rem;
+             font-weight: 600;
+             color: #d1d5db;
+             margin-bottom: 5px;
+             white-space: nowrap;
+             width: 220px;
+             text-align: right;
+         }
+         #shiftProgressBarContainer {
+             width: 220px;
+             height: 16px;
+             background-color: #4b5563;
+             border-radius: 8px;
+             overflow: hidden;
+             border: 1px solid #374151;
+         }
+         #shiftProgressBar {
+             height: 100%; width: 0%;
+             transition: width 0.5s ease-out, background-color 0.5s ease-out;
+             border-radius: 7px;
+         }
+        #shiftTimeControls {
+            margin-top: 6px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            width: 220px;
+            justify-content: space-around;
+        }
+        #shiftTimeControls > div {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        #shiftTimeControls label {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            white-space: nowrap;
+        }
+        #shiftTimeControls input[type="time"] {
+            font-size: 0.75rem; padding: 1px 3px;
+            border-radius: 4px; border: 1px solid #4b5563;
+            background-color: #374151;
+            color: #e5e7eb;
+            width: 75px;
+        }
+        #updateShiftTimesBtn {
+            font-size: 0.7rem; padding: 3px 6px;
+        }
+        /* NEW: Styles for summary button and message */
+        #emailSummaryMessage {
+            min-height: 1.25rem; /* 20px */
+            font-size: 0.875rem; /* text-sm */
+            margin-top: 0.5rem; /* mt-2 */
+            text-align: center;
+        }
+
     </style>
 </head>
 <body class="bg-blue-800 font-sans p-4 md:p-8">
@@ -224,49 +246,67 @@
                      <div id="shiftProgressBar"></div>
                  </div>
                  <div id="shiftTimeControls" class="hidden">
-                    <div><label for="shiftStartInput">Start:</label><input type="time" id="shiftStartInput" name="shiftStartInput"></div>
-                    <div><label for="shiftEndInput">End:</label><input type="time" id="shiftEndInput" name="shiftEndInput"></div>
+                    <div>
+                        <label for="shiftStartInput">Start:</label>
+                        <input type="time" id="shiftStartInput" name="shiftStartInput">
+                    </div>
+                    <div>
+                        <label for="shiftEndInput">End:</label>
+                        <input type="time" id="shiftEndInput" name="shiftEndInput">
+                    </div>
                     <button id="updateShiftTimesBtn" class="nav-button bg-teal-500 hover:bg-teal-600 text-white">Set</button>
                 </div>
              </div>
         </div>
-        <div class="max-w-7xl mx-auto text-center mb-6 space-x-2 sm:space-x-4">
-            <button id="showInputPageBtn" class="nav-button bg-blue-500 hover:bg-blue-600 text-white">Add New Task</button>
+        <div class="max-w-7xl mx-auto text-center mb-6 space-x-2 sm:space-x-4"> <button id="showInputPageBtn" class="nav-button bg-blue-500 hover:bg-blue-600 text-white">Add New Task</button>
             <button id="showBoardPageBtn" class="nav-button bg-indigo-500 hover:bg-indigo-600 text-white">View Board</button>
             <button id="emailSummaryBtn" class="nav-button bg-green-500 hover:bg-green-600 text-white hidden">Email Task Summary</button>
         </div>
-        <div id="emailSummaryMessageContainer" class="text-center mb-4 hidden"><p id="emailSummaryMessage" class="text-gray-300"></p></div>
+        <div id="emailSummaryMessageContainer" class="text-center mb-4 hidden">
+            <p id="emailSummaryMessage" class="text-gray-300"></p>
+        </div>
 
 
         <div id="inputPage" class="">
             <h2 class="text-2xl font-semibold text-center text-blue-200 mb-2">Add a New Task</h2>
             <p class="text-center text-sm text-gray-300 mb-4">Please advise below what you require, this will be added to Jay's To-Do list.</p>
+
             <div class="p-6 bg-gray-100 rounded-lg shadow flex flex-col items-center space-y-4 max-w-lg mx-auto mb-6">
                 <div class="w-full">
                     <label for="newTaskInput" class="block text-sm font-medium text-gray-700 mb-1">Task Description:</label>
                     <textarea id="newTaskInput" placeholder="Enter new task..." rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"></textarea>
                 </div>
-                <button id="addTaskBtn" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-md transition duration-150 ease-in-out">Add Task</button>
+                <button id="addTaskBtn" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-md transition duration-150 ease-in-out">
+                    Add Task
+                </button>
                  <p id="addTaskMessage" class="text-gray-400 text-sm mt-2 h-5 text-center"></p>
              </div>
-             <div id="taskSummaryContainerInput" class="text-center mb-4"><div id="taskSummaryInput"></div></div>
+
+             <div id="taskSummaryContainerInput" class="text-center mb-4">
+                 <div id="taskSummaryInput"></div>
+            </div>
         </div>
 
         <div id="boardPage" class="hidden">
              <div class="flex flex-col md:flex-row gap-6">
+
                 <div class="w-full md:w-1/5 flex-shrink-0 order-1 md:order-1">
                     <div id="stickyNoteContainer" class="sticky-note-wrapper">
                         <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Notes</h3>
-                        <textarea id="stickyNoteTextarea" rows="7"></textarea> <button id="saveStickyNoteBtn" class="nav-button bg-yellow-500 hover:bg-yellow-600 text-yellow-900 text-sm py-1 px-3 mt-2 save-sticky-note-btn">Save Note</button>
+                        <textarea id="stickyNoteTextarea"></textarea>
+                        <button id="saveStickyNoteBtn" class="nav-button bg-yellow-500 hover:bg-yellow-600 text-yellow-900 text-sm py-1 px-3 mt-2 save-sticky-note-btn">Save Note</button>
                         <p id="stickyNoteMessage" class="sticky-note-message text-green-600"></p>
                     </div>
                     <div id="stickyNoteContainerAAT" class="sticky-note-wrapper">
-                        <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Studying</h3> <textarea id="stickyNoteTextareaAAT" rows="7"></textarea> <button id="saveStickyNoteBtnAAT" class="nav-button bg-green-600 hover:bg-green-700 text-white text-sm py-1 px-3 mt-2 save-sticky-note-btn">Save Note</button>
+                        <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">AAT Level 4</h3>
+                        <textarea id="stickyNoteTextareaAAT"></textarea>
+                        <button id="saveStickyNoteBtnAAT" class="nav-button bg-green-600 hover:bg-green-700 text-white text-sm py-1 px-3 mt-2 save-sticky-note-btn">Save Note</button>
                         <p id="stickyNoteMessageAAT" class="sticky-note-message text-green-700"></p>
                     </div>
                 </div>
+
                 <div class="flex-grow order-3 md:order-2 flex justify-center">
-                    <div class="w-full max-w-7xl"> 
+                    <div class="w-full max-w-7xl">
                         <div class="space-y-6">
                             <div id="kanbanBoardTopRow" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <div id="todo" class="kanban-column bg-blue-100 rounded-lg shadow p-4" ondragover="allowDrop(event)" ondrop="drop(event)">
@@ -294,42 +334,46 @@
                 <div class="w-full md:w-1/4 lg:w-1/5 flex-shrink-0 order-2 md:order-3">
                     <div id="upcomingTasksContainer">
                         <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Upcoming Due</h3>
-                        <div id="upcomingTasksList"><p class="text-xs text-gray-500 text-center italic">Loading...</p></div>
-                    </div>
-                    <div id="calendarContainer"> 
-                        <div class="calendar-header text-center mb-2">
-                            <button id="prevMonthBtn" class="calendar-nav-btn">&lt;</button>
-                            <span id="monthYearDisplay" class="text-lg font-semibold mx-2"></span>
-                            <button id="nextMonthBtn" class="calendar-nav-btn">&gt;</button>
+                        <div id="upcomingTasksList">
+                            <p class="text-xs text-gray-500 text-center italic">Loading...</p>
                         </div>
-                        <div id="calendarGrid" class="calendar-grid">
-                            <div class="calendar-day-header">Sun</div>
-                            <div class="calendar-day-header">Mon</div>
-                            <div class="calendar-day-header">Tue</div>
-                            <div class="calendar-day-header">Wed</div>
-                            <div class="calendar-day-header">Thu</div>
-                            <div class="calendar-day-header">Fri</div>
-                            <div class="calendar-day-header">Sat</div>
-                            </div>
+                    </div>
+                    <div id="highestPriorityContainer">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Highest Priority</h3>
+                        <div id="highestPriorityList">
+                            <p class="text-xs text-gray-500 text-center italic">Loading...</p>
+                        </div>
                     </div>
                 </div>
              </div>
         </div>
     </div>
+
     <canvas id="confetti-canvas"></canvas>
+
     <script>
         // --- Constants ---
-        const COOLDOWN_SECONDS = 5; const PIN_COOLDOWN_SECONDS = 5; const MAX_TODO_TASKS = 50;
-        const PRIORITIES = ["New", "High", "Medium", "Low"]; const DEFAULT_PRIORITY = "New";
+        const COOLDOWN_SECONDS = 5;
+        const PIN_COOLDOWN_SECONDS = 5;
+        const MAX_TODO_TASKS = 50;
+        const PRIORITIES = ["New", "High", "Medium", "Low"];
+        const DEFAULT_PRIORITY = "New";
         const PRIORITY_VALUES = { "New": 4, "High": 3, "Medium": 2, "Low": 1 };
         const FUNCTION_BASE_PATH = '/.netlify/functions/';
         const VALID_STATUSES = ['todo', 'inprogress', 'nonurgent', 'done'];
-        let SHIFT_START_HOUR = 9; let SHIFT_END_HOUR = 16; 
-        const STICKY_NOTE_ID_MAIN = 1; const STICKY_NOTE_ID_AAT = 2;
-        const STICKY_NOTE_ID_SHIFT_START = 3; const STICKY_NOTE_ID_SHIFT_END = 4;
+
+        let SHIFT_START_HOUR = 9;
+        let SHIFT_END_HOUR = 16;
+
+        const STICKY_NOTE_ID_MAIN = 1;
+        const STICKY_NOTE_ID_AAT = 2;
+        const STICKY_NOTE_ID_SHIFT_START = 3;
+        const STICKY_NOTE_ID_SHIFT_END = 4;
+
 
         // --- DOM Elements ---
-        const newTaskInput = document.getElementById('newTaskInput'); const addTaskBtn = document.getElementById('addTaskBtn');
+        const newTaskInput = document.getElementById('newTaskInput');
+        const addTaskBtn = document.getElementById('addTaskBtn');
         const addTaskMessage = document.getElementById('addTaskMessage');
         const taskSummaryInputContainer = document.getElementById('taskSummaryContainerInput');
         const taskSummaryInput = document.getElementById('taskSummaryInput');
@@ -337,8 +381,10 @@
         const taskSummaryBoard = document.getElementById('taskSummaryBoard');
         const confettiCanvas = document.getElementById('confetti-canvas');
         const myConfetti = confetti.create(confettiCanvas, { resize: true, useWorker: true });
-        const inputPage = document.getElementById('inputPage'); const boardPage = document.getElementById('boardPage');
-        const showInputPageBtn = document.getElementById('showInputPageBtn'); const showBoardPageBtn = document.getElementById('showBoardPageBtn');
+        const inputPage = document.getElementById('inputPage');
+        const boardPage = document.getElementById('boardPage');
+        const showInputPageBtn = document.getElementById('showInputPageBtn');
+        const showBoardPageBtn = document.getElementById('showBoardPageBtn');
         const currentDateDisplay = document.getElementById('currentDateDisplay');
         const shiftProgressBar = document.getElementById('shiftProgressBar');
         const stickyNoteTextarea = document.getElementById('stickyNoteTextarea');
@@ -348,28 +394,30 @@
         const saveStickyNoteBtnAAT = document.getElementById('saveStickyNoteBtnAAT');
         const stickyNoteMessageAAT = document.getElementById('stickyNoteMessageAAT');
         const upcomingTasksList = document.getElementById('upcomingTasksList');
-        // const highestPriorityList = document.getElementById('highestPriorityList'); // This was commented out in your working file
+        const highestPriorityList = document.getElementById('highestPriorityList');
         const shiftTimeControls = document.getElementById('shiftTimeControls');
-        const shiftStartInput = document.getElementById('shiftStartInput'); const shiftEndInput = document.getElementById('shiftEndInput');
+        const shiftStartInput = document.getElementById('shiftStartInput');
+        const shiftEndInput = document.getElementById('shiftEndInput');
         const updateShiftTimesBtn = document.getElementById('updateShiftTimesBtn');
+        // NEW: DOM Elements for Email Summary
         const emailSummaryBtn = document.getElementById('emailSummaryBtn');
         const emailSummaryMessageContainer = document.getElementById('emailSummaryMessageContainer');
         const emailSummaryMessage = document.getElementById('emailSummaryMessage');
-        
-        // NEW DOM Elements for Calendar
-        const prevMonthBtn = document.getElementById('prevMonthBtn');
-        const nextMonthBtn = document.getElementById('nextMonthBtn');
-        const monthYearDisplay = document.getElementById('monthYearDisplay');
-        const calendarGrid = document.getElementById('calendarGrid');
 
 
         // --- State ---
-        let tasks = { todo: [], inprogress: [], nonurgent: [], done: [] }; let draggedTask = null;
-        let currentlyEditingTaskId = null; let cooldownTimer = null; let successMessageTimeout = null;
-        let isPinCooldownActive = false; let openSubMenuId = null; let dateTimeInterval = null;
-        let stickyNoteSaveTimeout = null; let stickyNoteAATSaveTimeout = null;
-        let shiftTimeSaveMessageTimeout = null; let emailSummaryTimeout = null;
-        let calendarDate = new Date(); // NEW STATE for Calendar
+        let tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };
+        let draggedTask = null;
+        let currentlyEditingTaskId = null;
+        let cooldownTimer = null;
+        let successMessageTimeout = null;
+        let isPinCooldownActive = false;
+        let openSubMenuId = null;
+        let dateTimeInterval = null;
+        let stickyNoteSaveTimeout = null;
+        let stickyNoteAATSaveTimeout = null;
+        let shiftTimeSaveMessageTimeout = null;
+        let emailSummaryTimeout = null; // NEW: Timeout for email summary message
 
 
         // --- Generic Fetch Helper ---
@@ -379,76 +427,79 @@
 
             if (method === 'GET' && paramsOrBody) {
                 const queryParams = new URLSearchParams(paramsOrBody).toString();
-                if (queryParams) url += `?${queryParams}`;
+                if (queryParams) {
+                    url += `?${queryParams}`;
+                }
             } else if (paramsOrBody) {
                 options.headers['Content-Type'] = 'application/json';
                 options.body = JSON.stringify(paramsOrBody);
             }
-            
-            try {
-                const fetchResponse = await fetch(url, options);
-                const responseStatus = fetchResponse.status; 
-                const isJson = fetchResponse.headers.get('content-type')?.includes('application/json');
-                let responseData; 
 
-                if (isJson) {
-                    responseData = await fetchResponse.json();
-                } else {
-                    responseData = { message: await fetchResponse.text() }; 
-                }
-                
-                if (!fetchResponse.ok) {
-                    const errorMessage = (responseData && (responseData.error || responseData.message)) || `HTTP error! Status: ${responseStatus}`;
-                    console.error(`API Error (${url}, Status: ${responseStatus}):`, errorMessage, responseData?.details);
-                    
-                    if (!(endpoint === 'get-sticky-note' && method === 'GET' && responseStatus === 500)) { 
-                         alert(`Operation failed: ${errorMessage}. Status: ${responseStatus}. Please check console or try again.`);
+            try {
+                const response = await fetch(url, options);
+                const isJson = response.headers.get('content-type')?.includes('application/json');
+                const data = isJson ? await response.json() : { message: await response.text(), status: response.status }; // Handle non-JSON for errors
+                if (!response.ok) {
+                    const error = (data && (data.error || data.message)) || `HTTP error! status: ${response.status}`;
+                    console.error(`API Error (${url}, Status: ${response.status}):`, error, data?.details || data);
+                    // Avoid alert for specific non-critical errors if needed
+                    if (!(endpoint === 'get-sticky-note' && method === 'GET')) {
+                         alert(`Operation failed: ${error}. Status: ${response.status}. Please check console or try again.`);
                     }
-                    throw { message: String(errorMessage), status: responseStatus, data: responseData };
+                    throw new Error(error);
                 }
-                return { data: responseData, status: responseStatus }; 
-            } catch (error) { 
+                return data;
+            } catch (error) {
                 console.error(`API Call Failed (${url}):`, error);
-                if (error.status !== undefined) { 
-                    throw error;
+                if (!(endpoint === 'get-sticky-note' && method === 'GET')) {
+                     // Only alert if it's not a known "silent fail" like initial sticky note load.
                 }
-                throw { message: error.message || "Network error or issue parsing response", status: null, data: null };
+                throw error; // Re-throw to be caught by caller
             }
         }
 
         // --- Functions ---
+
         function formatDate(timestampOrDateString) {
             if (!timestampOrDateString) return 'N/A';
             try {
                 const date = new Date(timestampOrDateString);
+                // Attempt to handle if it's already UTC or needs local adjustment
+                // If it's a YYYY-MM-DD string, it's treated as UTC by default by new Date()
+                // If it's a full ISO string, it includes timezone info.
+                // For simplicity, if only date part, assume it's meant as local day.
+                // The backend should ideally store dates consistently (e.g., UTC).
+                // The formatDateForInput sends YYYY-MM-DD, which new Date() interprets as UTC.
+                // To display it as that "day" locally:
                 let adjustedDate = date;
-                if (typeof timestampOrDateString === 'string' && timestampOrDateString.length === 10 && timestampOrDateString.match(/^\d{4}-\d{2}-\d{2}$/)) { 
+                if (typeof timestampOrDateString === 'string' && timestampOrDateString.length === 10) { // YYYY-MM-DD
                     const [year, month, day] = timestampOrDateString.split('-').map(Number);
-                    adjustedDate = new Date(year, month - 1, day); 
-                } else if (isNaN(date.getTime())) {
-                    return 'N/A';
+                    adjustedDate = new Date(year, month - 1, day); // Treat as local date parts
                 }
+
+
                 if (isNaN(adjustedDate.getTime())) return 'N/A';
-                const dayNum = String(adjustedDate.getDate()).padStart(2, '0');
-                const monthNum = String(adjustedDate.getMonth() + 1).padStart(2, '0');
-                const yearNum = adjustedDate.getFullYear();
-                return `${dayNum}/${monthNum}/${yearNum}`;
+                const day = String(adjustedDate.getDate()).padStart(2, '0');
+                const month = String(adjustedDate.getMonth() + 1).padStart(2, '0');
+                const year = adjustedDate.getFullYear();
+                return `${day}/${month}/${year}`;
             } catch (e) {
                  console.error("Error formatting display date:", e, "Input:", timestampOrDateString);
                  return 'N/A';
             }
         }
 
+
         function formatDateForInput(timestampOrDateString) {
              if (!timestampOrDateString) return '';
              try {
                  const date = new Date(timestampOrDateString);
-                 if (typeof timestampOrDateString === 'string' && timestampOrDateString.length === 10 && timestampOrDateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                     const [year, month, day] = timestampOrDateString.split('-').map(Number);
-                     const localDate = new Date(Date.UTC(year, month - 1, day)); 
-                     return `${localDate.getFullYear()}-${String(localDate.getMonth() + 1).padStart(2, '0')}-${String(localDate.getDate()).padStart(2, '0')}`;
+                 // When a date string like "YYYY-MM-DD" is parsed by new Date(), it's UTC.
+                 // To ensure the input field shows the *same* YYYY-MM-DD regardless of local timezone:
+                 if (typeof timestampOrDateString === 'string' && timestampOrDateString.length === 10) {
+                     return timestampOrDateString; // It's already in YYYY-MM-DD, use as is.
                  }
-                 if (isNaN(date.getTime())) return '';
+                 // If it's a full timestamp, convert to local YYYY-MM-DD
                  const year = date.getFullYear();
                  const month = String(date.getMonth() + 1).padStart(2, '0');
                  const day = String(date.getDate()).padStart(2, '0');
@@ -459,230 +510,477 @@
         function formatTimeToHHMM(hours, minutes = 0) {
             return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
         }
-        
+
+
         function updateDateTimeDisplay() {
             const now = new Date();
             const currentHour = now.getHours();
             const currentMinutes = now.getMinutes();
             const currentTimeInMinutes = currentHour * 60 + currentMinutes;
-            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            if (currentDateDisplay) currentDateDisplay.textContent = now.toLocaleDateString('en-GB', dateOptions);
-            
-            const startVal = shiftStartInput?.value || `${SHIFT_START_HOUR}:00`;
-            const endVal = shiftEndInput?.value || `${SHIFT_END_HOUR}:00`;
 
-            const shiftStartMinutes = (parseInt(startVal.split(':')[0]) || SHIFT_START_HOUR) * 60 + (parseInt(startVal.split(':')[1]) || 0) ;
-            const shiftEndMinutes = (parseInt(endVal.split(':')[0]) || SHIFT_END_HOUR) * 60 + (parseInt(endVal.split(':')[1]) || 0);
+            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            currentDateDisplay.textContent = now.toLocaleDateString('en-GB', dateOptions);
+
+            const shiftStartMinutes = SHIFT_START_HOUR * 60 + (parseInt(String(shiftStartInput.value).split(':')[1]) || 0) ;
+            const shiftEndMinutes = SHIFT_END_HOUR * 60 + (parseInt(String(shiftEndInput.value).split(':')[1]) || 0);
             const shiftDurationMinutes = shiftEndMinutes - shiftStartMinutes;
 
-            let progressPercent = 0; let barColor = '#4ade80';
-            if (currentTimeInMinutes < shiftStartMinutes) { progressPercent = 0; barColor = '#4ade80'; }
-            else if (currentTimeInMinutes >= shiftEndMinutes) { progressPercent = 100; barColor = '#f87171'; }
-            else {
+            let progressPercent = 0;
+            let barColor = '#4ade80'; // green-500
+
+            if (currentTimeInMinutes < shiftStartMinutes) {
+                progressPercent = 0;
+                barColor = '#4ade80'; // green-500 (Shift hasn't started)
+            } else if (currentTimeInMinutes >= shiftEndMinutes) {
+                progressPercent = 100;
+                barColor = '#f87171'; // red-500 (Shift has ended)
+            } else {
                 if (shiftDurationMinutes > 0) {
                     const timeElapsedMinutes = currentTimeInMinutes - shiftStartMinutes;
                     progressPercent = Math.max(0, Math.min(100, (timeElapsedMinutes / shiftDurationMinutes) * 100));
-                    if (progressPercent < 33.33) barColor = '#4ade80'; 
-                    else if (progressPercent < 66.66) barColor = '#facc15'; 
-                    else barColor = '#f87171'; 
-                } else { progressPercent = (currentTimeInMinutes >= shiftEndMinutes) ? 100 : 0; barColor = (progressPercent === 100) ? '#f87171' : '#4ade80'; }
+
+                    if (progressPercent < 33.33) {
+                        barColor = '#4ade80'; // green-500
+                    } else if (progressPercent < 66.66) {
+                        barColor = '#facc15'; // yellow-500
+                    } else {
+                        barColor = '#f87171'; // red-500
+                    }
+                } else { // Should not happen if validation is correct (start < end)
+                    progressPercent = (currentTimeInMinutes >= shiftEndMinutes) ? 100 : 0;
+                    barColor = (progressPercent === 100) ? '#f87171' : '#4ade80';
+                }
             }
-            if (shiftProgressBar) { shiftProgressBar.style.width = `${progressPercent}%`; shiftProgressBar.style.backgroundColor = barColor; }
+
+            if (shiftProgressBar) {
+                shiftProgressBar.style.width = `${progressPercent}%`;
+                shiftProgressBar.style.backgroundColor = barColor;
+            }
         }
 
+
         function updateTaskSummary() {
-            console.log("updateTaskSummary: Called. tasks:", JSON.parse(JSON.stringify(tasks))); // DEBUG
-            if (!taskSummaryInputContainer || !taskSummaryBoard) {
-                console.error("updateTaskSummary: DOM elements for summary not found.");
-                return;
-            }
             const todoCount = tasks.todo?.length || 0;
             const inProgressCount = tasks.inprogress?.length || 0;
             const nonUrgentCount = tasks.nonurgent?.length || 0;
-            const summaryBadgesHTML = `<div class="text-center"><span class="summary-count bg-blue-200 text-blue-800">${todoCount}</span><span class="block text-xs text-gray-300 mt-1">To Do</span></div><div class="text-center"><span class="summary-count bg-orange-200 text-orange-800">${inProgressCount}</span><span class="block text-xs text-gray-300 mt-1">In Progress</span></div><div class="text-center"><span class="summary-count bg-gray-200 text-gray-700">${nonUrgentCount}</span><span class="block text-xs text-gray-300 mt-1">Non Urgent</span></div>`;
-            const summaryInputHTML = `<h3 class="text-lg font-medium text-gray-300 mb-2">Current Task Summary</h3><div class="flex justify-center items-center space-x-4">${summaryBadgesHTML}</div>`;
-            taskSummaryInputContainer.innerHTML = summaryInputHTML;
-            taskSummaryBoard.innerHTML = summaryBadgesHTML;
-            console.log("updateTaskSummary: Finished."); // DEBUG
+            const summaryBadgesHTML = `
+                <div class="text-center">
+                    <span class="summary-count bg-blue-200 text-blue-800">${todoCount}</span>
+                    <span class="block text-xs text-gray-300 mt-1">To Do</span>
+                </div>
+                <div class="text-center">
+                    <span class="summary-count bg-orange-200 text-orange-800">${inProgressCount}</span>
+                    <span class="block text-xs text-gray-300 mt-1">In Progress</span>
+                </div>
+                <div class="text-center">
+                    <span class="summary-count bg-gray-200 text-gray-700">${nonUrgentCount}</span>
+                    <span class="block text-xs text-gray-300 mt-1">Non Urgent</span>
+                </div>
+            `;
+             const summaryInputHTML = `
+                <h3 class="text-lg font-medium text-gray-300 mb-2">Current Task Summary</h3>
+                <div class="flex justify-center items-center space-x-4">
+                    ${summaryBadgesHTML}
+                </div>
+            `;
+            if (taskSummaryInputContainer) taskSummaryInputContainer.innerHTML = summaryInputHTML;
+            if (taskSummaryBoard) taskSummaryBoard.innerHTML = summaryBadgesHTML;
         }
-        
-        async function showPage(pageToShowId) { // Made async to await sticky note loads
-            console.log("showPage called with:", pageToShowId);
+
+        function showPage(pageToShowId) {
             closeOpenSubMenu();
+            // NEW: Hide summary message container when switching pages
             if (emailSummaryMessageContainer) emailSummaryMessageContainer.classList.add('hidden');
-            
+
             if (pageToShowId === 'inputPage') {
-                if (inputPage) inputPage.classList.remove('hidden'); if (boardPage) boardPage.classList.add('hidden');
-                if (taskSummaryBoardContainer) taskSummaryBoardContainer.classList.add('hidden'); if (taskSummaryInputContainer) taskSummaryInputContainer.classList.remove('hidden');
+                inputPage.classList.remove('hidden');
+                boardPage.classList.add('hidden');
+                taskSummaryBoardContainer.classList.add('hidden');
+                taskSummaryInputContainer.classList.remove('hidden');
                 if(shiftTimeControls) shiftTimeControls.classList.add('hidden');
-                if(emailSummaryBtn) emailSummaryBtn.classList.add('hidden');
-                if (showInputPageBtn) { showInputPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500'); showInputPageBtn.classList.replace('hover:bg-indigo-600', 'hover:bg-blue-600'); }
-                if (showBoardPageBtn) { showBoardPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500'); showBoardPageBtn.classList.replace('hover:bg-blue-600', 'hover:bg-indigo-600'); }
+                if(emailSummaryBtn) emailSummaryBtn.classList.add('hidden'); // NEW: Hide summary btn
+
+                showInputPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500');
+                showInputPageBtn.classList.replace('hover:bg-indigo-600', 'hover:bg-blue-600');
+                showBoardPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500');
+                showBoardPageBtn.classList.replace('hover:bg-blue-600', 'hover:bg-indigo-600');
             } else if (pageToShowId === 'boardPage') {
-                try { 
-                    console.log("showPage('boardPage'): Setting up board page visibility.");
-                    if (inputPage) inputPage.classList.add('hidden'); if (boardPage) boardPage.classList.remove('hidden');
-                    if (taskSummaryInputContainer) taskSummaryInputContainer.classList.add('hidden'); if (taskSummaryBoardContainer) taskSummaryBoardContainer.classList.remove('hidden');
-                    if(shiftTimeControls) shiftTimeControls.classList.remove('hidden');
-                    if(emailSummaryBtn) emailSummaryBtn.classList.remove('hidden');
-                    
-                    console.log("showPage('boardPage'): Calling renderBoard...");
-                    renderBoard(); 
-                    console.log("showPage('boardPage'): Calling updateTaskSummary...");
-                    updateTaskSummary(); 
-                    
-                    console.log("showPage('boardPage'): Calling and awaiting loadStickyNoteMain...");
-                    await loadStickyNoteMain(); 
-                    console.log("showPage('boardPage'): Calling and awaiting loadStickyNoteAAT...");
-                    await loadStickyNoteAAT();  
-                    
-                    console.log("showPage('boardPage'): Calling renderUpcomingTasks...");
-                    renderUpcomingTasks(); 
-                    console.log("showPage('boardPage'): Calling renderCalendar...");
-                    renderCalendar(); 
+                inputPage.classList.add('hidden');
+                boardPage.classList.remove('hidden');
+                taskSummaryInputContainer.classList.add('hidden');
+                taskSummaryBoardContainer.classList.remove('hidden');
+                if(shiftTimeControls) shiftTimeControls.classList.remove('hidden');
+                if(emailSummaryBtn) emailSummaryBtn.classList.remove('hidden'); // NEW: Show summary btn
 
-                    if (showInputPageBtn) { showInputPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500'); showInputPageBtn.classList.replace('hover:bg-blue-600', 'hover:bg-indigo-600'); }
-                    if (showBoardPageBtn) { showBoardPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500'); showBoardPageBtn.classList.replace('hover:bg-indigo-600', 'hover:bg-blue-600'); }
-                    console.log("showPage('boardPage'): Board page setup complete.");
-                } catch (error) {
-                    console.error("!!!!!!!! ERROR IN showPage('boardPage') !!!!!!!!", error);
-                }
+
+                renderBoard();
+                updateTaskSummary();
+                loadStickyNoteMain();
+                loadStickyNoteAAT();
+                renderUpcomingTasks();
+                renderHighestPriorityTasks();
+                showInputPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500');
+                showInputPageBtn.classList.replace('hover:bg-blue-600', 'hover:bg-indigo-600');
+                showBoardPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500');
+                showBoardPageBtn.classList.replace('hover:bg-indigo-600', 'hover:bg-blue-600');
             }
         }
 
-        // --- NEW CALENDAR FUNCTION ---
-        function renderCalendar() {
-            console.log("renderCalendar: Called. tasks:", JSON.parse(JSON.stringify(tasks))); // DEBUG
-            if (!calendarGrid || !monthYearDisplay || !tasks) {
-                console.warn("renderCalendar: Elements or tasks object not ready. Grid:", !!calendarGrid, "MonthDisplay:", !!monthYearDisplay, "Tasks:", !!tasks);
-                return;
-            }
-            calendarGrid.innerHTML = ''; 
-            const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            dayHeaders.forEach(header => { const hc = document.createElement('div'); hc.className = 'calendar-day-header'; hc.textContent = header; calendarGrid.appendChild(hc); });
-            const year = calendarDate.getFullYear(); const month = calendarDate.getMonth(); 
-            if (monthYearDisplay) monthYearDisplay.textContent = `${calendarDate.toLocaleDateString('en-GB', { month: 'long' })} ${year}`;
-            const firstDayOfMonth = new Date(year, month, 1); const lastDayOfMonth = new Date(year, month + 1, 0);
-            const daysInMonth = lastDayOfMonth.getDate(); const startingDayOfWeek = firstDayOfMonth.getDay(); 
-            const today = new Date(); today.setHours(0,0,0,0);
-            for (let i = 0; i < startingDayOfWeek; i++) { const bc = document.createElement('div'); bc.className = 'calendar-day-cell other-month'; calendarGrid.appendChild(bc); }
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dayCell = document.createElement('div'); dayCell.className = 'calendar-day-cell';
-                const dns = document.createElement('span'); dns.className = 'calendar-day-number'; dns.textContent = day; dayCell.appendChild(dns);
-                const currentDateOfCell = new Date(year, month, day); currentDateOfCell.setHours(0,0,0,0);
-                if (currentDateOfCell.getTime() === today.getTime()) dayCell.classList.add('current-day');
-                let tasksDueOnThisDay = 0; const calendarDayString = formatDateForInput(currentDateOfCell);
-                for (const status of ['todo', 'inprogress', 'nonurgent']) { 
-                    if (tasks[status] && Array.isArray(tasks[status])) { 
-                        for (const task of tasks[status]) {
-                            if (task && task.due_date) { 
-                                const taskDueDateString = formatDateForInput(task.due_date);
-                                if (taskDueDateString === calendarDayString) tasksDueOnThisDay++;
-                            }
-                        }
-                    }
-                }
-                if (tasksDueOnThisDay > 0) { const tc = document.createElement('span'); tc.className = 'calendar-task-count'; tc.textContent = tasksDueOnThisDay; dayCell.appendChild(tc); }
-                calendarGrid.appendChild(dayCell);
-            }
-            const totalCellsFilled = startingDayOfWeek + daysInMonth;
-            const remainingCellsToFill = (7 - (totalCellsFilled % 7)) % 7;
-            for (let i = 0; i < remainingCellsToFill; i++) { const bc = document.createElement('div'); bc.className = 'calendar-day-cell other-month'; calendarGrid.appendChild(bc); }
-            console.log("renderCalendar: Finished."); // DEBUG
-        }
 
-        // Task modification functions (ensure they call renderCalendar if board is visible)
         async function updateTaskPriority(taskId, newPriority) {
              try {
-                 const apiResponse = await apiCall('update-task', 'POST', { id: taskId, updates: { priority: newPriority } });
-                 if (apiResponse.status === 200) {
-                    for (const colId in tasks) { const task = tasks[colId].find(t => t.id === taskId); if (task) { task.priority = newPriority; break; } }
-                    renderBoard(); renderUpcomingTasks(); if (boardPage && !boardPage.classList.contains('hidden')) renderCalendar();
-                 } else { console.warn("Update task priority API call failed:", apiResponse); }
+                 await apiCall('update-task', 'POST', { id: taskId, updates: { priority: newPriority } });
+                 for (const colId in tasks) {
+                     const task = tasks[colId].find(t => t.id === taskId);
+                     if (task) { task.priority = newPriority; break; }
+                 }
+                 renderBoard();
+                 renderUpcomingTasks();
+                 renderHighestPriorityTasks();
              } catch (error) { /* Handled by apiCall */ }
         }
-        async function editTaskNotes(taskId) { /* ... as in your working file ... */ }
-        async function updateTaskDueDate(taskId, newDate) {
-             const dateValueToSend = newDate === '' ? null : newDate;
-             try {
-                 const apiResponse = await apiCall('update-task', 'POST', { id: taskId, updates: { due_date: dateValueToSend } });
-                 if (apiResponse.status === 200) {
-                    for (const colId in tasks) { const task = tasks[colId].find(t => t.id === taskId); if (task) { task.due_date = dateValueToSend; break; } }
-                    renderBoard(); renderUpcomingTasks(); if (boardPage && !boardPage.classList.contains('hidden')) renderCalendar();
-                 } else { console.warn("Update task due date API call failed:", apiResponse); }
-             } catch (error) { console.error("Failed to update due date for task " + taskId, error); }
-        }
-        async function markTaskDone(taskId) { /* ... as in your working file, ensure renderCalendar call ... */ }
-        function toggleSubMenu(event, taskId) { /* ... from your working file ... */ }
-        function closeOpenSubMenu() { /* ... from your working file ... */ }
-        function createTaskElement(task) { /* ... from your working file ... */ }
-        
-        function renderBoard() { 
-            console.log("renderBoard: Called. tasks:", JSON.parse(JSON.stringify(tasks))); // DEBUG
-            if (boardPage && boardPage.classList.contains('hidden')) {
-                 console.log("renderBoard: Board page is hidden, returning."); // DEBUG
-                 return;
-            }
-            const taskContainers = document.querySelectorAll('.tasks-container');
-            if (!taskContainers || taskContainers.length === 0) {
-                console.error("renderBoard: No .tasks-container elements found!"); // DEBUG
-                return;
-            }
-            taskContainers.forEach(colContainer => colContainer.innerHTML = '');
-            console.log("renderBoard: Cleared task containers."); // DEBUG
 
-            const today = new Date(); today.setHours(0, 0, 0, 0);
-            let tasksRenderedCount = 0; // DEBUG
+        async function editTaskNotes(taskId) {
+             closeOpenSubMenu();
+            let taskFound = false; let currentNotes = ''; let taskRef = null;
+            for (const columnId in tasks) {
+                const taskIndex = tasks[columnId].findIndex(task => task.id === taskId);
+                if (taskIndex > -1) { taskRef = tasks[columnId][taskIndex]; currentNotes = taskRef.notes || ''; taskFound = true; break; }
+            }
+            if (!taskFound) { console.error("Could not find task to edit notes:", taskId); return; }
+            const newNotes = prompt("Enter/Edit notes for this task:", currentNotes);
+            if (newNotes !== null) {
+                const trimmedNotes = newNotes.trim();
+                try {
+                    await apiCall('update-task', 'POST', { id: taskId, updates: { notes: trimmedNotes } });
+                    taskRef.notes = trimmedNotes;
+                    renderBoard();
+                } catch (error) { /* Handled by apiCall */ }
+            }
+        }
+
+        async function updateTaskDueDate(taskId, newDate) {
+             console.log(`Updating due date for task ${taskId} to: ${newDate || 'NULL (cleared)'}`);
+             const dateValueToSend = newDate === '' ? null : newDate; // Ensure empty string means clear date
+             try {
+                 await apiCall('update-task', 'POST', { id: taskId, updates: { due_date: dateValueToSend } });
+                 for (const colId in tasks) {
+                     const task = tasks[colId].find(t => t.id === taskId);
+                     if (task) { task.due_date = dateValueToSend; break; }
+                 }
+                 renderBoard();
+                 renderUpcomingTasks();
+                 renderHighestPriorityTasks();
+             } catch (error) { console.error("Failed to update due date in backend for task " + taskId, error); }
+        }
+
+        async function markTaskDone(taskId) {
+             closeOpenSubMenu();
+             console.log(`Marking task ${taskId} as done.`);
+             let taskToMove = null; let originalColumnId = ''; let originalIndex = -1;
+             for (const colId in tasks) {
+                 originalIndex = tasks[colId].findIndex(task => task.id === taskId);
+                 if (originalIndex > -1) { originalColumnId = colId; taskToMove = tasks[colId][originalIndex]; break; }
+             }
+             if (!taskToMove || originalColumnId === 'done') { console.log("Task not found or already in Done column."); return; }
+             tasks[originalColumnId].splice(originalIndex, 1);
+             if (!tasks.done) tasks.done = [];
+             taskToMove.status = 'done';
+             tasks.done.push(taskToMove);
+             renderBoard(); updateTaskSummary(); triggerConfetti();
+             renderUpcomingTasks();
+             renderHighestPriorityTasks();
+             try {
+                 await apiCall('update-task', 'POST', { id: taskId, updates: { status: 'done' } });
+                 console.log(`Task ${taskId} status updated to done in backend.`);
+             } catch (error) {
+                  console.error(`Failed to update task ${taskId} status to done in backend:`, error);
+                  alert("Failed to mark task as done in backend. Reverting UI change.");
+                  const newIndex = tasks.done.findIndex(task => task.id === taskId);
+                  if (newIndex > -1) tasks.done.splice(newIndex, 1);
+                  taskToMove.status = originalColumnId;
+                  if (!tasks[originalColumnId]) tasks[originalColumnId] = [];
+                  tasks[originalColumnId].splice(originalIndex, 0, taskToMove);
+                  renderBoard(); updateTaskSummary();
+                  renderUpcomingTasks();
+                  renderHighestPriorityTasks();
+             }
+        }
+
+        function toggleSubMenu(event, taskId) {
+            event.stopPropagation();
+            const subMenu = document.getElementById(`submenu-${taskId}`);
+            if (!subMenu) return;
+            const isCurrentlyOpen = !subMenu.classList.contains('hidden');
+            closeOpenSubMenu();
+            if (!isCurrentlyOpen) {
+                subMenu.classList.remove('hidden');
+                openSubMenuId = taskId;
+            }
+        }
+
+        function closeOpenSubMenu() {
+             if (openSubMenuId) {
+                 const currentlyOpenMenu = document.getElementById(`submenu-${openSubMenuId}`);
+                 if (currentlyOpenMenu) { currentlyOpenMenu.classList.add('hidden'); }
+                 openSubMenuId = null;
+             }
+        }
+
+        function createTaskElement(task) {
+            const div = document.createElement('div');
+            div.id = task.id;
+            let bgColorClass = 'bg-blue-200';
+            let borderColorClass = 'border-blue-300';
+
+            if (task.priority === 'New') {
+                bgColorClass = 'bg-red-200';
+                borderColorClass = 'border-red-300';
+            } else if (task.priority === 'High') {
+                bgColorClass = 'bg-red-200';
+                borderColorClass = 'border-red-300';
+            } else if (task.priority === 'Medium') {
+                bgColorClass = 'bg-orange-200';
+                borderColorClass = 'border-orange-300';
+            } // Low priority uses default blue-ish theme
+
+            div.className = `task relative ${bgColorClass} p-3 rounded-md shadow-sm border ${borderColorClass} flex flex-col`;
+            div.draggable = true;
+            div.addEventListener('dragstart', dragStart);
+            div.addEventListener('dragend', dragEnd);
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (task.due_date) {
+                const dueDate = new Date(task.due_date);
+                // Ensure dueDate is also compared at the start of its day
+                const dueDateStartOfDay = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+                 if (dueDateStartOfDay < today && task.status !== 'done') {
+                    div.classList.add('overdue');
+                }
+            }
+
+
+            const topSection = document.createElement('div');
+            const contentSpan = document.createElement('span');
+            contentSpan.className = 'task-text block text-gray-800';
+            contentSpan.textContent = task.text;
+            const editInput = document.createElement('input');
+            editInput.type = 'text';
+            editInput.className = 'task-edit-input hidden w-full bg-blue-50 border-blue-400 focus:ring-blue-500 text-gray-800';
+            editInput.value = task.text;
+            editInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') saveTaskEdit(task.id); });
+            topSection.appendChild(contentSpan);
+            topSection.appendChild(editInput);
+
+            const bottomSection = document.createElement('div');
+            bottomSection.className = 'task-meta-row mt-2';
+            const metaGroup = document.createElement('div');
+            metaGroup.className = 'task-meta-group';
+            const prioritySelect = document.createElement('select');
+            prioritySelect.id = `priority-${task.id}`;
+            prioritySelect.className = 'task-priority-select text-gray-800';
+            prioritySelect.onchange = (event) => updateTaskPriority(task.id, event.target.value);
+            PRIORITIES.forEach(p => {
+                const option = document.createElement('option');
+                option.value = p; option.textContent = p;
+                if (p === task.priority) option.selected = true;
+                prioritySelect.appendChild(option);
+            });
+            const dueDateDiv = document.createElement('div');
+            dueDateDiv.className = 'task-due-date-container';
+            const dueDateLabel = document.createElement('label');
+            dueDateLabel.htmlFor = `due-date-${task.id}`;
+            dueDateLabel.textContent = 'Due:';
+            dueDateLabel.className = 'task-due-date-label text-gray-600';
+            const dueDateInput = document.createElement('input');
+            dueDateInput.type = 'date';
+            dueDateInput.id = `due-date-${task.id}`;
+            dueDateInput.className = 'task-due-date-input text-gray-700';
+            dueDateInput.value = formatDateForInput(task.due_date); // Uses updated formatting
+            dueDateInput.onchange = (event) => updateTaskDueDate(task.id, event.target.value);
+            dueDateDiv.appendChild(dueDateLabel);
+            dueDateDiv.appendChild(dueDateInput);
+            metaGroup.appendChild(prioritySelect);
+            metaGroup.appendChild(dueDateDiv);
+
+            const actionsGroup = document.createElement('div');
+            actionsGroup.className = 'task-actions-group';
+            const subMenu = document.createElement('div');
+            subMenu.id = `submenu-${task.id}`;
+            subMenu.className = 'task-submenu hidden';
+            const editBtn = document.createElement('button');
+            editBtn.innerHTML = '✏️ Edit Text';
+            editBtn.className = 'action-btn text-blue-600 hover:text-blue-800 w-full justify-start';
+            editBtn.title = 'Edit Task Description';
+            editBtn.onclick = (e) => { e.stopPropagation(); startEditTask(task.id); };
+            const noteBtn = document.createElement('button');
+            noteBtn.innerHTML = '📝 ' + (task.notes ? 'Edit Note' : 'Add Note');
+            noteBtn.className = 'action-btn text-purple-600 hover:text-purple-800 w-full justify-start';
+            noteBtn.title = task.notes ? 'Edit Note' : 'Add Note';
+            noteBtn.onclick = (e) => { e.stopPropagation(); editTaskNotes(task.id); };
+            const deleteBtn = document.createElement('button');
+            deleteBtn.innerHTML = '❌ Delete';
+            deleteBtn.className = 'action-btn text-red-500 hover:text-red-700 w-full justify-start';
+            deleteBtn.title = 'Delete Task';
+            deleteBtn.onclick = (e) => { e.stopPropagation(); deleteTask(task.id); };
+            subMenu.appendChild(editBtn);
+            subMenu.appendChild(noteBtn);
+            subMenu.appendChild(deleteBtn);
+
+            const menuBtn = document.createElement('button');
+            menuBtn.innerHTML = '&#8942;'; // Vertical ellipsis
+            menuBtn.className = 'action-btn text-gray-600 hover:text-gray-900';
+            menuBtn.title = 'More Actions';
+            menuBtn.onclick = (event) => toggleSubMenu(event, task.id);
+
+            const doneBtn = document.createElement('button');
+            doneBtn.innerHTML = '✅';
+            doneBtn.className = 'action-btn text-green-600 hover:text-green-800';
+            doneBtn.title = 'Mark as Done';
+            doneBtn.onclick = () => markTaskDone(task.id);
+
+            actionsGroup.appendChild(subMenu);
+            actionsGroup.appendChild(menuBtn);
+            if (task.status !== 'done') { actionsGroup.appendChild(doneBtn); }
+
+            const editModeButtonContainer = document.createElement('div');
+            editModeButtonContainer.className = 'edit-mode-buttons hidden';
+            const saveBtn = document.createElement('button');
+            saveBtn.innerHTML = '💾'; // Save icon
+            saveBtn.className = 'action-btn text-blue-600 hover:text-blue-800';
+            saveBtn.title = 'Save Changes';
+            saveBtn.onclick = () => saveTaskEdit(task.id);
+            const cancelBtn = document.createElement('button');
+            cancelBtn.textContent = '❌'; // Cancel icon
+            cancelBtn.className = 'action-btn text-gray-600 hover:text-gray-800';
+            cancelBtn.title = 'Cancel Edit';
+            cancelBtn.onclick = () => cancelTaskEdit(task.id);
+            editModeButtonContainer.appendChild(saveBtn);
+            editModeButtonContainer.appendChild(cancelBtn);
+
+            bottomSection.appendChild(metaGroup);
+            bottomSection.appendChild(actionsGroup);
+            bottomSection.appendChild(editModeButtonContainer);
+
+            const notesDiv = document.createElement('div');
+            notesDiv.className = 'task-notes';
+            notesDiv.textContent = task.notes || '';
+            if (!task.notes) notesDiv.classList.add('hidden');
+
+            div.appendChild(topSection);
+            div.appendChild(bottomSection);
+            div.appendChild(notesDiv);
+
+            if (currentlyEditingTaskId === task.id) {
+                div.draggable = false;
+                contentSpan.classList.add('hidden');
+                editInput.classList.remove('hidden');
+                 metaGroup.classList.add('hidden');
+                 actionsGroup.classList.add('hidden');
+                 editModeButtonContainer.classList.remove('hidden');
+                 bottomSection.classList.remove('hidden'); // Ensure bottom section is visible for save/cancel
+                setTimeout(() => editInput.focus(), 0);
+            }
+            return div;
+        }
+
+
+        function renderBoard() {
+            if (boardPage.classList.contains('hidden')) return;
+            const taskContainers = document.querySelectorAll('.tasks-container');
+            taskContainers.forEach(colContainer => colContainer.innerHTML = '');
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
             for (const columnId in tasks) {
-                if (tasks.hasOwnProperty(columnId) && Array.isArray(tasks[columnId])) { 
+                if (tasks.hasOwnProperty(columnId) && ['todo', 'inprogress', 'nonurgent'].includes(columnId)) {
                     const columnElement = document.getElementById(columnId)?.querySelector('.tasks-container');
                     if (columnElement) {
                         let columnTasks = [...tasks[columnId]];
-                        if (['todo', 'inprogress', 'nonurgent'].includes(columnId)) {
-                            columnTasks.sort((a,b) => (PRIORITY_VALUES[b.priority || DEFAULT_PRIORITY] || 0) - (PRIORITY_VALUES[a.priority || DEFAULT_PRIORITY] || 0) || (a.createdAt || 0) - (b.createdAt || 0) );
-                        } else if (columnId === 'done') {
-                            columnTasks.sort((a,b) => (b.completedAt || b.createdAt || 0) - (a.completedAt || a.createdAt || 0));
-                        }
-                        
-                        console.log(`renderBoard: Processing column ${columnId}, ${columnTasks.length} tasks.`); // DEBUG
-                        columnTasks.forEach(task => {
-                            if (task && task.id && task.text) { 
-                                const taskElement = createTaskElement(task);
-                                if (taskElement) {
-                                    columnElement.appendChild(taskElement);
-                                    tasksRenderedCount++; 
-                                } else {
-                                    console.error("renderBoard: createTaskElement returned null for task:", task); 
-                                }
-                            } else {
-                                console.warn("renderBoard: Invalid task object in column", columnId, task); 
-                            }
+
+                        const newTasks = columnTasks.filter(task => task.priority === "New");
+                        const nonNewTasks = columnTasks.filter(task => task.priority !== "New");
+
+                        const overdueTasks = nonNewTasks.filter(task => {
+                            if (!task.due_date) return false;
+                            const dueDate = new Date(task.due_date);
+                            const dueDateStartOfDay = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+                            return dueDateStartOfDay < today;
                         });
-                    } else { console.error(`renderBoard: Column element's .tasks-container not found for ID: ${columnId}`); } 
-                } else {
-                     console.warn(`renderBoard: tasks[${columnId}] is not an array or tasks does not own ${columnId}. Value:`, tasks[columnId]); 
+                        const otherTasks = nonNewTasks.filter(task => {
+                            if (!task.due_date) return true; // Tasks without due date are not overdue
+                            const dueDate = new Date(task.due_date);
+                            const dueDateStartOfDay = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+                            return dueDateStartOfDay >= today;
+                        });
+
+
+                        newTasks.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)); // Oldest "New" first
+
+                        overdueTasks.sort((a, b) => {
+                            const dateA = new Date(a.due_date).getTime();
+                            const dateB = new Date(b.due_date).getTime();
+                            if (dateA !== dateB) return dateA - dateB; // Most overdue first
+
+                            const priorityA = PRIORITY_VALUES[a.priority || DEFAULT_PRIORITY] || 0;
+                            const priorityB = PRIORITY_VALUES[b.priority || DEFAULT_PRIORITY] || 0;
+                            if (priorityB !== priorityA) return priorityB - priorityA; // Higher priority first
+
+                            return (a.createdAt || 0) - (b.createdAt || 0); // Fallback to creation time
+                        });
+
+                        otherTasks.sort((a, b) => {
+                            const priorityA = PRIORITY_VALUES[a.priority || DEFAULT_PRIORITY] || 0;
+                            const priorityB = PRIORITY_VALUES[b.priority || DEFAULT_PRIORITY] || 0;
+                            if (priorityB !== priorityA) return priorityB - priorityA; // Higher priority first
+
+                            const dateA = a.due_date ? new Date(a.due_date).getTime() : null;
+                            const dateB = b.due_date ? new Date(b.due_date).getTime() : null;
+                            if (dateA === null && dateB !== null) return 1; // Tasks with due dates come before those without
+                            if (dateA !== null && dateB === null) return -1;
+                            if (dateA !== null && dateB !== null && dateA !== dateB) return dateA - dateB; // Earlier due date first
+
+                            return (a.createdAt || 0) - (b.createdAt || 0); // Fallback to creation time
+                        });
+
+                        const sortedColumnTasks = [...newTasks, ...overdueTasks, ...otherTasks];
+
+                        sortedColumnTasks.forEach(task => {
+                            const taskElement = createTaskElement(task);
+                            columnElement.appendChild(taskElement);
+                        });
+                    } else { console.error(`Column element not found for ID: ${columnId}`); }
+                } else if (tasks.hasOwnProperty(columnId) && columnId === 'done') {
+                    const columnElement = document.getElementById(columnId)?.querySelector('.tasks-container');
+                    if (columnElement) {
+                        tasks[columnId]
+                            .sort((a,b) => (b.completedAt || b.createdAt || 0) - (a.completedAt || a.createdAt || 0)) // Most recently completed first
+                            .forEach(task => {
+                                const taskElement = createTaskElement(task);
+                                columnElement.appendChild(taskElement);
+                            });
+                    }
                 }
             }
-            console.log("renderBoard: Finished. Total tasks rendered:", tasksRenderedCount); // DEBUG
         }
-        
-        function renderUpcomingTasks() { 
-            console.log("renderUpcomingTasks: Called. tasks:", JSON.parse(JSON.stringify(tasks))); // DEBUG
-            if (!upcomingTasksList) {
-                console.error("renderUpcomingTasks: upcomingTasksList element NOT FOUND");
-                return;
-            }
-            upcomingTasksList.innerHTML = ''; 
+
+
+        function renderUpcomingTasks() {
+            if (!upcomingTasksList) return;
+
             let allUpcoming = [];
             ['todo', 'inprogress', 'nonurgent'].forEach(status => {
-                if (tasks[status] && Array.isArray(tasks[status])) {
-                    allUpcoming = allUpcoming.concat(tasks[status]);
-                }
+                if (tasks[status]) { allUpcoming = allUpcoming.concat(tasks[status]); }
             });
-            const tasksWithDueDate = allUpcoming.filter(task => task && task.due_date);
+
+            const tasksWithDueDate = allUpcoming.filter(task => task.due_date);
             tasksWithDueDate.sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
+
             const top6Tasks = tasksWithDueDate.slice(0, 6);
+
+            upcomingTasksList.innerHTML = '';
             if (top6Tasks.length === 0) {
                 upcomingTasksList.innerHTML = '<p class="text-xs text-gray-500 text-center italic">No upcoming due dates.</p>';
             } else {
@@ -690,180 +988,615 @@
                     const taskDiv = document.createElement('div');
                     taskDiv.className = 'upcoming-task';
                     const displayDueDate = formatDate(task.due_date);
-                    taskDiv.innerHTML = `<span class="due-date">${displayDueDate}</span> ${task.text || 'Unnamed Task'}`;
+                    taskDiv.innerHTML = `<span class="due-date">${displayDueDate}</span> ${task.text}`;
                     upcomingTasksList.appendChild(taskDiv);
                 });
             }
-            console.log("renderUpcomingTasks: Finished."); // DEBUG
         }
-        
-        async function addTask() { /* ... from your working file, ensure renderCalendar call, status 201 check ... */ }
-        async function deleteTask(taskId) { /* ... from your working file, ensure renderCalendar call ... */ }
-        function startEditTask(taskId) { /* ... from your working file ... */ }
-        async function saveTaskEdit(taskId) { /* ... from your working file, ensure renderCalendar call ... */ }
-        function cancelTaskEdit(taskId) { /* ... from your working file ... */ }
-        
-        async function loadTasks() {
-            console.log("loadTasks: Start");
-            try {
-                const apiResponse = await apiCall('get-tasks');
-                console.log("loadTasks: Raw apiResponse from get-tasks:", JSON.stringify(apiResponse, null, 2));
-                
-                const fetchedTasks = apiResponse.data; 
 
-                if (apiResponse.status === 200 && Array.isArray(fetchedTasks)) {
-                    tasks = { todo: [], inprogress: [], nonurgent: [], done: [] }; 
-                    fetchedTasks.forEach(task => {
-                        if (typeof task !== 'object' || task === null) { 
-                            console.warn("loadTasks: Encountered non-object in fetchedTasks array:", task);
-                            return; 
-                        }
-                        task.priority = task.priority || DEFAULT_PRIORITY; 
-                        task.notes = task.notes || '';
-                        task.createdAt = task.created_at ? new Date(task.created_at).getTime() : Date.now();
-                        task.due_date = task.due_date || null; 
-                        const status = task.status || 'todo'; 
-                        if (VALID_STATUSES.includes(status)) { 
-                            if (!tasks[status]) tasks[status] = []; 
-                            tasks[status].push(task);
-                        } else { 
-                            console.warn(`Invalid task status "${status}" for task ID ${task.id}. Placing in 'todo'.`);
-                            if (!tasks.todo) tasks.todo = [];
-                            tasks.todo.push(task);
-                        }
-                    });
-                    console.log("loadTasks: Tasks object populated:", JSON.parse(JSON.stringify(tasks)));
-                } else { 
-                    console.error("loadTasks: Failed to fetch tasks or tasks format incorrect. Status:", apiResponse.status, "Data:", fetchedTasks); 
-                    tasks = { todo: [], inprogress: [], nonurgent: [], done: [] }; 
+        function renderHighestPriorityTasks() {
+            if (!highestPriorityList) return;
+
+            let allActiveTasks = [];
+            ['todo', 'inprogress', 'nonurgent'].forEach(status => {
+                if (tasks[status]) { allActiveTasks = allActiveTasks.concat(tasks[status]); }
+            });
+
+            // Filter out "New" priority, as they have their own visual treatment on the board
+            const priorityFilteredTasks = allActiveTasks.filter(task => task.priority !== "New" && PRIORITIES.includes(task.priority));
+
+
+            priorityFilteredTasks.sort((a, b) => {
+                const priorityAVal = PRIORITY_VALUES[a.priority || DEFAULT_PRIORITY] || 0;
+                const priorityBVal = PRIORITY_VALUES[b.priority || DEFAULT_PRIORITY] || 0;
+                if (priorityBVal !== priorityAVal) {
+                    return priorityBVal - priorityAVal; // Higher numeric value (High priority) first
                 }
-            } catch (error) { 
-                console.error("loadTasks: Error during API call or processing:", error); 
-                tasks = { todo: [], inprogress: [], nonurgent: [], done: [] }; 
-            }
-            finally {
-                 currentlyEditingTaskId = null; 
-                 console.log("loadTasks -> finally: Calling updateTaskSummary()");
-                 updateTaskSummary(); 
-                 console.log("loadTasks -> finally: Calling renderUpcomingTasks()");
-                 renderUpcomingTasks(); 
-                 if (boardPage && !boardPage.classList.contains('hidden')) { 
-                    console.log("loadTasks -> finally: Board page visible, calling renderBoard() and renderCalendar()");
-                    renderBoard(); 
-                    renderCalendar(); 
-                 }
-                 console.log("loadTasks: finally block executed.");
+
+                const dateA = a.due_date ? new Date(a.due_date).getTime() : null;
+                const dateB = b.due_date ? new Date(b.due_date).getTime() : null;
+                if (dateA === null && dateB !== null) return 1; // Tasks with due dates first
+                if (dateA !== null && dateB === null) return -1;
+                if (dateA !== null && dateB !== null && dateA !== dateB) {
+                    return dateA - dateB; // Earlier due date first
+                }
+
+                return (a.createdAt || 0) - (b.createdAt || 0); // Fallback to creation time
+            });
+
+            const top6PriorityTasks = priorityFilteredTasks.slice(0, 6);
+
+            highestPriorityList.innerHTML = '';
+            if (top6PriorityTasks.length === 0) {
+                highestPriorityList.innerHTML = '<p class="text-xs text-gray-500 text-center italic">No tasks with High/Medium/Low priority.</p>';
+            } else {
+                top6PriorityTasks.forEach(task => {
+                    const taskDiv = document.createElement('div');
+                    taskDiv.className = 'priority-task';
+                    let priorityLabelClass = '';
+                    if (task.priority === "High") priorityLabelClass = 'priority-label-high';
+                    else if (task.priority === "Medium") priorityLabelClass = 'priority-label-medium';
+                    else if (task.priority === "Low") priorityLabelClass = 'priority-label-low';
+
+                    taskDiv.innerHTML = `<span class="priority-label ${priorityLabelClass}">${task.priority}</span> ${task.text}`;
+                    highestPriorityList.appendChild(taskDiv);
+                });
             }
         }
+
+
+        async function addTask() {
+            if (addTaskBtn.disabled) return;
+            if (tasks.todo && tasks.todo.length >= MAX_TODO_TASKS) {
+                alert(`Cannot add more tasks. The 'To Do' column limit (${MAX_TODO_TASKS}) has been reached.`); return;
+            }
+            const taskText = newTaskInput.value.trim();
+            if (taskText === '') { alert('Please enter a task description.'); newTaskInput.focus(); return; }
+
+            const newTaskData = {
+                text: taskText, name: "Jay", // 'name' might be legacy, ensure backend handles it or remove if not used
+                priority: "New", // Default for new tasks
+                notes: '', status: 'todo', due_date: null,
+                createdAt: Date.now() // For immediate client-side sorting if needed
+            };
+            addTaskBtn.disabled = true;
+            addTaskMessage.textContent = 'Adding task...';
+            addTaskMessage.classList.remove('text-green-400', 'text-gray-400', 'text-red-400');
+            try {
+                // Backend should set its own `created_at` and return the full task object including ID
+                const addedTask = await apiCall('add-task', 'POST', newTaskData);
+                if (addedTask && addedTask.id) {
+                     if (!tasks.todo) tasks.todo = [];
+                     // Ensure all necessary fields from backend are present for UI consistency
+                     addedTask.createdAt = addedTask.created_at ? new Date(addedTask.created_at).getTime() : newTaskData.createdAt;
+                     addedTask.priority = addedTask.priority || "New";
+                     addedTask.notes = addedTask.notes || '';
+                     addedTask.due_date = addedTask.due_date || null;
+                     addedTask.status = addedTask.status || 'todo';
+
+                     tasks.todo.push(addedTask);
+                     updateTaskSummary();
+                     renderUpcomingTasks();
+                     renderHighestPriorityTasks();
+                     if (!boardPage.classList.contains('hidden')) renderBoard(); // Re-render board if visible
+                } else {
+                    // If backend didn't return a proper task, reload all to be safe
+                    console.warn("Add task didn't return expected object, reloading all tasks.");
+                    await loadTasks();
+                }
+                clearTimeout(successMessageTimeout); clearInterval(cooldownTimer);
+                addTaskMessage.textContent = `Task added: "${addedTask.text || taskText}"`;
+                addTaskMessage.classList.add('text-green-400'); // Assuming Tailwind green-400 is available
+                let secondsRemaining = COOLDOWN_SECONDS;
+                successMessageTimeout = setTimeout(() => {
+                     if (addTaskBtn.disabled) { // Check if still disabled (i.e., no other action enabled it)
+                         addTaskMessage.classList.remove('text-green-400');
+                         addTaskMessage.classList.add('text-gray-400'); // Assuming Tailwind gray-400
+                         addTaskMessage.textContent = `Please wait ${secondsRemaining} seconds...`;
+                         cooldownTimer = setInterval(() => {
+                             secondsRemaining--;
+                             if (secondsRemaining > 0) { addTaskMessage.textContent = `Please wait ${secondsRemaining} seconds...`; }
+                             else { clearInterval(cooldownTimer); cooldownTimer = null; addTaskBtn.disabled = false; addTaskMessage.textContent = ''; }
+                         }, 1000);
+                     }
+                }, 1500); // Display success message for 1.5s then start cooldown text
+            } catch (error) {
+                // Error already alerted by apiCall, just reset button state
+                addTaskBtn.disabled = false;
+                addTaskMessage.textContent = 'Error adding task.';
+                addTaskMessage.classList.add('text-red-400'); // Assuming Tailwind red-400
+            } finally {
+                 newTaskInput.value = '';
+                 newTaskInput.focus();
+            }
+        }
+
+        async function deleteTask(taskId) {
+             closeOpenSubMenu();
+            if (currentlyEditingTaskId === taskId) return; // Don't delete if mid-edit
+            if (!confirm('Are you sure you want to delete this task?')) return;
+            try {
+                await apiCall('delete-task', 'POST', { id: taskId });
+                for (const columnId in tasks) { tasks[columnId] = tasks[columnId].filter(task => task.id !== taskId); }
+                renderBoard(); updateTaskSummary();
+                renderUpcomingTasks();
+                renderHighestPriorityTasks();
+            } catch (error) { /* Handled by apiCall */ }
+        }
+
+        function startEditTask(taskId) {
+             closeOpenSubMenu();
+            if (currentlyEditingTaskId && currentlyEditingTaskId !== taskId) { cancelTaskEdit(currentlyEditingTaskId); }
+            currentlyEditingTaskId = taskId; renderBoard(); // Re-render will show input for this task
+        }
+
+        async function saveTaskEdit(taskId) {
+            const taskElement = document.getElementById(taskId);
+            if (!taskElement) return;
+            const inputElement = taskElement.querySelector('.task-edit-input');
+            const newText = inputElement.value.trim();
+            if (newText === '') { alert('Task description cannot be empty.'); inputElement.focus(); return; }
+            try {
+                 await apiCall('update-task', 'POST', { id: taskId, updates: { text: newText } });
+                 for (const colId in tasks) {
+                    const task = tasks[colId].find(t => t.id === taskId);
+                    if (task) { task.text = newText; break; }
+                 }
+                 currentlyEditingTaskId = null; renderBoard();
+                 renderUpcomingTasks(); // Task text might appear here
+                 renderHighestPriorityTasks(); // Task text might appear here
+            } catch (error) {
+                // Error alerted by apiCall. Optionally revert UI or leave as is for retry.
+                // For now, just stop editing mode.
+                currentlyEditingTaskId = null; renderBoard();
+            }
+        }
+
+        function cancelTaskEdit(taskId) { currentlyEditingTaskId = null; renderBoard(); }
+
+        async function loadTasks() {
+            console.log("Loading tasks...");
+            try {
+                const fetchedTasks = await apiCall('get-tasks');
+                tasks = { todo: [], inprogress: [], nonurgent: [], done: [] }; // Reset tasks
+                fetchedTasks.forEach(task => {
+                    task.priority = task.priority || DEFAULT_PRIORITY;
+                    task.notes = task.notes || '';
+                    task.createdAt = task.created_at ? new Date(task.created_at).getTime() : Date.now();
+                    task.due_date = task.due_date || null; // Ensure it's null if not set
+                    const status = task.status || 'todo'; // Default to 'todo' if status is missing
+                    if (VALID_STATUSES.includes(status)) {
+                        if (!tasks[status]) tasks[status] = []; // Ensure column array exists
+                        tasks[status].push(task);
+                    } else {
+                        console.warn(`Invalid task status "${status}" for task ID ${task.id}. Placing in 'todo'.`);
+                        if (!tasks.todo) tasks.todo = [];
+                        tasks.todo.push(task);
+                    }
+                });
+                console.log("Tasks loaded and processed:", tasks);
+            } catch (error) {
+                console.error("Error loading tasks from backend:", error);
+                // Keep existing tasks or clear them? For now, clear on failed load to avoid stale data.
+                tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };
+                // Optionally display an error message to the user on the board
+            } finally {
+                 currentlyEditingTaskId = null; // Reset editing state
+                 updateTaskSummary();
+                 renderUpcomingTasks();
+                 renderHighestPriorityTasks();
+                 if (!boardPage.classList.contains('hidden')) { renderBoard(); }
+            }
+        }
+
+        // --- Sticky Note Functions ---
 
         async function loadStickyNoteMain() {
-            console.log("loadStickyNoteMain: Start");
-            if (!stickyNoteTextarea) { console.warn("loadStickyNoteMain: stickyNoteTextarea not found."); return; }
-            try {
-                const apiResponse = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_MAIN });
-                console.log("loadStickyNoteMain: Raw apiResponse:", JSON.stringify(apiResponse, null, 2));
-                if (apiResponse.status === 200 && apiResponse.data && typeof apiResponse.data.content === 'string') {
-                    stickyNoteTextarea.value = apiResponse.data.content;
-                } else {
-                    if (stickyNoteTextarea) stickyNoteTextarea.value = "Error loading note."; // Check again before setting
-                    console.warn("loadStickyNoteMain: Failed to load or invalid content. Status:", apiResponse.status, "Data:", apiResponse.data);
-                }
-            } catch (error) { if(stickyNoteTextarea) stickyNoteTextarea.value = "Error loading note."; console.error("loadStickyNoteMain: Error:", error); }
+             if (!stickyNoteTextarea) return;
+             console.log("Loading main sticky note (ID: " + STICKY_NOTE_ID_MAIN + ")...");
+             try {
+                 const data = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_MAIN });
+                 stickyNoteTextarea.value = data?.content || '';
+                 console.log("Main sticky note loaded.");
+             } catch (error) {
+                 // Error already logged by apiCall, and alert is suppressed for this one.
+                 stickyNoteTextarea.value = "Error loading note.";
+             }
         }
-        async function saveStickyNoteMain() { /* ... from your working file ... */ }
+
+        async function saveStickyNoteMain() {
+             if (!stickyNoteTextarea || !saveStickyNoteBtn || !stickyNoteMessage) return;
+             const contentToSave = stickyNoteTextarea.value;
+             saveStickyNoteBtn.disabled = true;
+             stickyNoteMessage.textContent = 'Saving...';
+             stickyNoteMessage.classList.remove('text-red-500', 'text-green-600');
+             stickyNoteMessage.classList.add('text-gray-500');
+             clearTimeout(stickyNoteSaveTimeout);
+             try {
+                 await apiCall('update-sticky-note', 'POST', { content: contentToSave, note_id: STICKY_NOTE_ID_MAIN });
+                 console.log("Main sticky note saved.");
+                 stickyNoteMessage.textContent = 'Note saved!';
+                 stickyNoteMessage.classList.replace('text-gray-500', 'text-green-600');
+                 stickyNoteSaveTimeout = setTimeout(() => { stickyNoteMessage.textContent = ''; }, 2000);
+             } catch (error) {
+                 console.error("Failed to save main sticky note:", error);
+                 stickyNoteMessage.textContent = 'Save failed!';
+                 stickyNoteMessage.classList.replace('text-gray-500', 'text-red-500');
+                 stickyNoteSaveTimeout = setTimeout(() => { stickyNoteMessage.textContent = ''; }, 3000);
+             } finally {
+                 saveStickyNoteBtn.disabled = false;
+             }
+        }
+
         async function loadStickyNoteAAT() {
-            console.log("loadStickyNoteAAT: Start");
-            if (!stickyNoteTextareaAAT) { console.warn("loadStickyNoteAAT: stickyNoteTextareaAAT not found."); return; }
+            if (!stickyNoteTextareaAAT) return;
+            console.log("Loading AAT sticky note (ID: " + STICKY_NOTE_ID_AAT + ")...");
             try {
-                const apiResponse = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_AAT });
-                console.log("loadStickyNoteAAT: Raw apiResponse:", JSON.stringify(apiResponse, null, 2));
-                if (apiResponse.status === 200 && apiResponse.data && typeof apiResponse.data.content === 'string') {
-                    stickyNoteTextareaAAT.value = apiResponse.data.content;
-                } else {
-                    if (stickyNoteTextareaAAT) stickyNoteTextareaAAT.value = "Error loading note."; // Check again
-                     console.warn("loadStickyNoteAAT: Failed to load or invalid content. Status:", apiResponse.status, "Data:", apiResponse.data);
-                }
-            } catch (error) { if(stickyNoteTextareaAAT) stickyNoteTextareaAAT.value = "Error loading note."; console.error("loadStickyNoteAAT: Error:", error); }
-        }
-        async function saveStickyNoteAAT() { /* ... from your working file ... */ }
-        
-        async function loadShiftTimes() {
-            console.log("loadShiftTimes: Function start.");
-            let startHourLoaded = false; let endHourLoaded = false;
-            try {
-                console.log("loadShiftTimes: Calling apiCall for START time...");
-                const apiResponseStart = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_SHIFT_START });
-                console.log("loadShiftTimes: Raw apiResponse for START time:", JSON.stringify(apiResponseStart, null, 2));
-                if (apiResponseStart && apiResponseStart.status === 200 && apiResponseStart.data && typeof apiResponseStart.data.content === 'string' && apiResponseStart.data.content.includes(':')) {
-                    const [hoursStr] = apiResponseStart.data.content.split(':'); const hours = parseInt(hoursStr);
-                    if (!isNaN(hours)) { SHIFT_START_HOUR = hours; if(shiftStartInput) shiftStartInput.value = apiResponseStart.data.content; startHourLoaded = true; console.log("Shift start time loaded:", apiResponseStart.data.content); }
-                } else { console.warn("Could not load shift start or data invalid.", apiResponseStart); }
-            } catch (error) { console.warn("Error API call shift start:", error.message || error); }
-            try {
-                console.log("loadShiftTimes: Calling apiCall for END time...");
-                const apiResponseEnd = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_SHIFT_END });
-                console.log("loadShiftTimes: Raw apiResponse for END time:", JSON.stringify(apiResponseEnd, null, 2));
-                if (apiResponseEnd && apiResponseEnd.status === 200 && apiResponseEnd.data && typeof apiResponseEnd.data.content === 'string' && apiResponseEnd.data.content.includes(':')) {
-                    const [hoursStr] = apiResponseEnd.data.content.split(':'); const hours = parseInt(hoursStr);
-                    if (!isNaN(hours)) { SHIFT_END_HOUR = hours; if(shiftEndInput) shiftEndInput.value = apiResponseEnd.data.content; endHourLoaded = true; console.log("Shift end time loaded:", apiResponseEnd.data.content); }
-                } else { console.warn("Could not load shift end or data invalid.", apiResponseEnd); }
-            } catch (error) { console.warn("Error API call shift end:", error.message || error); }
-            
-            if (!startHourLoaded && shiftStartInput) { shiftStartInput.value = formatTimeToHHMM(SHIFT_START_HOUR, 0); console.log("Default shift start set:", shiftStartInput.value); }
-            if (!endHourLoaded && shiftEndInput) { shiftEndInput.value = formatTimeToHHMM(SHIFT_END_HOUR, 0); console.log("Default shift end set:", shiftEndInput.value); }
-            
-            console.log("loadShiftTimes: Calling updateDateTimeDisplay.");
-            updateDateTimeDisplay();
-            console.log("loadShiftTimes: Function end.");
-        }
-        
-        async function saveShiftTime(noteId, timeValueString) { /* ... from your working file ... */ }
-        function dragStart(event) { /* ... from your working file ... */ }
-        function dragEnd(event) { /* ... from your working file ... */ }
-        function allowDrop(event) { /* ... from your working file ... */ }
-        function drop(event) { /* ... from your working file ... */ }
-        async function handleDropLogic(targetColumnId, taskElement) {
-             /* ... existing logic from your working file ... */
-             renderUpcomingTasks(); 
-             if (boardPage && !boardPage.classList.contains('hidden')) renderCalendar(); 
-             /* ... */
-             try { /* ... */ } catch (error) {
-                  /* ... revert logic ... */
-                  renderUpcomingTasks();
-                  if (boardPage && !boardPage.classList.contains('hidden')) renderCalendar(); 
+                const data = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_AAT });
+                stickyNoteTextareaAAT.value = data?.content || '';
+                console.log("AAT sticky note loaded.");
+            } catch (error) {
+                stickyNoteTextareaAAT.value = "Error loading AAT note.";
             }
         }
-        function triggerConfetti() { /* ... from your working file ... */ }
-        async function handleEmailSummary() { /* ... from your working file ... */ }
+
+        async function saveStickyNoteAAT() {
+            if (!stickyNoteTextareaAAT || !saveStickyNoteBtnAAT || !stickyNoteMessageAAT) return;
+            const contentToSave = stickyNoteTextareaAAT.value;
+            saveStickyNoteBtnAAT.disabled = true;
+            stickyNoteMessageAAT.textContent = 'Saving...';
+            stickyNoteMessageAAT.classList.remove('text-red-700', 'text-green-700');
+            stickyNoteMessageAAT.classList.add('text-gray-700');
+            clearTimeout(stickyNoteAATSaveTimeout);
+            try {
+                await apiCall('update-sticky-note', 'POST', { content: contentToSave, note_id: STICKY_NOTE_ID_AAT });
+                console.log("AAT sticky note saved.");
+                stickyNoteMessageAAT.textContent = 'Note saved!';
+                stickyNoteMessageAAT.classList.replace('text-gray-700', 'text-green-700');
+                stickyNoteAATSaveTimeout = setTimeout(() => { stickyNoteMessageAAT.textContent = ''; }, 2000);
+            } catch (error) {
+                console.error("Failed to save AAT sticky note:", error);
+                stickyNoteMessageAAT.textContent = 'Save failed!';
+                stickyNoteMessageAAT.classList.replace('text-gray-700', 'text-red-700');
+                stickyNoteAATSaveTimeout = setTimeout(() => { stickyNoteMessageAAT.textContent = ''; }, 3000);
+            } finally {
+                saveStickyNoteBtnAAT.disabled = false;
+            }
+        }
+
+        // --- Shift Time Persistence Functions ---
+        async function loadShiftTimes() {
+            console.log("Loading shift times from Supabase (via sticky notes)...");
+            let startHourLoaded = false;
+            let endHourLoaded = false;
+
+            try {
+                const startTimeData = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_SHIFT_START });
+                if (startTimeData && startTimeData.content && startTimeData.content.includes(':')) {
+                    const [hoursStr, minutesStr] = startTimeData.content.split(':');
+                    const hours = parseInt(hoursStr);
+                    const minutes = parseInt(minutesStr);
+                    if (!isNaN(hours) && !isNaN(minutes)) {
+                        SHIFT_START_HOUR = hours; // Keep main hour for logic
+                        shiftStartInput.value = startTimeData.content;
+                        startHourLoaded = true;
+                        console.log("Shift start time loaded:", startTimeData.content);
+                    }
+                }
+            } catch (error) {
+                console.warn("Could not load shift start time, using default. Error:", error.message);
+            }
+
+            try {
+                const endTimeData = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_SHIFT_END });
+                if (endTimeData && endTimeData.content && endTimeData.content.includes(':')) {
+                    const [hoursStr, minutesStr] = endTimeData.content.split(':');
+                    const hours = parseInt(hoursStr);
+                    const minutes = parseInt(minutesStr);
+                    if (!isNaN(hours) && !isNaN(minutes)) {
+                        SHIFT_END_HOUR = hours; // Keep main hour for logic
+                        shiftEndInput.value = endTimeData.content;
+                        endHourLoaded = true;
+                        console.log("Shift end time loaded:", endTimeData.content);
+                    }
+                }
+            } catch (error) {
+                console.warn("Could not load shift end time, using default. Error:", error.message);
+            }
+
+            if (!startHourLoaded) {
+                shiftStartInput.value = formatTimeToHHMM(SHIFT_START_HOUR, 0); // Default to :00 if not loaded
+                console.log("Default shift start time set to input:", shiftStartInput.value);
+            }
+            if (!endHourLoaded) {
+                shiftEndInput.value = formatTimeToHHMM(SHIFT_END_HOUR, 0); // Default to :00 if not loaded
+                console.log("Default shift end time set to input:", shiftEndInput.value);
+            }
+            updateDateTimeDisplay();
+        }
+
+        async function saveShiftTime(noteId, timeValueString) {
+            console.log(`Saving shift time for ID ${noteId}: ${timeValueString}`);
+            // No separate message area for individual shift time saves, general button will handle feedback
+            try {
+                await apiCall('update-sticky-note', 'POST', { content: timeValueString, note_id: noteId });
+                console.log(`Shift time for ID ${noteId} saved successfully.`);
+            } catch (error) {
+                console.error(`Failed to save shift time for ID ${noteId}:`, error);
+                alert(`Failed to save shift ${noteId === STICKY_NOTE_ID_SHIFT_START ? 'start' : 'end'} time.`);
+                throw error; // Re-throw to be caught by the caller Promise.all
+            }
+        }
+
+
+        // --- Drag and Drop Event Handlers ---
+        function dragStart(event) {
+            if (currentlyEditingTaskId || document.activeElement.tagName === 'SELECT' || document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
+                 event.preventDefault(); return;
+            }
+            draggedTask = event.currentTarget; // The div.task itself
+            event.dataTransfer.setData('text/plain', draggedTask.id);
+            event.dataTransfer.effectAllowed = 'move';
+            setTimeout(() => { if(draggedTask) draggedTask.classList.add('dragging'); }, 0); // Add dragging class after a tick
+        }
+
+        function dragEnd(event) {
+            if (draggedTask) draggedTask.classList.remove('dragging');
+            draggedTask = null;
+            try { event.dataTransfer.clearData(); } catch(e) { /* ignore potential errors in some browsers */ }
+        }
+
+        function allowDrop(event) {
+            // Prevent drop on tasks, buttons, or selects within the column
+            if (event.target.closest('.task') || event.target.closest('button') || event.target.closest('select') || event.target.closest('input') || event.target.closest('textarea')) {
+                return;
+            }
+            event.preventDefault(); // Allow drop on the column itself
+        }
+
+        function drop(event) {
+            event.preventDefault();
+            if (!draggedTask) return;
+            if (event.target.closest('.task')) return; // Don't allow dropping directly ON another task element
+
+            const targetColumnElement = event.currentTarget; // This should be the .kanban-column div
+            if (!targetColumnElement || !targetColumnElement.classList.contains('kanban-column')) {
+                console.warn("Drop target is not a kanban column:", event.target);
+                return;
+            }
+            const targetColumnId = targetColumnElement.id;
+            handleDropLogic(targetColumnId, draggedTask);
+        }
+
+        async function handleDropLogic(targetColumnId, taskElement) {
+             const taskId = taskElement.id;
+             const sourceColumnId = taskElement.closest('.kanban-column')?.id;
+
+             if (!sourceColumnId || sourceColumnId === targetColumnId) {
+                 console.log("Source and target column are the same or source not found. No action.");
+                 return;
+             }
+             if (!VALID_STATUSES.includes(targetColumnId)) {
+                 console.error(`Invalid drop target column ID: ${targetColumnId}`); return;
+             }
+
+             let taskToMove = null; let originalIndex = -1;
+             // Find task in the local `tasks` object
+             for (const colId in tasks) {
+                 originalIndex = tasks[colId].findIndex(task => task.id === taskId);
+                 if (originalIndex > -1) {
+                     taskToMove = tasks[colId][originalIndex];
+                     tasks[colId].splice(originalIndex, 1); // Remove from old column in local state
+                     break;
+                 }
+             }
+
+             if (!taskToMove) {
+                 console.error("Could not find task in local state during drop:", taskId);
+                 // Potentially reload tasks if state is inconsistent
+                 return;
+             }
+
+             if (!tasks[targetColumnId]) tasks[targetColumnId] = []; // Ensure target column array exists
+             tasks[targetColumnId].push(taskToMove); // Add to new column in local state
+             taskToMove.status = targetColumnId; // Update task's status property
+
+             renderBoard(); // Re-render the board with optimistic update
+             updateTaskSummary();
+             renderUpcomingTasks(); // Status change can affect these lists
+             renderHighestPriorityTasks();
+
+             try {
+                 await apiCall('update-task', 'POST', { id: taskId, updates: { status: targetColumnId } });
+                 console.log(`Task ${taskId} moved to ${targetColumnId} in backend.`);
+                 if (targetColumnId === 'done' && sourceColumnId !== 'done') triggerConfetti();
+             } catch (error) {
+                  console.error(`Failed to update task ${taskId} status in backend after drop:`, error);
+                  alert("Failed to move task on the server. Reverting UI change.");
+                  // Revert UI change
+                  const newIndexInTarget = tasks[targetColumnId].findIndex(task => task.id === taskId);
+                  if (newIndexInTarget > -1) tasks[targetColumnId].splice(newIndexInTarget, 1);
+
+                  if (!tasks[sourceColumnId]) tasks[sourceColumnId] = [];
+                  tasks[sourceColumnId].splice(originalIndex, 0, taskToMove); // Add back to original position
+                  taskToMove.status = sourceColumnId; // Reset status
+
+                  renderBoard();
+                  updateTaskSummary();
+                  renderUpcomingTasks();
+                  renderHighestPriorityTasks();
+             }
+        }
+
+        function triggerConfetti() {
+            console.log("Confetti triggered!");
+            myConfetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
+        }
+
+        // --- NEW: Email Summary Function ---
+        async function handleEmailSummary() {
+            if (!emailSummaryBtn || emailSummaryBtn.disabled) return;
+
+            emailSummaryBtn.disabled = true;
+            emailSummaryMessageContainer.classList.remove('hidden');
+            emailSummaryMessage.textContent = 'Gathering tasks and generating summary...';
+            emailSummaryMessage.className = 'text-yellow-400 text-sm'; // Tailwind yellow
+
+            // Collect tasks (e.g., from 'todo' and 'inprogress')
+            // We send raw task objects so backend can choose details for the prompt
+            const tasksForSummary = [
+                ...(tasks.todo || []),
+                ...(tasks.inprogress || []),
+                ...(tasks.nonurgent || []) // Optionally include non-urgent as well
+            ].filter(task => task.status !== 'done'); // Ensure no done tasks are sent
+
+            if (tasksForSummary.length === 0) {
+                emailSummaryMessage.textContent = 'No active tasks to summarize.';
+                emailSummaryMessage.className = 'text-gray-300 text-sm';
+                emailSummaryBtn.disabled = false;
+                clearTimeout(emailSummaryTimeout);
+                emailSummaryTimeout = setTimeout(() => {
+                    emailSummaryMessageContainer.classList.add('hidden');
+                    emailSummaryMessage.textContent = '';
+                }, 3000);
+                return;
+            }
+
+            try {
+                const response = await apiCall('summarize-and-email', 'POST', { tasks: tasksForSummary });
+                console.log("Summarize and email response:", response);
+                if (response.status === 207) { // Multi-status, e.g. summary OK, email failed
+                     emailSummaryMessage.textContent = `Summary generated, but email failed: ${response.emailError || 'Unknown email error'}`;
+                     emailSummaryMessage.className = 'text-orange-400 text-sm'; // Tailwind orange
+                } else {
+                    emailSummaryMessage.textContent = response.message || 'Summary emailed successfully!';
+                    emailSummaryMessage.className = 'text-green-400 text-sm'; // Tailwind green
+                }
+            } catch (error) {
+                console.error('Error calling summarize-and-email function:', error);
+                emailSummaryMessage.textContent = `Error: ${error.message || 'Could not process summary request.'}`;
+                emailSummaryMessage.className = 'text-red-400 text-sm'; // Tailwind red
+            } finally {
+                emailSummaryBtn.disabled = false;
+                clearTimeout(emailSummaryTimeout);
+                emailSummaryTimeout = setTimeout(() => {
+                    emailSummaryMessageContainer.classList.add('hidden');
+                    emailSummaryMessage.textContent = '';
+                }, 7000); // Keep message displayed longer
+            }
+        }
+
 
         // --- Initialization & Event Listeners ---
-        if(addTaskBtn) addTaskBtn.addEventListener('click', addTask);
-        if(showInputPageBtn) showInputPageBtn.addEventListener('click', () => showPage('inputPage'));
-        if(showBoardPageBtn) { /* ... event listener from your working file ... */ }
-        if(saveStickyNoteBtn) saveStickyNoteBtn.addEventListener('click', saveStickyNoteMain);
-        if(saveStickyNoteBtnAAT) saveStickyNoteBtnAAT.addEventListener('click', saveStickyNoteAAT);
-        if(updateShiftTimesBtn) updateShiftTimesBtn.addEventListener('click', async () => { /* ... from your working file ... */ });
-        if (emailSummaryBtn) emailSummaryBtn.addEventListener('click', handleEmailSummary);
-        if (prevMonthBtn) prevMonthBtn.addEventListener('click', () => { calendarDate.setMonth(calendarDate.getMonth() - 1); renderCalendar(); });
-        if (nextMonthBtn) nextMonthBtn.addEventListener('click', () => { calendarDate.setMonth(calendarDate.getMonth() + 1); renderCalendar(); });
-        document.addEventListener('click', (event) => { /* ... from your working file for submenu ... */ });
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            console.log("DOMContentLoaded: Start");
+        addTaskBtn.addEventListener('click', addTask);
+        showInputPageBtn.addEventListener('click', () => showPage('inputPage'));
+        showBoardPageBtn.addEventListener('click', async () => {
+            if (isPinCooldownActive) { alert("Please wait before trying the pin again."); return; }
+            const pinInput = prompt("Please enter the pin code to view the board:");
+            if (pinInput === null) return; // User cancelled prompt
             try {
-                showPage('inputPage');
-                console.log("DOMContentLoaded: showPage('inputPage') called. Calling loadTasks...");
-                await loadTasks();
-                console.log("DOMContentLoaded: loadTasks finished. Calling loadShiftTimes...");
-                await loadShiftTimes();
-                console.log("DOMContentLoaded: loadShiftTimes finished. Setting up interval...");
-                if (dateTimeInterval) clearInterval(dateTimeInterval);
-                dateTimeInterval = setInterval(updateDateTimeDisplay, 60000);
-                console.log("DOMContentLoaded: Setup complete.");
-            } catch (error) {
-                console.error("!!!!!!!! TOP LEVEL DOMCONTENTLOADED ERROR !!!!!!!!", error);
+                 const result = await apiCall('check-pin', 'POST', { enteredPin: pinInput });
+                 if (result && result.valid) {
+                     showPage('boardPage');
+                 } else {
+                     alert("Incorrect pin code.");
+                     isPinCooldownActive = true;
+                     showBoardPageBtn.disabled = true;
+                     console.log(`Pin cooldown started for ${PIN_COOLDOWN_SECONDS} seconds.`);
+                     setTimeout(() => {
+                         isPinCooldownActive = false;
+                         showBoardPageBtn.disabled = false;
+                         console.log("Pin cooldown finished.");
+                     }, PIN_COOLDOWN_SECONDS * 1000);
+                 }
+            } catch (error) { /* Error already alerted by apiCall */ }
+        });
+
+        if(saveStickyNoteBtn) {
+            saveStickyNoteBtn.addEventListener('click', saveStickyNoteMain);
+        }
+        if(saveStickyNoteBtnAAT) {
+            saveStickyNoteBtnAAT.addEventListener('click', saveStickyNoteAAT);
+        }
+
+        updateShiftTimesBtn.addEventListener('click', async () => {
+            const newStartString = shiftStartInput.value;
+            const newEndString = shiftEndInput.value;
+
+            if (newStartString && newEndString) {
+                const [startH, startM] = newStartString.split(':').map(Number);
+                const [endH, endM] = newEndString.split(':').map(Number);
+
+                if ( (startH * 60 + startM) >= (endH * 60 + endM) ) {
+                    alert("Shift start time must be before end time.");
+                    return;
+                }
+                SHIFT_START_HOUR = startH; // Update global hour for progress logic
+                SHIFT_END_HOUR = endH;   // Update global hour for progress logic
+
+                console.log(`Shift times updated locally: Start ${newStartString}, End ${newEndString}`);
+                updateDateTimeDisplay(); // Immediately reflect change in progress bar
+
+                updateShiftTimesBtn.disabled = true;
+                let originalButtonText = updateShiftTimesBtn.textContent;
+                updateShiftTimesBtn.textContent = "Saving...";
+
+                try {
+                    await Promise.all([
+                        saveShiftTime(STICKY_NOTE_ID_SHIFT_START, newStartString),
+                        saveShiftTime(STICKY_NOTE_ID_SHIFT_END, newEndString)
+                    ]);
+                    console.log("Both shift times attempted to save.");
+                    // Add a success message indicator near the button
+                    let msgElement = document.getElementById('shiftTimeSaveMessage');
+                    if (!msgElement) {
+                        msgElement = document.createElement('span'); // Use span for inline
+                        msgElement.id = 'shiftTimeSaveMessage';
+                        msgElement.className = 'text-xs text-green-400 ml-2';
+                        updateShiftTimesBtn.insertAdjacentElement('afterend', msgElement);
+                    }
+                    msgElement.textContent = 'Times saved!';
+                    clearTimeout(shiftTimeSaveMessageTimeout);
+                    shiftTimeSaveMessageTimeout = setTimeout(() => {
+                        if(msgElement) msgElement.textContent = '';
+                    }, 2000);
+
+                } catch (error) {
+                    // Errors are alerted by saveShiftTime, no need for duplicate alert here.
+                    console.error("Error during saving one or both shift times to backend:", error);
+                } finally {
+                    updateShiftTimesBtn.disabled = false;
+                    updateShiftTimesBtn.textContent = originalButtonText;
+                }
+
+            } else {
+                alert("Please select both start and end times.");
             }
         });
+
+        // NEW: Event listener for Email Summary button
+        if (emailSummaryBtn) {
+            emailSummaryBtn.addEventListener('click', handleEmailSummary);
+        }
+
+
+         document.addEventListener('click', (event) => {
+             const clickedSubMenu = event.target.closest('.task-submenu');
+             const clickedMenuButton = event.target.closest('.action-btn[title="More Actions"]'); // More specific selector
+             if (!clickedSubMenu && !clickedMenuButton && openSubMenuId) {
+                 closeOpenSubMenu();
+             }
+         });
+
+        document.addEventListener('DOMContentLoaded', async () => {
+             showPage('inputPage'); // Default to input page
+             await loadTasks();
+             await loadShiftTimes(); // This also calls updateDateTimeDisplay
+             if (dateTimeInterval) clearInterval(dateTimeInterval);
+             dateTimeInterval = setInterval(updateDateTimeDisplay, 60000); // Update time/progress every minute
+        });
+
     </script>
+
 </body>
 </html>
