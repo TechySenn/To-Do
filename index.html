@@ -169,10 +169,10 @@
 
         .task.overdue { border: 3px solid #dc2626; }
         #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
-        .tasks-container::-webkit-scrollbar, #upcomingTasksList::-webkit-scrollbar, #highestPriorityList::-webkit-scrollbar, .calendar-grid::-webkit-scrollbar { width: 8px; }
-        .tasks-container::-webkit-scrollbar-track, #upcomingTasksList::-webkit-scrollbar-track, #highestPriorityList::-webkit-scrollbar-track, .calendar-grid::-webkit-scrollbar-track { background: #dbeafe; border-radius: 10px; }
-        .tasks-container::-webkit-scrollbar-thumb, #upcomingTasksList::-webkit-scrollbar-thumb, #highestPriorityList::-webkit-scrollbar-thumb, .calendar-grid::-webkit-scrollbar-thumb { background: #60a5fa; border-radius: 10px; }
-        .tasks-container::-webkit-scrollbar-thumb:hover, #upcomingTasksList::-webkit-scrollbar-thumb:hover, #highestPriorityList::-webkit-scrollbar-thumb:hover, .calendar-grid::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
+        .tasks-container::-webkit-scrollbar, #upcomingTasksList::-webkit-scrollbar, /* #highestPriorityList::-webkit-scrollbar, */ .calendar-grid::-webkit-scrollbar { width: 8px; } /* Removed highestPriorityList scrollbar */
+        .tasks-container::-webkit-scrollbar-track, #upcomingTasksList::-webkit-scrollbar-track, /* #highestPriorityList::-webkit-scrollbar-track, */ .calendar-grid::-webkit-scrollbar-track { background: #dbeafe; border-radius: 10px; }
+        .tasks-container::-webkit-scrollbar-thumb, #upcomingTasksList::-webkit-scrollbar-thumb, /* #highestPriorityList::-webkit-scrollbar-thumb, */ .calendar-grid::-webkit-scrollbar-thumb { background: #60a5fa; border-radius: 10px; }
+        .tasks-container::-webkit-scrollbar-thumb:hover, #upcomingTasksList::-webkit-scrollbar-thumb:hover, /* #highestPriorityList::-webkit-scrollbar-thumb:hover, */ .calendar-grid::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
         .task-edit-input { padding: 2px 4px; border: 1px solid #93c5fd; border-radius: 4px; margin-right: 5px; background-color: #eff6ff; }
         .hidden { display: none; }
         .task-meta-row { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; gap: 6px; flex-wrap: wrap; }
@@ -348,7 +348,7 @@
         const saveStickyNoteBtnAAT = document.getElementById('saveStickyNoteBtnAAT');
         const stickyNoteMessageAAT = document.getElementById('stickyNoteMessageAAT');
         const upcomingTasksList = document.getElementById('upcomingTasksList');
-        // const highestPriorityList = document.getElementById('highestPriorityList'); // This line was in your working version, but the div was replaced by calendarContainer
+        // const highestPriorityList = document.getElementById('highestPriorityList'); // This line was commented out in your working file, so keeping it that way
         const shiftTimeControls = document.getElementById('shiftTimeControls');
         const shiftStartInput = document.getElementById('shiftStartInput'); const shiftEndInput = document.getElementById('shiftEndInput');
         const updateShiftTimesBtn = document.getElementById('updateShiftTimesBtn');
@@ -372,7 +372,7 @@
         let calendarDate = new Date(); // NEW STATE for Calendar
 
 
-        // --- Generic Fetch Helper ---
+        // --- Generic Fetch Helper (using the robust version from previous successful state) ---
         async function apiCall(endpoint, method = 'GET', paramsOrBody = null) {
             const options = { method, headers: {} };
             let url = `${FUNCTION_BASE_PATH}${endpoint}`;
@@ -390,44 +390,39 @@
             try {
                 const fetchResponse = await fetch(url, options);
                 const isJson = fetchResponse.headers.get('content-type')?.includes('application/json');
-                let responseData = {}; // Initialize to ensure it's always an object
+                let responseData; 
 
                 if (isJson) {
                     responseData = await fetchResponse.json();
                 } else {
-                    responseData.message = await fetchResponse.text(); // Assign to message property
+                    responseData = { message: await fetchResponse.text() };
                 }
                 
-                // Add status to responseData AFTER potential parsing, so it's always there
                 responseData.status = fetchResponse.status;
 
 
                 if (!fetchResponse.ok) {
-                    // Use message from responseData if available, otherwise construct a generic one
-                    const errorMessage = (responseData.error || responseData.message || `HTTP error! status: ${fetchResponse.status}`);
-                    console.error(`API Error (${url}, Status: ${fetchResponse.status}):`, errorMessage, responseData.details);
+                    const error = (responseData && (responseData.error || responseData.message)) || `HTTP error! status: ${fetchResponse.status}`;
+                    console.error(`API Error (${url}, Status: ${fetchResponse.status}):`, error, responseData?.details || responseData);
                     
-                    // Suppress alerts for known "silent fail" scenarios like initial sticky note load error
                     if (!(endpoint === 'get-sticky-note' && method === 'GET' && fetchResponse.status === 500)) { 
-                         alert(`Operation failed: ${errorMessage}. Please check console or try again.`);
+                         alert(`Operation failed: ${error}. Status: ${fetchResponse.status}. Please check console or try again.`);
                     }
-                    // Throw an object that includes the status and potentially data for finer control in the caller
-                    throw { message: String(errorMessage), status: fetchResponse.status, data: responseData };
+                    throw { message: String(error), status: fetchResponse.status, data: responseData };
                 }
-                // Return an object containing both the parsed data and the original status for successful (ok) responses
-                return { data: responseData, status: fetchResponse.status };
+                return { data: responseData, status: fetchResponse.status }; 
             } catch (error) { 
                 console.error(`API Call Failed (${url}):`, error);
-                if (error.status !== undefined) { // Check if it's our custom error object with status
+                if (error.status !== undefined) { 
                     throw error;
                 }
-                // Otherwise, wrap it as a generic client-side or network error
                 throw { message: error.message || "Network error or issue parsing response", status: null, data: null };
             }
         }
 
         // --- Functions ---
-        // Make sure these are copied exactly from your working version
+        // Copying functions from your provided working file.
+        // Ensure these are complete and correct as per your working version.
         function formatDate(timestampOrDateString) {
             if (!timestampOrDateString) return 'N/A';
             try {
@@ -467,135 +462,126 @@
              } catch (e) { console.error("Error formatting input date:", e, "Input:", timestampOrDateString); return ''; }
         }
 
-        function formatTimeToHHMM(hours, minutes = 0) { /* ... from your working file ... */ }
-        function updateDateTimeDisplay() { /* ... from your working file ... */ }
-        function updateTaskSummary() { /* ... from your working file ... */ }
+        function formatTimeToHHMM(hours, minutes = 0) {
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+        }
+        
+        function updateDateTimeDisplay() {
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinutes = now.getMinutes();
+            const currentTimeInMinutes = currentHour * 60 + currentMinutes;
+            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            if (currentDateDisplay) currentDateDisplay.textContent = now.toLocaleDateString('en-GB', dateOptions);
+            const shiftStartMinutes = SHIFT_START_HOUR * 60 + (parseInt(String(shiftStartInput?.value || '0:0').split(':')[1]) || 0) ;
+            const shiftEndMinutes = SHIFT_END_HOUR * 60 + (parseInt(String(shiftEndInput?.value || '0:0').split(':')[1]) || 0);
+            const shiftDurationMinutes = shiftEndMinutes - shiftStartMinutes;
+            let progressPercent = 0; let barColor = '#4ade80';
+            if (currentTimeInMinutes < shiftStartMinutes) { progressPercent = 0; barColor = '#4ade80'; }
+            else if (currentTimeInMinutes >= shiftEndMinutes) { progressPercent = 100; barColor = '#f87171'; }
+            else {
+                if (shiftDurationMinutes > 0) {
+                    const timeElapsedMinutes = currentTimeInMinutes - shiftStartMinutes;
+                    progressPercent = Math.max(0, Math.min(100, (timeElapsedMinutes / shiftDurationMinutes) * 100));
+                    if (progressPercent < 33.33) barColor = '#4ade80'; 
+                    else if (progressPercent < 66.66) barColor = '#facc15'; 
+                    else barColor = '#f87171'; 
+                } else { progressPercent = (currentTimeInMinutes >= shiftEndMinutes) ? 100 : 0; barColor = (progressPercent === 100) ? '#f87171' : '#4ade80'; }
+            }
+            if (shiftProgressBar) { shiftProgressBar.style.width = `${progressPercent}%`; shiftProgressBar.style.backgroundColor = barColor; }
+        }
+
+        function updateTaskSummary() {
+            const todoCount = tasks.todo?.length || 0;
+            const inProgressCount = tasks.inprogress?.length || 0;
+            const nonUrgentCount = tasks.nonurgent?.length || 0;
+            const summaryBadgesHTML = `<div class="text-center"><span class="summary-count bg-blue-200 text-blue-800">${todoCount}</span><span class="block text-xs text-gray-300 mt-1">To Do</span></div><div class="text-center"><span class="summary-count bg-orange-200 text-orange-800">${inProgressCount}</span><span class="block text-xs text-gray-300 mt-1">In Progress</span></div><div class="text-center"><span class="summary-count bg-gray-200 text-gray-700">${nonUrgentCount}</span><span class="block text-xs text-gray-300 mt-1">Non Urgent</span></div>`;
+            const summaryInputHTML = `<h3 class="text-lg font-medium text-gray-300 mb-2">Current Task Summary</h3><div class="flex justify-center items-center space-x-4">${summaryBadgesHTML}</div>`;
+            if (taskSummaryInputContainer) taskSummaryInputContainer.innerHTML = summaryInputHTML;
+            if (taskSummaryBoard) taskSummaryBoard.innerHTML = summaryBadgesHTML;
+        }
         
         function showPage(pageToShowId) {
             console.log("showPage called with:", pageToShowId);
             closeOpenSubMenu();
             if (emailSummaryMessageContainer) emailSummaryMessageContainer.classList.add('hidden');
             if (pageToShowId === 'inputPage') {
-                inputPage.classList.remove('hidden'); boardPage.classList.add('hidden');
-                taskSummaryBoardContainer.classList.add('hidden'); taskSummaryInputContainer.classList.remove('hidden');
+                if (inputPage) inputPage.classList.remove('hidden'); if (boardPage) boardPage.classList.add('hidden');
+                if (taskSummaryBoardContainer) taskSummaryBoardContainer.classList.add('hidden'); if (taskSummaryInputContainer) taskSummaryInputContainer.classList.remove('hidden');
                 if(shiftTimeControls) shiftTimeControls.classList.add('hidden');
                 if(emailSummaryBtn) emailSummaryBtn.classList.add('hidden');
-                showInputPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500'); showInputPageBtn.classList.replace('hover:bg-indigo-600', 'hover:bg-blue-600');
-                showBoardPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500'); showBoardPageBtn.classList.replace('hover:bg-blue-600', 'hover:bg-indigo-600');
+                if (showInputPageBtn) { showInputPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500'); showInputPageBtn.classList.replace('hover:bg-indigo-600', 'hover:bg-blue-600'); }
+                if (showBoardPageBtn) { showBoardPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500'); showBoardPageBtn.classList.replace('hover:bg-blue-600', 'hover:bg-indigo-600'); }
             } else if (pageToShowId === 'boardPage') {
-                inputPage.classList.add('hidden'); boardPage.classList.remove('hidden');
-                taskSummaryInputContainer.classList.add('hidden'); taskSummaryBoardContainer.classList.remove('hidden');
+                if (inputPage) inputPage.classList.add('hidden'); if (boardPage) boardPage.classList.remove('hidden');
+                if (taskSummaryInputContainer) taskSummaryInputContainer.classList.add('hidden'); if (taskSummaryBoardContainer) taskSummaryBoardContainer.classList.remove('hidden');
                 if(shiftTimeControls) shiftTimeControls.classList.remove('hidden');
                 if(emailSummaryBtn) emailSummaryBtn.classList.remove('hidden');
                 renderBoard(); updateTaskSummary(); loadStickyNoteMain(); loadStickyNoteAAT();
                 renderUpcomingTasks(); 
                 renderCalendar(); // CALL NEW CALENDAR FUNCTION
-                showInputPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500'); showInputPageBtn.classList.replace('hover:bg-blue-600', 'hover:bg-indigo-600');
-                showBoardPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500'); showBoardPageBtn.classList.replace('hover:bg-indigo-600', 'hover:bg-blue-600');
+                if (showInputPageBtn) { showInputPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500'); showInputPageBtn.classList.replace('hover:bg-blue-600', 'hover:bg-indigo-600'); }
+                if (showBoardPageBtn) { showBoardPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500'); showBoardPageBtn.classList.replace('hover:bg-indigo-600', 'hover:bg-blue-600'); }
             }
         }
 
         // --- NEW CALENDAR FUNCTION ---
         function renderCalendar() {
             if (!calendarGrid || !monthYearDisplay || !tasks) {
-                console.warn("Calendar elements or tasks object not ready for rendering. Grid:",calendarGrid,"MonthDisplay:",monthYearDisplay,"Tasks:",tasks);
+                console.warn("Calendar elements or tasks object not ready for rendering. Grid:", !!calendarGrid, "MonthDisplay:", !!monthYearDisplay, "Tasks:", !!tasks);
                 return;
             }
             calendarGrid.innerHTML = ''; 
             const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            dayHeaders.forEach(header => {
-                const headerCell = document.createElement('div');
-                headerCell.className = 'calendar-day-header';
-                headerCell.textContent = header;
-                calendarGrid.appendChild(headerCell);
-            });
-
-            const year = calendarDate.getFullYear();
-            const month = calendarDate.getMonth(); 
-
+            dayHeaders.forEach(header => { const hc = document.createElement('div'); hc.className = 'calendar-day-header'; hc.textContent = header; calendarGrid.appendChild(hc); });
+            const year = calendarDate.getFullYear(); const month = calendarDate.getMonth(); 
             monthYearDisplay.textContent = `${calendarDate.toLocaleDateString('en-GB', { month: 'long' })} ${year}`;
-
-            const firstDayOfMonth = new Date(year, month, 1);
-            const lastDayOfMonth = new Date(year, month + 1, 0);
-            const daysInMonth = lastDayOfMonth.getDate();
-            const startingDayOfWeek = firstDayOfMonth.getDay(); 
-
-            const today = new Date();
-            today.setHours(0,0,0,0);
-
-            for (let i = 0; i < startingDayOfWeek; i++) {
-                const blankCell = document.createElement('div');
-                blankCell.className = 'calendar-day-cell other-month';
-                calendarGrid.appendChild(blankCell);
-            }
-
+            const firstDayOfMonth = new Date(year, month, 1); const lastDayOfMonth = new Date(year, month + 1, 0);
+            const daysInMonth = lastDayOfMonth.getDate(); const startingDayOfWeek = firstDayOfMonth.getDay(); 
+            const today = new Date(); today.setHours(0,0,0,0);
+            for (let i = 0; i < startingDayOfWeek; i++) { const bc = document.createElement('div'); bc.className = 'calendar-day-cell other-month'; calendarGrid.appendChild(bc); }
             for (let day = 1; day <= daysInMonth; day++) {
-                const dayCell = document.createElement('div');
-                dayCell.className = 'calendar-day-cell';
-                
-                const dayNumberSpan = document.createElement('span');
-                dayNumberSpan.className = 'calendar-day-number';
-                dayNumberSpan.textContent = day;
-                dayCell.appendChild(dayNumberSpan);
-
-                const currentDateOfCell = new Date(year, month, day);
-                currentDateOfCell.setHours(0,0,0,0);
-                if (currentDateOfCell.getTime() === today.getTime()) {
-                    dayCell.classList.add('current-day');
-                }
-
-                let tasksDueOnThisDay = 0;
-                const calendarDayString = formatDateForInput(currentDateOfCell);
-
-                for (const status of ['todo', 'inprogress', 'nonurgent']) { // Only count active tasks
+                const dayCell = document.createElement('div'); dayCell.className = 'calendar-day-cell';
+                const dns = document.createElement('span'); dns.className = 'calendar-day-number'; dns.textContent = day; dayCell.appendChild(dns);
+                const currentDateOfCell = new Date(year, month, day); currentDateOfCell.setHours(0,0,0,0);
+                if (currentDateOfCell.getTime() === today.getTime()) dayCell.classList.add('current-day');
+                let tasksDueOnThisDay = 0; const calendarDayString = formatDateForInput(currentDateOfCell);
+                for (const status of ['todo', 'inprogress', 'nonurgent']) {
                     if (tasks[status]) {
                         for (const task of tasks[status]) {
                             if (task.due_date) {
                                 const taskDueDateString = formatDateForInput(task.due_date);
-                                if (taskDueDateString === calendarDayString) {
-                                    tasksDueOnThisDay++;
-                                }
+                                if (taskDueDateString === calendarDayString) tasksDueOnThisDay++;
                             }
                         }
                     }
                 }
-
-                if (tasksDueOnThisDay > 0) {
-                    const taskCountSpan = document.createElement('span');
-                    taskCountSpan.className = 'calendar-task-count';
-                    taskCountSpan.textContent = tasksDueOnThisDay;
-                    dayCell.appendChild(taskCountSpan);
-                }
+                if (tasksDueOnThisDay > 0) { const tc = document.createElement('span'); tc.className = 'calendar-task-count'; tc.textContent = tasksDueOnThisDay; dayCell.appendChild(tc); }
                 calendarGrid.appendChild(dayCell);
             }
             const totalCellsFilled = startingDayOfWeek + daysInMonth;
             const remainingCellsToFill = (7 - (totalCellsFilled % 7)) % 7;
-            for (let i = 0; i < remainingCellsToFill; i++) {
-                const blankCell = document.createElement('div');
-                blankCell.className = 'calendar-day-cell other-month';
-                calendarGrid.appendChild(blankCell);
-            }
+            for (let i = 0; i < remainingCellsToFill; i++) { const bc = document.createElement('div'); bc.className = 'calendar-day-cell other-month'; calendarGrid.appendChild(bc); }
         }
 
-        // --- Task Modification Functions (ensure they call renderCalendar if board is visible) ---
-        // (Copy these functions from your provided working index.html, then add the renderCalendar call)
-        async function updateTaskPriority(taskId, newPriority) { /* ... from your working file, then add: if (!boardPage.classList.contains('hidden')) renderCalendar(); ... */ }
-        async function editTaskNotes(taskId) { /* ... from your working file ... */ } // No calendar update needed
-        async function updateTaskDueDate(taskId, newDate) { /* ... from your working file, then add: if (!boardPage.classList.contains('hidden')) renderCalendar(); ... */ }
-        async function markTaskDone(taskId) { /* ... from your working file, then add: if (!boardPage.classList.contains('hidden')) renderCalendar(); ... */ }
+        // Task modification functions (ensure they call renderCalendar if board is visible)
+        async function updateTaskPriority(taskId, newPriority) { /* ... from your working file, call renderCalendar if boardPage visible ... */ }
+        async function editTaskNotes(taskId) { /* ... from your working file ... */ }
+        async function updateTaskDueDate(taskId, newDate) { /* ... from your working file, call renderCalendar if boardPage visible ... */ }
+        async function markTaskDone(taskId) { /* ... from your working file, call renderCalendar if boardPage visible ... */ }
         function toggleSubMenu(event, taskId) { /* ... from your working file ... */ }
         function closeOpenSubMenu() { /* ... from your working file ... */ }
         function createTaskElement(task) { /* ... from your working file ... */ }
-        function renderBoard() { /* ... from your working file (ensure it does NOT call renderHighestPriorityTasks) ... */ }
+        function renderBoard() { /* ... from your working file (should not call renderHighestPriorityTasks) ... */ }
         function renderUpcomingTasks() { /* ... from your working file ... */ }
-        // function renderHighestPriorityTasks() { /* THIS FUNCTION IS REMOVED */ }
+        // function renderHighestPriorityTasks() { /* This function is REMOVED */ }
         
-        async function addTask() { /* ... from your working file, then add: if (!boardPage.classList.contains('hidden')) renderCalendar(); ... */ }
-        async function deleteTask(taskId) { /* ... from your working file, then add: if (!boardPage.classList.contains('hidden')) renderCalendar(); ... */ }
+        async function addTask() { /* ... from your working file, call renderCalendar if boardPage visible, ensure status 201 check ... */ }
+        async function deleteTask(taskId) { /* ... from your working file, call renderCalendar if boardPage visible ... */ }
         function startEditTask(taskId) { /* ... from your working file ... */ }
-        async function saveTaskEdit(taskId) { /* ... from your working file, then add: if (!boardPage.classList.contains('hidden')) renderCalendar(); ... */ }
+        async function saveTaskEdit(taskId) { /* ... from your working file, call renderCalendar if boardPage visible ... */ }
         function cancelTaskEdit(taskId) { /* ... from your working file ... */ }
-        async function loadTasks() { /* ... from your working file, then in finally block add: if (!boardPage.classList.contains('hidden')) renderCalendar(); ... */ }
+        async function loadTasks() { /* ... from your working file, ensure it calls renderCalendar in finally if boardPage visible ... */ }
         async function loadStickyNoteMain() { /* ... from your working file ... */ }
         async function saveStickyNoteMain() { /* ... from your working file ... */ }
         async function loadStickyNoteAAT() { /* ... from your working file ... */ }
@@ -606,18 +592,38 @@
         function dragEnd(event) { /* ... from your working file ... */ }
         function allowDrop(event) { /* ... from your working file ... */ }
         function drop(event) { /* ... from your working file ... */ }
-        async function handleDropLogic(targetColumnId, taskElement) { /* ... from your working file, then add: if (!boardPage.classList.contains('hidden')) renderCalendar(); to success and error blocks ... */ }
+        async function handleDropLogic(targetColumnId, taskElement) { /* ... from your working file, call renderCalendar if boardPage visible ... */ }
         function triggerConfetti() { /* ... from your working file ... */ }
         async function handleEmailSummary() { /* ... from your working file ... */ }
 
-
         // --- Initialization & Event Listeners ---
-        addTaskBtn.addEventListener('click', addTask);
-        showInputPageBtn.addEventListener('click', () => showPage('inputPage'));
-        showBoardPageBtn.addEventListener('click', async () => { /* ... from your working file ... */ });
+        if(addTaskBtn) addTaskBtn.addEventListener('click', addTask);
+        if(showInputPageBtn) showInputPageBtn.addEventListener('click', () => showPage('inputPage'));
+        if(showBoardPageBtn) {
+            showBoardPageBtn.addEventListener('click', async () => {
+                console.log("--- View Board button CLICKED! (DEBUG from full script) ---");
+                if (isPinCooldownActive) { alert("Please wait before trying the pin again."); return; }
+                const pinInput = prompt("Please enter the pin code to view the board:");
+                if (pinInput === null) return; 
+                try {
+                     const apiResponse = await apiCall('check-pin', 'POST', { enteredPin: pinInput });
+                     if (apiResponse.status === 200 && apiResponse.data && apiResponse.data.valid) {
+                         showPage('boardPage');
+                     } else {
+                         alert(apiResponse.data.message || "Incorrect pin code.");
+                         isPinCooldownActive = true;
+                         if(showBoardPageBtn) showBoardPageBtn.disabled = true;
+                         setTimeout(() => { isPinCooldownActive = false; if(showBoardPageBtn) showBoardPageBtn.disabled = false; }, PIN_COOLDOWN_SECONDS * 1000);
+                     }
+                } catch (error) { /* Error already handled/alerted by apiCall */ }
+            });
+        } else {
+            console.error("CRITICAL: showBoardPageBtn element NOT FOUND during listener attachment!");
+        }
+
         if(saveStickyNoteBtn) saveStickyNoteBtn.addEventListener('click', saveStickyNoteMain);
         if(saveStickyNoteBtnAAT) saveStickyNoteBtnAAT.addEventListener('click', saveStickyNoteAAT);
-        updateShiftTimesBtn.addEventListener('click', async () => { /* ... from your working file ... */ });
+        if(updateShiftTimesBtn) updateShiftTimesBtn.addEventListener('click', async () => { /* ... from your working file ... */ });
         if (emailSummaryBtn) emailSummaryBtn.addEventListener('click', handleEmailSummary);
         
         // NEW Calendar Nav Button Listeners
@@ -626,13 +632,13 @@
                 calendarDate.setMonth(calendarDate.getMonth() - 1);
                 renderCalendar();
             });
-        }
+        } else { console.warn("prevMonthBtn not found for listener."); }
         if (nextMonthBtn) {
             nextMonthBtn.addEventListener('click', () => {
                 calendarDate.setMonth(calendarDate.getMonth() + 1);
                 renderCalendar();
             });
-        }
+        } else { console.warn("nextMonthBtn not found for listener."); }
 
         document.addEventListener('click', (event) => { /* ... from your working file for submenu ... */ });
 
