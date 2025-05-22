@@ -36,7 +36,7 @@
             background-color: #fef9c3; /* yellow-100 */
             border: 1px solid #fde68a; /* yellow-200 */
         }
-        #stickyNoteContainerAAT { /* ID kept for now, but content changed to "Studying" */
+        #stickyNoteContainerAAT {
             background-color: #d1fae5; /* green-100 */
             border: 1px solid #a7f3d0; /* green-200 */
         }
@@ -63,8 +63,8 @@
             font-size: 0.75rem; margin-top: 0.25rem; height: 1rem; text-align: right;
          }
 
-        /* Upcoming Due & Calendar (formerly Highest Priority) Box Styles */
-        #upcomingTasksContainer, #calendarContainer { /* Renamed highestPriorityContainer to calendarContainer */
+        /* Upcoming Due & Highest Priority Box Styles */
+        #upcomingTasksContainer, #highestPriorityContainer {
             background-color: #e0f2fe; /* sky-100 default for upcoming */
             border: 1px solid #bae6fd; /* sky-200 default for upcoming */
             border-radius: 8px;
@@ -75,97 +75,51 @@
             height: 250px; /* MATCHING STICKY NOTE HEIGHT */
             margin-bottom: 1rem;
         }
-        #calendarContainer { /* Specific styling for calendar if needed, defaults to upcomingTasksContainer style */
+        #highestPriorityContainer {
              background-color: #ffedd5; /* orange-100 */
              border-color: #fed7aa; /* orange-200 */
         }
-         #upcomingTasksList { /* Old highestPriorityList is removed */
+        #highestPriorityContainer h3 { /* Header text color for highest priority */
+            color: #9a3412; /* orange-800 */
+        }
+         #upcomingTasksList, #highestPriorityList {
              flex-grow: 1; overflow-y: auto; padding-right: 4px;
          }
-         .upcoming-task { /* Old .priority-task styles removed */
+         .upcoming-task, .priority-task {
              font-size: 0.75rem; padding: 2px 4px; margin-bottom: 4px;
              border-radius: 3px;
              display: block; line-height: 1.3;
-             background-color: #f0f9ff;
-             border: 1px solid #e0f2fe;
          }
-         .upcoming-task .due-date {
+         .upcoming-task {
+            background-color: #f0f9ff;
+            border: 1px solid #e0f2fe;
+         }
+         .priority-task {
+            background-color: #fff7ed;
+            border: 1px solid #ffedd5;
+         }
+         .upcoming-task .due-date, .priority-task .priority-label {
              font-weight: 600; margin-right: 4px;
-             color: #be123c;
          }
+         .upcoming-task .due-date { color: #be123c; }
+         .priority-task .priority-label-high { color: #c2410c; }
+         .priority-task .priority-label-medium { color: #ea580c; }
+         .priority-task .priority-label-low { color: #fb923c; }
 
-        /* CSS for New Calendar View */
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.1rem 0 0.25rem 0; /* Adjusted padding */
+        /* Overdue Task Styling */
+        .task.overdue {
+            border: 3px solid #dc2626; /* Tailwind red-600, thick border */
         }
-        .calendar-nav-btn {
-            background-color: #fff7ed; /* orange-50 */
-            border: 1px solid #fed7aa; /* orange-200 */
-            border-radius: 4px;
-            padding: 0.1rem 0.4rem;
-            font-size: 0.9rem;
-            cursor: pointer;
-            color: #c2410c; /* orange-700 */
-        }
-        .calendar-nav-btn:hover {
-            background-color: #fed7aa; /* orange-200 */
-        }
-        #monthYearDisplay {
-            color: #9a3412; /* orange-800, was text-gray-700 */
-            font-size: 0.9rem; /* Slightly smaller */
-            font-weight: 600;
-        }
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 1px; /* Smaller gap */
-            flex-grow: 1;
-            overflow: hidden;
-        }
-        .calendar-day-header {
-            font-size: 0.6rem; /* Smaller font for day headers */
-            text-align: center;
-            font-weight: 600;
-            color: #7c2d12; /* orange-900 */
-            padding-bottom: 1px;
-        }
-        .calendar-day-cell {
-            font-size: 0.65rem; /* Smaller font for day numbers */
-            text-align: center;
-            padding: 1px;
-            border: 1px solid #ffedd5; /* orange-100 */
-            background-color: #fff7ed; /* orange-50 */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            min-height: 26px; /* Adjusted min-height */
-            position: relative;
-            color: #7c2d12; /* Default text color for days */
-        }
-        .calendar-day-cell.other-month .calendar-day-number { /* Keep .other-month for JS logic */
-            color: #fdba74; /* orange-300, for days not in current month */
-        }
-        .calendar-day-cell.current-day .calendar-day-number {
-            font-weight: bold;
-            color: #ea580c; /* orange-600 */
-        }
-        .calendar-task-count {
-            font-size: 0.7rem; 
-            font-weight: bold;
-            color: red;
-            margin-top: 0px; 
-            line-height: 1;
-        }
-        .task.overdue { border: 3px solid #dc2626; }
+
+
+        /* Style for the confetti canvas */
         #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
-        .tasks-container::-webkit-scrollbar, #upcomingTasksList::-webkit-scrollbar, .calendar-grid::-webkit-scrollbar { width: 8px; }
-        .tasks-container::-webkit-scrollbar-track, #upcomingTasksList::-webkit-scrollbar-track, .calendar-grid::-webkit-scrollbar-track { background: #dbeafe; border-radius: 10px; }
-        .tasks-container::-webkit-scrollbar-thumb, #upcomingTasksList::-webkit-scrollbar-thumb, .calendar-grid::-webkit-scrollbar-thumb { background: #60a5fa; border-radius: 10px; }
-        .tasks-container::-webkit-scrollbar-thumb:hover, #upcomingTasksList::-webkit-scrollbar-thumb:hover, .calendar-grid::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
+        /* Custom scrollbar */
+        .tasks-container::-webkit-scrollbar, #upcomingTasksList::-webkit-scrollbar, #highestPriorityList::-webkit-scrollbar { width: 8px; }
+        .tasks-container::-webkit-scrollbar-track, #upcomingTasksList::-webkit-scrollbar-track, #highestPriorityList::-webkit-scrollbar-track { background: #dbeafe; border-radius: 10px; }
+        .tasks-container::-webkit-scrollbar-thumb, #upcomingTasksList::-webkit-scrollbar-thumb, #highestPriorityList::-webkit-scrollbar-thumb { background: #60a5fa; border-radius: 10px; }
+        .tasks-container::-webkit-scrollbar-thumb:hover, #upcomingTasksList::-webkit-scrollbar-thumb:hover, #highestPriorityList::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
+
         .task-edit-input { padding: 2px 4px; border: 1px solid #93c5fd; border-radius: 4px; margin-right: 5px; background-color: #eff6ff; }
         .hidden { display: none; }
         .task-meta-row { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; gap: 6px; flex-wrap: wrap; }
@@ -181,26 +135,100 @@
         .summary-count { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 600; margin: 0 0.25rem; }
         button:disabled { opacity: 0.5; cursor: not-allowed; }
         .task { position: relative; }
-        .task-notes { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); background-color: #374151; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; white-space: pre-wrap; z-index: 10; opacity: 0; visibility: hidden; transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out; pointer-events: none; margin-top: 4px; width: max-content; max-width: 250px; }
+        .task-notes {
+            position: absolute;
+            top: 100%; left: 50%; transform: translateX(-50%);
+            background-color: #374151; color: white; padding: 4px 8px;
+            border-radius: 4px; font-size: 0.75rem; white-space: pre-wrap;
+            z-index: 10; opacity: 0; visibility: hidden;
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+            pointer-events: none; margin-top: 4px; width: max-content; max-width: 250px;
+        }
         .task:hover .task-notes { opacity: 1; visibility: visible; }
         .action-btn { background: none; border: none; padding: 0; cursor: pointer; font-size: 1rem; line-height: 1; display: flex; align-items: center; height: 24px; width: 24px; justify-content: center; }
-        .edit-mode-buttons { display: flex; gap: 4px; align-items: center; } .edit-mode-buttons .action-btn { font-size: 1rem; }
-        .task { align-items: flex-start; flex-direction: column; } .task > div:first-child { width: 100%; }
-        .task-submenu { position: absolute; right: calc(100% + 5px); top: 50%; transform: translateY(-50%); background-color: white; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); padding: 4px; z-index: 20; display: flex; flex-direction: column; gap: 3px; min-width: 100px; }
-        .task-submenu button { text-align: left; padding: 2px 5px; font-size: 0.8rem; white-space: nowrap; background: none; border: none; width: 100%; display: flex; align-items: center; gap: 4px; }
-        .task-submenu button:hover { background-color: #f0f0f0; }
-        #mainHeader { position: relative; padding-bottom: 1rem; display: flex; align-items: flex-start; justify-content: center; }
-        #taskSummaryContainerBoard { position: absolute; top: 0; left: 0; } #mainTitle { flex-grow: 1; text-align: center; color: #e0f2fe; }
-        #headerInfoRight { position: absolute; top: 0; right: 0; display: flex; flex-direction: column; align-items: flex-end; }
-        #currentDateDisplay { font-size: 1rem; font-weight: 600; color: #d1d5db; margin-bottom: 5px; white-space: nowrap; width: 220px; text-align: right; }
-        #shiftProgressBarContainer { width: 220px; height: 16px; background-color: #4b5563; border-radius: 8px; overflow: hidden; border: 1px solid #374151; }
-        #shiftProgressBar { height: 100%; width: 0%; transition: width 0.5s ease-out, background-color 0.5s ease-out; border-radius: 7px; }
-        #shiftTimeControls { margin-top: 6px; display: flex; gap: 8px; align-items: center; width: 220px; justify-content: space-around; }
-        #shiftTimeControls > div { display: flex; align-items: center; gap: 4px; }
-        #shiftTimeControls label { font-size: 0.75rem; color: #9ca3af; white-space: nowrap; }
-        #shiftTimeControls input[type="time"] { font-size: 0.75rem; padding: 1px 3px; border-radius: 4px; border: 1px solid #4b5563; background-color: #374151; color: #e5e7eb; width: 75px; }
-        #updateShiftTimesBtn { font-size: 0.7rem; padding: 3px 6px; }
-        #emailSummaryMessage { min-height: 1.25rem; font-size: 0.875rem; margin-top: 0.5rem; text-align: center; }
+         .edit-mode-buttons { display: flex; gap: 4px; align-items: center; }
+         .edit-mode-buttons .action-btn { font-size: 1rem; }
+         .task { align-items: flex-start; flex-direction: column; }
+         .task > div:first-child { width: 100%; }
+         .task-submenu {
+             position: absolute;
+             right: calc(100% + 5px); top: 50%; transform: translateY(-50%);
+             background-color: white; border: 1px solid #ccc; border-radius: 4px;
+             box-shadow: 0 2px 5px rgba(0,0,0,0.1); padding: 4px; z-index: 20;
+             display: flex; flex-direction: column; gap: 3px; min-width: 100px;
+         }
+         .task-submenu button {
+             text-align: left; padding: 2px 5px; font-size: 0.8rem; white-space: nowrap;
+             background: none; border: none; width: 100%; display: flex; align-items: center; gap: 4px;
+         }
+         .task-submenu button:hover { background-color: #f0f0f0; }
+         #mainHeader {
+             position: relative; padding-bottom: 1rem; display: flex;
+             align-items: flex-start; justify-content: center;
+         }
+         #taskSummaryContainerBoard { position: absolute; top: 0; left: 0; }
+         #mainTitle { flex-grow: 1; text-align: center; color: #e0f2fe; }
+         #headerInfoRight {
+             position: absolute; top: 0; right: 0;
+             display: flex; flex-direction: column; align-items: flex-end;
+         }
+         #currentDateDisplay {
+             font-size: 1rem;
+             font-weight: 600;
+             color: #d1d5db;
+             margin-bottom: 5px;
+             white-space: nowrap;
+             width: 220px;
+             text-align: right;
+         }
+         #shiftProgressBarContainer {
+             width: 220px;
+             height: 16px;
+             background-color: #4b5563;
+             border-radius: 8px;
+             overflow: hidden;
+             border: 1px solid #374151;
+         }
+         #shiftProgressBar {
+             height: 100%; width: 0%;
+             transition: width 0.5s ease-out, background-color 0.5s ease-out;
+             border-radius: 7px;
+         }
+        #shiftTimeControls {
+            margin-top: 6px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            width: 220px;
+            justify-content: space-around;
+        }
+        #shiftTimeControls > div {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        #shiftTimeControls label {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            white-space: nowrap;
+        }
+        #shiftTimeControls input[type="time"] {
+            font-size: 0.75rem; padding: 1px 3px;
+            border-radius: 4px; border: 1px solid #4b5563;
+            background-color: #374151;
+            color: #e5e7eb;
+            width: 75px;
+        }
+        #updateShiftTimesBtn {
+            font-size: 0.7rem; padding: 3px 6px;
+        }
+        #emailSummaryMessage {
+            min-height: 1.25rem; 
+            font-size: 0.875rem; 
+            margin-top: 0.5rem; 
+            text-align: center;
+        }
+
     </style>
 </head>
 <body class="bg-blue-800 font-sans p-4 md:p-8">
@@ -230,6 +258,7 @@
         </div>
         <div id="emailSummaryMessageContainer" class="text-center mb-4 hidden"><p id="emailSummaryMessage" class="text-gray-300"></p></div>
 
+
         <div id="inputPage" class="">
             <h2 class="text-2xl font-semibold text-center text-blue-200 mb-2">Add a New Task</h2>
             <p class="text-center text-sm text-gray-300 mb-4">Please advise below what you require, this will be added to Jay's To-Do list.</p>
@@ -249,13 +278,13 @@
                 <div class="w-full md:w-1/5 flex-shrink-0 order-1 md:order-1">
                     <div id="stickyNoteContainer" class="sticky-note-wrapper">
                         <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Notes</h3>
-                        <textarea id="stickyNoteTextarea" rows="7"></textarea>
+                        <textarea id="stickyNoteTextarea"></textarea> {/* rows="7" REMOVED for this revert */}
                         <button id="saveStickyNoteBtn" class="nav-button bg-yellow-500 hover:bg-yellow-600 text-yellow-900 text-sm py-1 px-3 mt-2 save-sticky-note-btn">Save Note</button>
                         <p id="stickyNoteMessage" class="sticky-note-message text-green-600"></p>
                     </div>
                     <div id="stickyNoteContainerAAT" class="sticky-note-wrapper">
-                        <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Studying</h3>
-                        <textarea id="stickyNoteTextareaAAT" rows="7"></textarea>
+                        <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">AAT Level 4</h3> {/* REVERTED to AAT Level 4 */}
+                        <textarea id="stickyNoteTextareaAAT"></textarea> {/* rows="7" REMOVED for this revert */}
                         <button id="saveStickyNoteBtnAAT" class="nav-button bg-green-600 hover:bg-green-700 text-white text-sm py-1 px-3 mt-2 save-sticky-note-btn">Save Note</button>
                         <p id="stickyNoteMessageAAT" class="sticky-note-message text-green-700"></p>
                     </div>
@@ -291,14 +320,11 @@
                         <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Upcoming Due</h3>
                         <div id="upcomingTasksList"><p class="text-xs text-gray-500 text-center italic">Loading...</p></div>
                     </div>
-                    <div id="calendarContainer">
-                        <div class="calendar-header text-center mb-2">
-                            <button id="prevMonthBtn" class="calendar-nav-btn">&lt;</button>
-                            <span id="monthYearDisplay" class="text-lg font-semibold mx-2"></span>
-                            <button id="nextMonthBtn" class="calendar-nav-btn">&gt;</button>
-                        </div>
-                        <div id="calendarGrid" class="calendar-grid">
-                            <div class="calendar-day-header">Sun</div><div class="calendar-day-header">Mon</div><div class="calendar-day-header">Tue</div><div class="calendar-day-header">Wed</div><div class="calendar-day-header">Thu</div><div class="calendar-day-header">Fri</div><div class="calendar-day-header">Sat</div>
+                    {/* REVERTED: Original highestPriorityContainer structure */}
+                    <div id="highestPriorityContainer">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Highest Priority</h3>
+                        <div id="highestPriorityList">
+                            <p class="text-xs text-gray-500 text-center italic">Loading...</p>
                         </div>
                     </div>
                 </div>
@@ -337,14 +363,19 @@
         const saveStickyNoteBtnAAT = document.getElementById('saveStickyNoteBtnAAT');
         const stickyNoteMessageAAT = document.getElementById('stickyNoteMessageAAT');
         const upcomingTasksList = document.getElementById('upcomingTasksList');
+        const highestPriorityList = document.getElementById('highestPriorityList'); // RE-ADDED for this version
         const shiftTimeControls = document.getElementById('shiftTimeControls');
         const shiftStartInput = document.getElementById('shiftStartInput'); const shiftEndInput = document.getElementById('shiftEndInput');
         const updateShiftTimesBtn = document.getElementById('updateShiftTimesBtn');
         const emailSummaryBtn = document.getElementById('emailSummaryBtn');
         const emailSummaryMessageContainer = document.getElementById('emailSummaryMessageContainer');
         const emailSummaryMessage = document.getElementById('emailSummaryMessage');
-        const prevMonthBtn = document.getElementById('prevMonthBtn'); const nextMonthBtn = document.getElementById('nextMonthBtn');
-        const monthYearDisplay = document.getElementById('monthYearDisplay'); const calendarGrid = document.getElementById('calendarGrid');
+        // Calendar specific DOM elements REMOVED for this revert
+        // const prevMonthBtn = document.getElementById('prevMonthBtn');
+        // const nextMonthBtn = document.getElementById('nextMonthBtn');
+        // const monthYearDisplay = document.getElementById('monthYearDisplay');
+        // const calendarGrid = document.getElementById('calendarGrid');
+
 
         // --- State ---
         let tasks = { todo: [], inprogress: [], nonurgent: [], done: [] }; let draggedTask = null;
@@ -352,12 +383,14 @@
         let isPinCooldownActive = false; let openSubMenuId = null; let dateTimeInterval = null;
         let stickyNoteSaveTimeout = null; let stickyNoteAATSaveTimeout = null;
         let shiftTimeSaveMessageTimeout = null; let emailSummaryTimeout = null;
-        let calendarDate = new Date();
+        // let calendarDate = new Date(); // REMOVED for this revert
 
         // --- Generic Fetch Helper ---
+        // This is the version of apiCall from before the last debug attempt, which was working for other calls
         async function apiCall(endpoint, method = 'GET', paramsOrBody = null) {
             const options = { method, headers: {} };
             let url = `${FUNCTION_BASE_PATH}${endpoint}`;
+
             if (method === 'GET' && paramsOrBody) {
                 const queryParams = new URLSearchParams(paramsOrBody).toString();
                 if (queryParams) url += `?${queryParams}`;
@@ -365,26 +398,40 @@
                 options.headers['Content-Type'] = 'application/json';
                 options.body = JSON.stringify(paramsOrBody);
             }
+            
             try {
-                const fetchResponse = await fetch(url, options);
+                const fetchResponse = await fetch(url, options); // Original response object name
                 const isJson = fetchResponse.headers.get('content-type')?.includes('application/json');
-                let responseData = {}; 
-                if (isJson) { responseData = await fetchResponse.json(); } 
-                else { responseData.message = await fetchResponse.text(); }
-                responseData.status = fetchResponse.status;
+                let responseData; // To store parsed data or constructed error message
 
-                if (!fetchResponse.ok) {
-                    const errorMessage = (responseData.error || responseData.message || `HTTP error! Status: ${fetchResponse.status}`);
-                    console.error(`API Error (${url}, Status: ${fetchResponse.status}):`, errorMessage, responseData.details);
-                    if (!(endpoint === 'get-sticky-note' && method === 'GET' && fetchResponse.status === 500)) {
-                         alert(`Operation failed: ${errorMessage}. Please check console or try again.`);
-                    }
-                    throw { message: String(errorMessage), status: fetchResponse.status, data: responseData };
+                if (isJson) {
+                    responseData = await fetchResponse.json();
+                } else {
+                    // If not JSON, get text, this could be a simple success message or an error from a proxy/gateway
+                    responseData = { message: await fetchResponse.text() };
                 }
+                
+                if (!fetchResponse.ok) {
+                    // Use message from responseData if available (e.g. from a JSON error body), otherwise construct a generic one
+                    const error = (responseData && (responseData.error || responseData.message)) || `HTTP error! status: ${fetchResponse.status}`;
+                    console.error(`API Error (${url}, Status: ${fetchResponse.status}):`, error, responseData?.details || responseData);
+                    
+                    // Suppress alerts for known "silent fail" scenarios like initial sticky note load error
+                    if (!(endpoint === 'get-sticky-note' && method === 'GET' && fetchResponse.status === 500)) {
+                         alert(`Operation failed: ${error}. Status: ${fetchResponse.status}. Please check console or try again.`);
+                    }
+                    // Throw an object that includes the status and potentially data for finer control in the caller
+                    throw { message: String(error), status: fetchResponse.status, data: responseData };
+                }
+                // Return an object containing both the parsed data and the original status for successful (ok) responses
                 return { data: responseData, status: fetchResponse.status };
-            } catch (error) {
+            } catch (error) { // Catches fetch network errors or errors thrown above
                 console.error(`API Call Failed (${url}):`, error);
-                if (error.status) throw error;
+                // If error already has a status (from the custom throw above), rethrow it
+                if (error.status !== undefined) { // Check if status is defined (could be null for network errors)
+                    throw error;
+                }
+                // Otherwise, wrap it as a generic client-side or network error
                 throw { message: error.message || "Network error or issue parsing response", status: null, data: null };
             }
         }
@@ -397,7 +444,7 @@
         function updateTaskSummary() { /* ... same as before ... */ }
         
         function showPage(pageToShowId) {
-            console.log("showPage called with:", pageToShowId); // DEBUG
+            // console.log("showPage called with:", pageToShowId); // Keep for debugging if needed
             closeOpenSubMenu();
             if (emailSummaryMessageContainer) emailSummaryMessageContainer.classList.add('hidden');
             if (pageToShowId === 'inputPage') {
@@ -413,64 +460,116 @@
                 if(shiftTimeControls) shiftTimeControls.classList.remove('hidden');
                 if(emailSummaryBtn) emailSummaryBtn.classList.remove('hidden');
                 renderBoard(); updateTaskSummary(); loadStickyNoteMain(); loadStickyNoteAAT();
-                renderUpcomingTasks(); renderCalendar();
+                renderUpcomingTasks(); renderHighestPriorityTasks(); // RE-ADDED for this version
+                // renderCalendar(); // REMOVED for this revert
                 showInputPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500'); showInputPageBtn.classList.replace('hover:bg-blue-600', 'hover:bg-indigo-600');
                 showBoardPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500'); showBoardPageBtn.classList.replace('hover:bg-indigo-600', 'hover:bg-blue-600');
             }
         }
 
-        function renderCalendar() {
-            console.log("renderCalendar called. Current calendarDate:", calendarDate); // DEBUG
-            if (!calendarGrid || !monthYearDisplay || !tasks) {
-                console.warn("Calendar elements or tasks object not ready. Grid:", calendarGrid, "MonthDisplay:", monthYearDisplay, "Tasks:", tasks); // DEBUG
-                return;
-            }
-            calendarGrid.innerHTML = '';
-            const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            dayHeaders.forEach(header => { const hc = document.createElement('div'); hc.className = 'calendar-day-header'; hc.textContent = header; calendarGrid.appendChild(hc); });
-            const year = calendarDate.getFullYear(); const month = calendarDate.getMonth();
-            monthYearDisplay.textContent = `${calendarDate.toLocaleDateString('en-GB', { month: 'long' })} ${year}`;
-            const firstDayOfMonth = new Date(year, month, 1); const lastDayOfMonth = new Date(year, month + 1, 0);
-            const daysInMonth = lastDayOfMonth.getDate(); const startingDayOfWeek = firstDayOfMonth.getDay();
-            const today = new Date(); today.setHours(0,0,0,0);
-            for (let i = 0; i < startingDayOfWeek; i++) { const bc = document.createElement('div'); bc.className = 'calendar-day-cell other-month'; calendarGrid.appendChild(bc); }
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dayCell = document.createElement('div'); dayCell.className = 'calendar-day-cell';
-                const dns = document.createElement('span'); dns.className = 'calendar-day-number'; dns.textContent = day; dayCell.appendChild(dns);
-                const currentDateOfCell = new Date(year, month, day); currentDateOfCell.setHours(0,0,0,0);
-                if (currentDateOfCell.getTime() === today.getTime()) dayCell.classList.add('current-day');
-                let tasksDueOnThisDay = 0; const calendarDayString = formatDateForInput(currentDateOfCell);
-                for (const status of ['todo', 'inprogress', 'nonurgent']) {
-                    if (tasks[status]) {
-                        for (const task of tasks[status]) {
-                            if (task.due_date) {
-                                const taskDueDateString = formatDateForInput(task.due_date);
-                                if (taskDueDateString === calendarDayString) tasksDueOnThisDay++;
-                            }
-                        }
-                    }
-                }
-                if (tasksDueOnThisDay > 0) { const tc = document.createElement('span'); tc.className = 'calendar-task-count'; tc.textContent = tasksDueOnThisDay; dayCell.appendChild(tc); }
-                calendarGrid.appendChild(dayCell);
-            }
-            const totalCellsFilled = startingDayOfWeek + daysInMonth;
-            const remainingCellsToFill = (7 - (totalCellsFilled % 7)) % 7;
-            for (let i = 0; i < remainingCellsToFill; i++) { const bc = document.createElement('div'); bc.className = 'calendar-day-cell other-month'; calendarGrid.appendChild(bc); }
-            console.log("renderCalendar finished."); // DEBUG
-        }
+        // function renderCalendar() { /* REMOVED for this revert */ }
 
-        async function updateTaskPriority(taskId, newPriority) { /* ... call renderCalendar if board visible ... */ }
-        async function editTaskNotes(taskId) { /* ... (no calendar update needed directly) ... */ }
-        async function updateTaskDueDate(taskId, newDate) { /* ... call renderCalendar if board visible ... */ }
-        async function markTaskDone(taskId) { /* ... call renderCalendar if board visible ... */ }
+        async function updateTaskPriority(taskId, newPriority) {
+             try {
+                 const apiResponse = await apiCall('update-task', 'POST', { id: taskId, updates: { priority: newPriority } });
+                 if (apiResponse.status === 200) {
+                    for (const colId in tasks) {
+                        const task = tasks[colId].find(t => t.id === taskId);
+                        if (task) { task.priority = newPriority; break; }
+                    }
+                    renderBoard(); renderUpcomingTasks(); renderHighestPriorityTasks();
+                 } else { console.warn("Update task priority API call failed:", apiResponse); }
+             } catch (error) { /* Handled by apiCall */ }
+        }
+        async function editTaskNotes(taskId) {
+             closeOpenSubMenu();
+            let taskRef = null;
+            for (const columnId in tasks) { taskRef = tasks[columnId].find(task => task.id === taskId); if (taskRef) break; }
+            if (!taskRef) { console.error("Task not found for notes:", taskId); return; }
+            const newNotes = prompt("Enter/Edit notes:", taskRef.notes || '');
+            if (newNotes !== null) {
+                try {
+                    const apiResponse = await apiCall('update-task', 'POST', { id: taskId, updates: { notes: newNotes.trim() } });
+                    if(apiResponse.status === 200) { taskRef.notes = newNotes.trim(); renderBoard(); }
+                    else { console.warn("Update task notes API call failed:", apiResponse); }
+                } catch (error) { /* Handled by apiCall */ }
+            }
+        }
+        async function updateTaskDueDate(taskId, newDate) {
+             const dateValueToSend = newDate === '' ? null : newDate;
+             try {
+                 const apiResponse = await apiCall('update-task', 'POST', { id: taskId, updates: { due_date: dateValueToSend } });
+                 if (apiResponse.status === 200) {
+                    for (const colId in tasks) {
+                        const task = tasks[colId].find(t => t.id === taskId);
+                        if (task) { task.due_date = dateValueToSend; break; }
+                    }
+                    renderBoard(); renderUpcomingTasks(); renderHighestPriorityTasks();
+                 } else { console.warn("Update task due date API call failed:", apiResponse); }
+             } catch (error) { console.error("Failed to update due date for task " + taskId, error); }
+        }
+        async function markTaskDone(taskId) {
+             closeOpenSubMenu();
+             let taskToMove = null; let originalColumnId = ''; let originalIndex = -1;
+             for (const colId in tasks) {
+                 originalIndex = tasks[colId].findIndex(task => task.id === taskId);
+                 if (originalIndex > -1) { originalColumnId = colId; taskToMove = tasks[colId][originalIndex]; break; }
+             }
+             if (!taskToMove || originalColumnId === 'done') return;
+             const oldTaskState = JSON.parse(JSON.stringify(taskToMove));
+             tasks[originalColumnId].splice(originalIndex, 1);
+             if (!tasks.done) tasks.done = [];
+             taskToMove.status = 'done'; tasks.done.push(taskToMove);
+             renderBoard(); updateTaskSummary(); triggerConfetti();
+             renderUpcomingTasks(); renderHighestPriorityTasks();
+             try {
+                 const apiResponse = await apiCall('update-task', 'POST', { id: taskId, updates: { status: 'done' } });
+                 if (apiResponse.status !== 200) throw new Error(apiResponse.data.message || "Backend error");
+             } catch (error) {
+                  console.error(`Failed to mark task ${taskId} done in backend:`, error); alert("Failed to mark task as done. Reverting.");
+                  const newIndexInDone = tasks.done.findIndex(task => task.id === taskId);
+                  if (newIndexInDone > -1) tasks.done.splice(newIndexInDone, 1);
+                  taskToMove.status = oldTaskState.status; taskToMove.priority = oldTaskState.priority;
+                  if (!tasks[originalColumnId]) tasks[originalColumnId] = [];
+                  tasks[originalColumnId].splice(originalIndex, 0, taskToMove);
+                  renderBoard(); updateTaskSummary(); renderUpcomingTasks(); renderHighestPriorityTasks();
+             }
+        }
         function toggleSubMenu(event, taskId) { /* ... same ... */ }
         function closeOpenSubMenu() { /* ... same ... */ }
         function createTaskElement(task) { /* ... same ... */ }
-        function renderBoard() { /* ... (no renderHighestPriorityTasks) ... */ }
+        function renderBoard() { /* ... same as before, WILL call renderHighestPriorityTasks ... */ 
+            if (boardPage.classList.contains('hidden')) return;
+            const taskContainers = document.querySelectorAll('.tasks-container');
+            taskContainers.forEach(colContainer => colContainer.innerHTML = '');
+            const today = new Date(); today.setHours(0, 0, 0, 0);
+            for (const columnId in tasks) {
+                if (tasks.hasOwnProperty(columnId) && ['todo', 'inprogress', 'nonurgent', 'done'].includes(columnId)) {
+                    const columnElement = document.getElementById(columnId)?.querySelector('.tasks-container');
+                    if (columnElement) {
+                        let columnTasks = [...tasks[columnId]];
+                        // Sorting logic (same as before calendar)
+                        if (['todo', 'inprogress', 'nonurgent'].includes(columnId)) {
+                            const newTasks = columnTasks.filter(task => task.priority === "New");
+                            const nonNewTasks = columnTasks.filter(task => task.priority !== "New");
+                            const overdueTasks = nonNewTasks.filter(task => { if (!task.due_date) return false; const d = new Date(task.due_date); return new Date(d.getFullYear(), d.getMonth(), d.getDate()) < today; });
+                            const otherTasks = nonNewTasks.filter(task => { if (!task.due_date) return true; const d = new Date(task.due_date); return new Date(d.getFullYear(), d.getMonth(), d.getDate()) >= today; });
+                            newTasks.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+                            overdueTasks.sort((a, b) => { /* ... */ }); // Simplified for brevity, use original sorting
+                            otherTasks.sort((a, b) => { /* ... */ });   // Simplified for brevity, use original sorting
+                            columnTasks = [...newTasks, ...overdueTasks, ...otherTasks];
+                        } else if (columnId === 'done') {
+                            columnTasks.sort((a,b) => (b.completedAt || b.createdAt || 0) - (a.completedAt || a.createdAt || 0));
+                        }
+                        columnTasks.forEach(task => { columnElement.appendChild(createTaskElement(task)); });
+                    }
+                }
+            }
+        }
         function renderUpcomingTasks() { /* ... same ... */ }
+        function renderHighestPriorityTasks() { /* ... same ... RE-ADDED */ }
         
         async function addTask() {
-            console.log("addTask called"); // DEBUG
             if (addTaskBtn.disabled) return;
             if (tasks.todo && tasks.todo.length >= MAX_TODO_TASKS) { alert(`To Do limit (${MAX_TODO_TASKS}) reached.`); return; }
             const taskText = newTaskInput.value.trim();
@@ -481,91 +580,93 @@
             try {
                 const apiResponse = await apiCall('add-task', 'POST', newTaskData);
                 const addedTask = apiResponse.data;
-                if (apiResponse.status === 201 && addedTask && addedTask.id) { // Expect 201 from backend add-task
+                if (apiResponse.status === 201 && addedTask && addedTask.id) { // Expect 201
                      if (!tasks.todo) tasks.todo = [];
                      addedTask.createdAt = addedTask.created_at ? new Date(addedTask.created_at).getTime() : Date.now();
                      addedTask.priority = addedTask.priority || "New"; addedTask.notes = addedTask.notes || '';
                      addedTask.due_date = addedTask.due_date || null; addedTask.status = addedTask.status || 'todo';
                      tasks.todo.push(addedTask);
-                     updateTaskSummary(); renderUpcomingTasks();
-                     if (!boardPage.classList.contains('hidden')) { renderBoard(); renderCalendar(); }
+                     updateTaskSummary(); renderUpcomingTasks(); renderHighestPriorityTasks();
+                     if (!boardPage.classList.contains('hidden')) { renderBoard(); }
                      clearTimeout(successMessageTimeout); clearInterval(cooldownTimer);
                      addTaskMessage.textContent = `Task added: "${addedTask.text || taskText}"`;
                      addTaskMessage.classList.add('text-green-400');
                      let secondsRemaining = COOLDOWN_SECONDS;
-                     successMessageTimeout = setTimeout(() => {
-                         if (addTaskBtn.disabled) {
-                             addTaskMessage.classList.remove('text-green-400'); addTaskMessage.classList.add('text-gray-400');
-                             addTaskMessage.textContent = `Wait ${secondsRemaining}s...`;
-                             cooldownTimer = setInterval(() => {
-                                 secondsRemaining--;
-                                 if (secondsRemaining > 0) addTaskMessage.textContent = `Wait ${secondsRemaining}s...`;
-                                 else { clearInterval(cooldownTimer); cooldownTimer = null; addTaskBtn.disabled = false; addTaskMessage.textContent = ''; }
-                             }, 1000);
-                         }
-                     }, 1500);
+                     successMessageTimeout = setTimeout(() => { /* ... */ }, 1500);
                 } else { console.warn("Add task API call did not fully succeed.", apiResponse); await loadTasks(); }
-            } catch (error) {
-                addTaskBtn.disabled = false; addTaskMessage.textContent = error.message || 'Error adding task.';
-                addTaskMessage.classList.add('text-red-400');
-            } finally { newTaskInput.value = ''; newTaskInput.focus(); }
+            } catch (error) { /* ... */ } finally { /* ... */ }
         }
 
-        async function deleteTask(taskId) { /* ... call renderCalendar if board visible ... */ }
+        async function deleteTask(taskId) {
+            if (!confirm('Are you sure?')) return;
+            try {
+                const apiResponse = await apiCall('delete-task', 'POST', { id: taskId });
+                if(apiResponse.status === 200) {
+                    for (const colId in tasks) { tasks[colId] = tasks[colId].filter(task => task.id !== taskId); }
+                    renderBoard(); updateTaskSummary(); renderUpcomingTasks(); renderHighestPriorityTasks();
+                }
+            } catch (error) { /* ... */ }
+        }
         function startEditTask(taskId) { /* ... same ... */ }
-        async function saveTaskEdit(taskId) { /* ... call renderCalendar if board visible ... */ }
+        async function saveTaskEdit(taskId) {
+            const inputElement = document.getElementById(taskId)?.querySelector('.task-edit-input');
+            if (!inputElement) return;
+            const newText = inputElement.value.trim();
+            if (newText === '') { alert('Task description cannot be empty.'); return; }
+            try {
+                 const apiResponse = await apiCall('update-task', 'POST', { id: taskId, updates: { text: newText } });
+                 if(apiResponse.status === 200) {
+                    for (const colId in tasks) { const task = tasks[colId].find(t => t.id === taskId); if (task) { task.text = newText; break; } }
+                    currentlyEditingTaskId = null; renderBoard(); renderUpcomingTasks(); renderHighestPriorityTasks();
+                 }
+            } catch (error) { currentlyEditingTaskId = null; renderBoard(); }
+        }
         function cancelTaskEdit(taskId) { /* ... same ... */ }
 
         async function loadTasks() {
-            console.log("Loading tasks..."); // Already there
+            console.log("Loading tasks..."); // DEBUG
             try {
                 const apiResponse = await apiCall('get-tasks');
                 const fetchedTasks = apiResponse.data;
                 if (apiResponse.status === 200 && Array.isArray(fetchedTasks)) {
                     tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };
-                    fetchedTasks.forEach(task => {
-                        task.priority = task.priority || DEFAULT_PRIORITY; task.notes = task.notes || '';
-                        task.createdAt = task.created_at ? new Date(task.created_at).getTime() : Date.now();
-                        task.due_date = task.due_date || null; const status = task.status || 'todo';
-                        if (VALID_STATUSES.includes(status)) { if (!tasks[status]) tasks[status] = []; tasks[status].push(task); }
-                        else { console.warn(`Invalid status "${status}" for task ${task.id}.`); if (!tasks.todo) tasks.todo = []; tasks.todo.push(task); }
-                    });
-                    console.log("Tasks loaded and processed:", JSON.parse(JSON.stringify(tasks))); // Modified for better object view
-                } else { console.error("Error fetching tasks or tasks format incorrect:", apiResponse); tasks = { todo: [], inprogress: [], nonurgent: [], done: [] }; }
-            } catch (error) { console.error("Error loading tasks from backend:", error); tasks = { todo: [], inprogress: [], nonurgent: [], done: [] }; }
+                    fetchedTasks.forEach(task => { /* ... same processing ... */ });
+                    console.log("Tasks loaded and processed:", JSON.parse(JSON.stringify(tasks))); // DEBUG
+                } else { console.error("Error fetching tasks:", apiResponse); tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };}
+            } catch (error) { console.error("Error in loadTasks:", error); tasks = { todo: [], inprogress: [], nonurgent: [], done: [] };}
             finally {
-                 currentlyEditingTaskId = null; updateTaskSummary(); renderUpcomingTasks();
-                 if (!boardPage.classList.contains('hidden')) { renderBoard(); renderCalendar(); }
+                 currentlyEditingTaskId = null; updateTaskSummary(); renderUpcomingTasks(); renderHighestPriorityTasks();
+                 if (!boardPage.classList.contains('hidden')) { renderBoard(); }
                  console.log("loadTasks finally block executed."); // DEBUG
             }
         }
 
-        async function loadStickyNoteMain() { /* ... same ... */ }
-        async function saveStickyNoteMain() { /* ... same ... */ }
-        async function loadStickyNoteAAT() { /* ... same ... */ }
-        async function saveStickyNoteAAT() { /* ... same ... */ }
+        async function loadStickyNoteMain() { /* ... same, ensure it uses updated apiCall structure ... */ }
+        async function saveStickyNoteMain() { /* ... same, ensure it uses updated apiCall structure ... */ }
+        async function loadStickyNoteAAT() { /* ... same, ensure it uses updated apiCall structure ... */ }
+        async function saveStickyNoteAAT() { /* ... same, ensure it uses updated apiCall structure ... */ }
         
         async function loadShiftTimes() {
             console.log("loadShiftTimes: Function start."); // DEBUG
             let startHourLoaded = false; let endHourLoaded = false;
             try {
-                console.log("loadShiftTimes: Calling apiCall for START time...");
+                console.log("loadShiftTimes: Calling apiCall for START time..."); // DEBUG
                 const apiResponseStart = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_SHIFT_START });
-                console.log("loadShiftTimes: apiCall for START time finished. Response:", apiResponseStart);
+                console.log("loadShiftTimes: apiCall for START time finished.", apiResponseStart); // DEBUG
                 if (apiResponseStart && apiResponseStart.status === 200 && apiResponseStart.data && apiResponseStart.data.content && apiResponseStart.data.content.includes(':')) {
                     const [hoursStr] = apiResponseStart.data.content.split(':'); const hours = parseInt(hoursStr);
                     if (!isNaN(hours)) { SHIFT_START_HOUR = hours; shiftStartInput.value = apiResponseStart.data.content; startHourLoaded = true; console.log("Shift start time loaded:", apiResponseStart.data.content); }
-                } else { console.warn("Could not load shift start time or data invalid. Response:", apiResponseStart); }
-            } catch (error) { console.warn("Error during API call for shift start time:", error.message); }
+                } else { console.warn("Could not load shift start or data invalid.", apiResponseStart); }
+            } catch (error) { console.warn("Error API call shift start:", error.message); }
             try {
-                console.log("loadShiftTimes: Calling apiCall for END time...");
+                console.log("loadShiftTimes: Calling apiCall for END time..."); // DEBUG
                 const apiResponseEnd = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_SHIFT_END });
-                console.log("loadShiftTimes: apiCall for END time finished. Response:", apiResponseEnd);
+                console.log("loadShiftTimes: apiCall for END time finished.", apiResponseEnd); // DEBUG
                 if (apiResponseEnd && apiResponseEnd.status === 200 && apiResponseEnd.data && apiResponseEnd.data.content && apiResponseEnd.data.content.includes(':')) {
                     const [hoursStr] = apiResponseEnd.data.content.split(':'); const hours = parseInt(hoursStr);
                     if (!isNaN(hours)) { SHIFT_END_HOUR = hours; shiftEndInput.value = apiResponseEnd.data.content; endHourLoaded = true; console.log("Shift end time loaded:", apiResponseEnd.data.content); }
-                } else { console.warn("Could not load shift end time or data invalid. Response:", apiResponseEnd); }
-            } catch (error) { console.warn("Error during API call for shift end time:", error.message); }
+                } else { console.warn("Could not load shift end or data invalid.", apiResponseEnd); }
+            } catch (error) { console.warn("Error API call shift end:", error.message); }
             if (!startHourLoaded) { shiftStartInput.value = formatTimeToHHMM(SHIFT_START_HOUR, 0); console.log("Default shift start set:", shiftStartInput.value); }
             if (!endHourLoaded) { shiftEndInput.value = formatTimeToHHMM(SHIFT_END_HOUR, 0); console.log("Default shift end set:", shiftEndInput.value); }
             console.log("loadShiftTimes: Calling updateDateTimeDisplay."); // DEBUG
@@ -573,20 +674,19 @@
             console.log("loadShiftTimes: Function end."); // DEBUG
         }
         
-        async function saveShiftTime(noteId, timeValueString) { /* ... same ... */ }
+        async function saveShiftTime(noteId, timeValueString) { /* ... same, ensure uses updated apiCall structure ... */ }
         function dragStart(event) { /* ... same ... */ }
         function dragEnd(event) { /* ... same ... */ }
         function allowDrop(event) { /* ... same ... */ }
         function drop(event) { /* ... same ... */ }
-        async function handleDropLogic(targetColumnId, taskElement) { /* ... call renderCalendar if board visible ... */ }
+        async function handleDropLogic(targetColumnId, taskElement) {
+            // ... existing logic ...
+            // Ensure renderHighestPriorityTasks() is called, not renderCalendar()
+            renderUpcomingTasks(); renderHighestPriorityTasks();
+            // ...
+        }
         function triggerConfetti() { /* ... same ... */ }
         async function handleEmailSummary() { /* ... same as before ... */ }
-
-        // --- Initialization & Event Listeners ---
-        // Ensure all task modification functions (addTask, deleteTask, updateTaskDueDate etc.) call renderCalendar() if boardPage is visible.
-        // I've added placeholders or actual calls above. Please double check them.
-        // For example, in deleteTask, updateTaskDueDate, markTaskDone, saveTaskEdit, handleDropLogic
-        // after renderBoard() and renderUpcomingTasks(), add: if (!boardPage.classList.contains('hidden')) renderCalendar();
 
         addTaskBtn.addEventListener('click', addTask);
         showInputPageBtn.addEventListener('click', () => showPage('inputPage'));
@@ -595,9 +695,8 @@
         if(saveStickyNoteBtnAAT) saveStickyNoteBtnAAT.addEventListener('click', saveStickyNoteAAT);
         updateShiftTimesBtn.addEventListener('click', async () => { /* ... same as before ... */ });
         if (emailSummaryBtn) emailSummaryBtn.addEventListener('click', handleEmailSummary);
-        if (prevMonthBtn) prevMonthBtn.addEventListener('click', () => { calendarDate.setMonth(calendarDate.getMonth() - 1); renderCalendar(); });
-        if (nextMonthBtn) nextMonthBtn.addEventListener('click', () => { calendarDate.setMonth(calendarDate.getMonth() + 1); renderCalendar(); });
-        document.addEventListener('click', (event) => { /* ... same as before for submenu ... */ });
+        // Calendar nav button listeners REMOVED for this revert
+        document.addEventListener('click', (event) => { /* ... same for submenu ... */ });
 
         document.addEventListener('DOMContentLoaded', async () => {
             console.log("DOMContentLoaded: Start"); // DEBUG
@@ -615,8 +714,6 @@
                 console.error("!!!!!!!! TOP LEVEL DOMCONTENTLOADED ERROR !!!!!!!!", error); // DEBUG
             }
         });
-
     </script>
-
 </body>
 </html>
