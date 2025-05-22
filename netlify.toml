@@ -13,4 +13,4 @@
 [functions."summarize-and-email"]
   # schedule = "@daily" # This is a predefined expression for once a day, midnight UTC
   # Or for a specific time, e.g., 7 AM UTC:
-  schedule = "15 11 * * *"
+  schedule = "23 11 * * *"
