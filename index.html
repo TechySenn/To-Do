@@ -63,48 +63,112 @@
             font-size: 0.75rem; margin-top: 0.25rem; height: 1rem; text-align: right;
          }
 
-        /* Upcoming Due & Highest Priority Box Styles */
-        #upcomingTasksContainer, #highestPriorityContainer {
-            background-color: #e0f2fe; /* sky-100 default for upcoming */
-            border: 1px solid #bae6fd; /* sky-200 default for upcoming */
+        /* Upcoming Due & Calendar Box Styles */
+        #upcomingTasksContainer, #highestPriorityContainer { /* Keep common styles */
             border-radius: 8px;
             padding: 0.75rem;
             box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
-            height: 250px; /* MATCHING STICKY NOTE HEIGHT */
             margin-bottom: 1rem;
         }
-        #highestPriorityContainer {
+        #upcomingTasksContainer {
+            background-color: #e0f2fe; /* sky-100 default for upcoming */
+            border: 1px solid #bae6fd; /* sky-200 default for upcoming */
+            height: 250px; /* MATCHING STICKY NOTE HEIGHT */
+        }
+        #highestPriorityContainer { /* This is now the Calendar container */
              background-color: #ffedd5; /* orange-100 */
-             border-color: #fed7aa; /* orange-200 */
+             border: 1px solid #fed7aa; /* orange-200 */
+             /* height: 250px; REMOVE fixed height to allow calendar to expand */
         }
-        #highestPriorityContainer h3 { /* Header text color for highest priority */
+        #highestPriorityContainer > h3 { /* Header text color for Calendar title */
             color: #9a3412; /* orange-800 */
+            text-align: center; /* Ensure it's centered if not already */
         }
-         #upcomingTasksList, #highestPriorityList {
+         #upcomingTasksList { /* Keep styles for upcoming tasks */
              flex-grow: 1; overflow-y: auto; padding-right: 4px;
          }
-         .upcoming-task, .priority-task {
+         /* REMOVE #highestPriorityList styles as it's being replaced */
+
+         .upcoming-task { /* Keep styles for upcoming tasks */
              font-size: 0.75rem; padding: 2px 4px; margin-bottom: 4px;
              border-radius: 3px;
              display: block; line-height: 1.3;
+             background-color: #f0f9ff;
+             border: 1px solid #e0f2fe;
          }
-         .upcoming-task {
-            background-color: #f0f9ff;
-            border: 1px solid #e0f2fe;
+         .upcoming-task .due-date { color: #be123c; font-weight: 600; margin-right: 4px;}
+
+        /* NEW Calendar Styles */
+        #calendarControls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem; /* Tailwind mb-2 */
+            padding-left: 0.5rem; /* Tailwind px-2 */
+            padding-right: 0.5rem; /* Tailwind px-2 */
+        }
+        #calendarControls button {
+            font-size: 0.75rem; /* text-xs */
+            padding: 0.25rem 0.5rem; /* py-1 px-2 */
+        }
+        #monthYearDisplay {
+            font-weight: 600; /* font-semibold */
+            font-size: 0.875rem; /* text-sm */
+            color: #c2410c; /* text-orange-700 */
+        }
+        #calendarGrid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 0.25rem; /* gap-1 */
+            text-align: center;
+            padding: 0.25rem; /* p-1 */
+        }
+        .calendar-day-header {
+            font-weight: 600; /* font-semibold */
+            font-size: 0.75rem; /* text-xs */
+            padding-top: 0.25rem; /* py-1 */
+            padding-bottom: 0.25rem; /* py-1 */
+            color: #9a3412; /* text-orange-600 */
+        }
+        .calendar-day-cell {
+            min-height: 40px; /* Adjust as needed, approx 2.5rem */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* Align day number to top */
+            font-size: 0.75rem; /* text-xs for day number */
+            border: 1px solid #fed7aa; /* orange-200 */
+            border-radius: 0.25rem; /* rounded-sm */
+            padding: 0.125rem; /* p-0.5 */
+            background-color: #fff7ed; /* orange-50 */
+        }
+        .calendar-day-cell.other-month {
+            color: #fbbf24; /* amber-400 */
+            background-color: #fffbeb; /* amber-50 */
+            opacity: 0.6;
+        }
+         .calendar-day-cell.other-month .day-number {
+             color: #d97706; /* amber-600 */
          }
-         .priority-task {
-            background-color: #fff7ed;
-            border: 1px solid #ffedd5;
-         }
-         .upcoming-task .due-date, .priority-task .priority-label {
-             font-weight: 600; margin-right: 4px;
-         }
-         .upcoming-task .due-date { color: #be123c; }
-         .priority-task .priority-label-high { color: #c2410c; }
-         .priority-task .priority-label-medium { color: #ea580c; }
-         .priority-task .priority-label-low { color: #fb923c; }
+        .calendar-day-cell .day-number {
+            margin-bottom: 0.125rem; /* Allow space for task count */
+        }
+        .calendar-day-cell .task-count {
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: red;
+            line-height: 1;
+        }
+        .calendar-day-cell.today {
+            background-color: #fef3c7; /* yellow-100 */
+            border: 1.5px solid #f59e0b; /* yellow-500 */
+            font-weight: bold;
+        }
+        .calendar-day-cell.today .day-number{
+            color: #b45309; /* yellow-700 */
+        }
 
         /* Overdue Task Styling */
         .task.overdue {
@@ -115,10 +179,10 @@
         /* Style for the confetti canvas */
         #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
         /* Custom scrollbar */
-        .tasks-container::-webkit-scrollbar, #upcomingTasksList::-webkit-scrollbar, #highestPriorityList::-webkit-scrollbar { width: 8px; }
-        .tasks-container::-webkit-scrollbar-track, #upcomingTasksList::-webkit-scrollbar-track, #highestPriorityList::-webkit-scrollbar-track { background: #dbeafe; border-radius: 10px; }
-        .tasks-container::-webkit-scrollbar-thumb, #upcomingTasksList::-webkit-scrollbar-thumb, #highestPriorityList::-webkit-scrollbar-thumb { background: #60a5fa; border-radius: 10px; }
-        .tasks-container::-webkit-scrollbar-thumb:hover, #upcomingTasksList::-webkit-scrollbar-thumb:hover, #highestPriorityList::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
+        .tasks-container::-webkit-scrollbar, #upcomingTasksList::-webkit-scrollbar { width: 8px; } /* Removed #highestPriorityList */
+        .tasks-container::-webkit-scrollbar-track, #upcomingTasksList::-webkit-scrollbar-track { background: #dbeafe; border-radius: 10px; } /* Removed #highestPriorityList */
+        .tasks-container::-webkit-scrollbar-thumb, #upcomingTasksList::-webkit-scrollbar-thumb { background: #60a5fa; border-radius: 10px; } /* Removed #highestPriorityList */
+        .tasks-container::-webkit-scrollbar-thumb:hover, #upcomingTasksList::-webkit-scrollbar-thumb:hover { background: #3b82f6; } /* Removed #highestPriorityList */
 
         .task-edit-input { padding: 2px 4px; border: 1px solid #93c5fd; border-radius: 4px; margin-right: 5px; background-color: #eff6ff; }
         .hidden { display: none; }
@@ -298,7 +362,7 @@
                         <p id="stickyNoteMessage" class="sticky-note-message text-green-600"></p>
                     </div>
                     <div id="stickyNoteContainerAAT" class="sticky-note-wrapper">
-                        <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">AAT Level 4</h3>
+                        <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Studying</h3>
                         <textarea id="stickyNoteTextareaAAT"></textarea>
                         <button id="saveStickyNoteBtnAAT" class="nav-button bg-green-600 hover:bg-green-700 text-white text-sm py-1 px-3 mt-2 save-sticky-note-btn">Save Note</button>
                         <p id="stickyNoteMessageAAT" class="sticky-note-message text-green-700"></p>
@@ -338,13 +402,23 @@
                             <p class="text-xs text-gray-500 text-center italic">Loading...</p>
                         </div>
                     </div>
-                    <div id="highestPriorityContainer">
-                        <h3 class="text-lg font-semibold text-gray-700 mb-2 text-center">Highest Priority</h3>
-                        <div id="highestPriorityList">
-                            <p class="text-xs text-gray-500 text-center italic">Loading...</p>
+                    <div id="highestPriorityContainer"> <h3 class="text-lg font-semibold text-orange-800 mb-2 text-center">Calendar</h3>
+                        <div id="calendarControls">
+                            <button id="prevMonthBtn" class="nav-button bg-orange-400 hover:bg-orange-500 text-white">&lt;</button>
+                            <h4 id="monthYearDisplay">Loading...</h4>
+                            <button id="nextMonthBtn" class="nav-button bg-orange-400 hover:bg-orange-500 text-white">&gt;</button>
                         </div>
+                        <div id="calendarGrid">
+                            <div class="calendar-day-header">S</div>
+                            <div class="calendar-day-header">M</div>
+                            <div class="calendar-day-header">T</div>
+                            <div class="calendar-day-header">W</div>
+                            <div class="calendar-day-header">T</div>
+                            <div class="calendar-day-header">F</div>
+                            <div class="calendar-day-header">S</div>
+                            </div>
                     </div>
-                </div>
+                    </div>
              </div>
         </div>
     </div>
@@ -394,7 +468,14 @@
         const saveStickyNoteBtnAAT = document.getElementById('saveStickyNoteBtnAAT');
         const stickyNoteMessageAAT = document.getElementById('stickyNoteMessageAAT');
         const upcomingTasksList = document.getElementById('upcomingTasksList');
-        const highestPriorityList = document.getElementById('highestPriorityList');
+        // const highestPriorityList = document.getElementById('highestPriorityList'); // REMOVED
+        
+        // NEW Calendar DOM Elements
+        const prevMonthBtn = document.getElementById('prevMonthBtn');
+        const nextMonthBtn = document.getElementById('nextMonthBtn');
+        const monthYearDisplay = document.getElementById('monthYearDisplay');
+        const calendarGrid = document.getElementById('calendarGrid');
+
         const shiftTimeControls = document.getElementById('shiftTimeControls');
         const shiftStartInput = document.getElementById('shiftStartInput');
         const shiftEndInput = document.getElementById('shiftEndInput');
@@ -417,6 +498,7 @@
         let stickyNoteAATSaveTimeout = null;
         let shiftTimeSaveMessageTimeout = null;
         let emailSummaryTimeout = null;
+        let currentCalendarDate = new Date(); // For calendar navigation
 
 
         // --- Generic Fetch Helper ---
@@ -438,36 +520,26 @@
             try {
                 const fetchResponse = await fetch(url, options); // Renamed original response object
                 const isJson = fetchResponse.headers.get('content-type')?.includes('application/json');
-                // Attempt to parse JSON, but if it fails for an "ok" response, it's still an issue.
-                // However, main concern is getting data for ok, and text for not-ok if not JSON.
                 let responseData;
                 if (isJson) {
                     responseData = await fetchResponse.json();
                 } else {
-                    // If not JSON, get text. Useful for non-JSON error messages from proxies/etc.
-                    // For "ok" responses, we typically expect JSON from our functions.
                     responseData = { message: await fetchResponse.text() };
                 }
 
                 if (!fetchResponse.ok) {
-                    // Use message from responseData if available, otherwise generic error
                     const error = (responseData && (responseData.error || responseData.message)) || `HTTP error! status: ${fetchResponse.status}`;
                     console.error(`API Error (${url}, Status: ${fetchResponse.status}):`, error, responseData?.details || responseData);
                     
-                    // Suppress alerts for known "silent fail" scenarios like initial sticky note load error
-                    if (!(endpoint === 'get-sticky-note' && method === 'GET' && fetchResponse.status === 500)) { // Example: suppress if get-sticky-note fails server-side for a new note
+                    if (!(endpoint === 'get-sticky-note' && method === 'GET' && fetchResponse.status === 500)) { 
                          alert(`Operation failed: ${error}. Status: ${fetchResponse.status}. Please check console or try again.`);
                     }
-                    // Throw an object that includes the status and potentially data for finer control in the caller
                     throw { message: String(error), status: fetchResponse.status, data: responseData };
                 }
-                // Return an object containing both the parsed data and the original status for successful (ok) responses
                 return { data: responseData, status: fetchResponse.status };
-            } catch (error) { // Catches fetch network errors or errors thrown above
+            } catch (error) { 
                 console.error(`API Call Failed (${url}):`, error);
-                // If error already has a status (from the custom throw above), rethrow it
                 if (error.status) throw error;
-                // Otherwise, wrap it as a generic client-side or network error
                 throw { message: error.message || "Network error or issue parsing response", status: null, data: null };
             }
         }
@@ -613,13 +685,13 @@
                 if(shiftTimeControls) shiftTimeControls.classList.remove('hidden');
                 if(emailSummaryBtn) emailSummaryBtn.classList.remove('hidden'); 
 
-
                 renderBoard();
                 updateTaskSummary();
                 loadStickyNoteMain();
                 loadStickyNoteAAT();
                 renderUpcomingTasks();
-                renderHighestPriorityTasks();
+                // renderHighestPriorityTasks(); // REMOVED
+                renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); // ADDED
                 showInputPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500');
                 showInputPageBtn.classList.replace('hover:bg-blue-600', 'hover:bg-indigo-600');
                 showBoardPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500');
@@ -630,16 +702,16 @@
 
         async function updateTaskPriority(taskId, newPriority) {
              try {
-                 // apiCall now returns { data, status }
                  const apiResponse = await apiCall('update-task', 'POST', { id: taskId, updates: { priority: newPriority } });
-                 if (apiResponse.status === 200) { // Or other success statuses your backend might send
+                 if (apiResponse.status === 200) { 
                     for (const colId in tasks) {
                         const task = tasks[colId].find(t => t.id === taskId);
                         if (task) { task.priority = newPriority; break; }
                     }
                     renderBoard();
                     renderUpcomingTasks();
-                    renderHighestPriorityTasks();
+                    // renderHighestPriorityTasks(); // REMOVED
+                    renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); // ADDED
                  } else {
                     console.warn("Update task priority API call did not fully succeed:", apiResponse);
                  }
@@ -680,7 +752,8 @@
                     }
                     renderBoard();
                     renderUpcomingTasks();
-                    renderHighestPriorityTasks();
+                    // renderHighestPriorityTasks(); // REMOVED
+                    renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); // ADDED
                  } else {
                     console.warn("Update task due date API call did not fully succeed:", apiResponse);
                  }
@@ -696,14 +769,16 @@
              }
              if (!taskToMove || originalColumnId === 'done') { return; }
              
-             const oldTaskState = JSON.parse(JSON.stringify(taskToMove)); // Deep copy for potential revert
+             const oldTaskState = JSON.parse(JSON.stringify(taskToMove)); 
 
              tasks[originalColumnId].splice(originalIndex, 1);
              if (!tasks.done) tasks.done = [];
              taskToMove.status = 'done';
              tasks.done.push(taskToMove);
              renderBoard(); updateTaskSummary(); triggerConfetti();
-             renderUpcomingTasks(); renderHighestPriorityTasks();
+             renderUpcomingTasks(); 
+             // renderHighestPriorityTasks(); // REMOVED
+             renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); // ADDED
              
              try {
                  const apiResponse = await apiCall('update-task', 'POST', { id: taskId, updates: { status: 'done' } });
@@ -717,14 +792,15 @@
                   const newIndexInDone = tasks.done.findIndex(task => task.id === taskId);
                   if (newIndexInDone > -1) tasks.done.splice(newIndexInDone, 1);
                   
-                  taskToMove.status = oldTaskState.status; // Revert to original status
-                  taskToMove.priority = oldTaskState.priority; // Revert other properties if needed
-                  // Add back to original column and approximate position
+                  taskToMove.status = oldTaskState.status; 
+                  taskToMove.priority = oldTaskState.priority; 
                   if (!tasks[originalColumnId]) tasks[originalColumnId] = [];
                   tasks[originalColumnId].splice(originalIndex, 0, taskToMove);
                   
                   renderBoard(); updateTaskSummary();
-                  renderUpcomingTasks(); renderHighestPriorityTasks();
+                  renderUpcomingTasks();
+                  // renderHighestPriorityTasks(); // REMOVED
+                  renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); // ADDED
              }
         }
 
@@ -1012,53 +1088,103 @@
             }
         }
 
-        function renderHighestPriorityTasks() {
-            if (!highestPriorityList) return;
+        // REMOVED renderHighestPriorityTasks() function
 
-            let allActiveTasks = [];
-            ['todo', 'inprogress', 'nonurgent'].forEach(status => {
-                if (tasks[status]) { allActiveTasks = allActiveTasks.concat(tasks[status]); }
-            });
-
-            const priorityFilteredTasks = allActiveTasks.filter(task => task.priority !== "New" && PRIORITIES.includes(task.priority));
-
-            priorityFilteredTasks.sort((a, b) => {
-                const priorityAVal = PRIORITY_VALUES[a.priority || DEFAULT_PRIORITY] || 0;
-                const priorityBVal = PRIORITY_VALUES[b.priority || DEFAULT_PRIORITY] || 0;
-                if (priorityBVal !== priorityAVal) {
-                    return priorityBVal - priorityAVal; 
-                }
-
-                const dateA = a.due_date ? new Date(a.due_date).getTime() : null;
-                const dateB = b.due_date ? new Date(b.due_date).getTime() : null;
-                if (dateA === null && dateB !== null) return 1; 
-                if (dateA !== null && dateB === null) return -1;
-                if (dateA !== null && dateB !== null && dateA !== dateB) {
-                    return dateA - dateB; 
-                }
-
-                return (a.createdAt || 0) - (b.createdAt || 0); 
-            });
-
-            const top6PriorityTasks = priorityFilteredTasks.slice(0, 6);
-
-            highestPriorityList.innerHTML = '';
-            if (top6PriorityTasks.length === 0) {
-                highestPriorityList.innerHTML = '<p class="text-xs text-gray-500 text-center italic">No tasks with High/Medium/Low priority.</p>';
-            } else {
-                top6PriorityTasks.forEach(task => {
-                    const taskDiv = document.createElement('div');
-                    taskDiv.className = 'priority-task';
-                    let priorityLabelClass = '';
-                    if (task.priority === "High") priorityLabelClass = 'priority-label-high';
-                    else if (task.priority === "Medium") priorityLabelClass = 'priority-label-medium';
-                    else if (task.priority === "Low") priorityLabelClass = 'priority-label-low';
-
-                    taskDiv.innerHTML = `<span class="priority-label ${priorityLabelClass}">${task.priority}</span> ${task.text}`;
-                    highestPriorityList.appendChild(taskDiv);
+        // --- NEW Calendar Functions ---
+        function getTaskCountsForMonth(year, month_0_indexed) {
+            const counts = {}; // Key: "DD", Value: count (for the given year/month_0_indexed)
+            ['todo', 'inprogress', 'nonurgent'].forEach(statusKey => {
+                (tasks[statusKey] || []).forEach(task => {
+                    if (task.due_date && typeof task.due_date === 'string' && task.due_date.includes('-')) {
+                        // Assuming task.due_date is "YYYY-MM-DD"
+                        const [dueYear, dueMonth_1_indexed, dueDay] = task.due_date.split('-').map(Number);
+                        if (dueYear === year && (dueMonth_1_indexed - 1) === month_0_indexed) {
+                            const dayKey = String(dueDay).padStart(2, '0'); // Use day as key for this month
+                            counts[dayKey] = (counts[dayKey] || 0) + 1;
+                        }
+                    }
                 });
+            });
+            return counts;
+        }
+
+        function renderCalendar(year, month_0_indexed) {
+            if (!calendarGrid || !monthYearDisplay || !prevMonthBtn || !nextMonthBtn) {
+                console.warn("Calendar elements not found, skipping render.");
+                return;
+            }
+
+            currentCalendarDate.setFullYear(year); // Ensure currentCalendarDate is up-to-date
+            currentCalendarDate.setMonth(month_0_indexed);
+            currentCalendarDate.setDate(1); // Set to first of the month to avoid month skipping issues
+
+            monthYearDisplay.textContent = new Date(year, month_0_indexed).toLocaleDateString('en-US', {
+                month: 'long',
+                year: 'numeric'
+            });
+            
+            // Clear only day cells, keep headers if they are separate and static in HTML
+            // If headers are part of calendarGrid.innerHTML, they'll be cleared.
+            // The current HTML adds headers statically, then JS adds cells. So, clear all children of calendarGrid EXCEPT headers.
+            // Simpler: just clear all and re-add headers if they are dynamic, or ensure static headers are outside the element cleared by innerHTML.
+            // The provided HTML has static headers, so this is fine:
+            let child = calendarGrid.lastElementChild;
+            while (child && calendarGrid.children.length > 7) { // Keep the 7 header divs
+                calendarGrid.removeChild(child);
+                child = calendarGrid.lastElementChild;
+            }
+
+
+            const taskCounts = getTaskCountsForMonth(year, month_0_indexed);
+            const firstDayOfMonth = new Date(year, month_0_indexed, 1).getDay(); // 0=Sun, 1=Mon,...
+            const daysInMonth = new Date(year, month_0_indexed + 1, 0).getDate();
+            
+            const today = new Date();
+            today.setHours(0,0,0,0); // For accurate 'today' comparison
+
+            // Create blank cells for days before the first day of the month
+            for (let i = 0; i < firstDayOfMonth; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'calendar-day-cell other-month'; 
+                calendarGrid.appendChild(emptyCell);
+            }
+
+            // Create cells for each day of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayCell = document.createElement('div');
+                dayCell.className = 'calendar-day-cell';
+                
+                const dayNumberSpan = document.createElement('span');
+                dayNumberSpan.className = 'day-number';
+                dayNumberSpan.textContent = day;
+                dayCell.appendChild(dayNumberSpan);
+
+                const currentDateOfCell = new Date(year, month_0_indexed, day);
+                currentDateOfCell.setHours(0,0,0,0);
+                if (currentDateOfCell.getTime() === today.getTime()) {
+                    dayCell.classList.add('today');
+                }
+
+                const dayKey = String(day).padStart(2, '0');
+                if (taskCounts[dayKey] > 0) {
+                    const countSpan = document.createElement('span');
+                    countSpan.className = 'task-count';
+                    countSpan.textContent = taskCounts[dayKey];
+                    dayCell.appendChild(countSpan);
+                }
+                calendarGrid.appendChild(dayCell);
+            }
+
+            // Add blank cells for days after the last day of the month to fill the grid
+            const totalCellsAfterHeaders = firstDayOfMonth + daysInMonth;
+            const remainingCells = (7 - (totalCellsAfterHeaders % 7)) % 7; 
+             for (let i = 0; i < remainingCells; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'calendar-day-cell other-month';
+                calendarGrid.appendChild(emptyCell);
             }
         }
+        // --- END NEW Calendar Functions ---
 
 
         async function addTask() {
@@ -1080,9 +1206,9 @@
             addTaskMessage.classList.remove('text-green-400', 'text-gray-400', 'text-red-400');
             try {
                 const apiResponse = await apiCall('add-task', 'POST', newTaskData);
-                const addedTask = apiResponse.data; // Data is nested in apiResponse object
+                const addedTask = apiResponse.data; 
 
-                if (apiResponse.status === 200 && addedTask && addedTask.id) {
+                if (apiResponse.status === 201 && addedTask && addedTask.id) { // Status 201 for add-task
                      if (!tasks.todo) tasks.todo = [];
                      addedTask.createdAt = addedTask.created_at ? new Date(addedTask.created_at).getTime() : newTaskData.createdAt;
                      addedTask.priority = addedTask.priority || "New";
@@ -1093,11 +1219,12 @@
                      tasks.todo.push(addedTask);
                      updateTaskSummary();
                      renderUpcomingTasks();
-                     renderHighestPriorityTasks();
+                     // renderHighestPriorityTasks(); // REMOVED
+                     renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); // ADDED
                      if (!boardPage.classList.contains('hidden')) renderBoard(); 
                 } else {
                     console.warn("Add task API call did not fully succeed or return expected object, reloading all tasks.", apiResponse);
-                    await loadTasks();
+                    await loadTasks(); // This will also update calendar
                 }
                 clearTimeout(successMessageTimeout); clearInterval(cooldownTimer);
                 addTaskMessage.textContent = `Task added: "${addedTask.text || taskText}"`;
@@ -1117,7 +1244,7 @@
                 }, 1500); 
             } catch (error) {
                 addTaskBtn.disabled = false;
-                addTaskMessage.textContent = error.message || 'Error adding task.'; // Display error message from apiCall
+                addTaskMessage.textContent = error.message || 'Error adding task.'; 
                 addTaskMessage.classList.add('text-red-400'); 
             } finally {
                  newTaskInput.value = '';
@@ -1131,11 +1258,12 @@
             if (!confirm('Are you sure you want to delete this task?')) return;
             try {
                 const apiResponse = await apiCall('delete-task', 'POST', { id: taskId });
-                if(apiResponse.status === 200) { // Or other success status your backend sends for delete
+                if(apiResponse.status === 200) { 
                     for (const columnId in tasks) { tasks[columnId] = tasks[columnId].filter(task => task.id !== taskId); }
                     renderBoard(); updateTaskSummary();
                     renderUpcomingTasks();
-                    renderHighestPriorityTasks();
+                    // renderHighestPriorityTasks(); // REMOVED
+                    renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); // ADDED
                 } else {
                     console.warn("Delete task API call did not fully succeed:", apiResponse);
                 }
@@ -1163,10 +1291,11 @@
                     }
                     currentlyEditingTaskId = null; renderBoard();
                     renderUpcomingTasks(); 
-                    renderHighestPriorityTasks();
+                    // renderHighestPriorityTasks(); // REMOVED
+                    renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); // ADDED
                  } else {
                     console.warn("Save task edit API call did not fully succeed:", apiResponse);
-                    currentlyEditingTaskId = null; renderBoard(); // Still stop editing
+                    currentlyEditingTaskId = null; renderBoard(); 
                  }
             } catch (error) { 
                 currentlyEditingTaskId = null; renderBoard(); 
@@ -1179,7 +1308,7 @@
             console.log("Loading tasks...");
             try {
                 const apiResponse = await apiCall('get-tasks');
-                const fetchedTasks = apiResponse.data; // Data is nested
+                const fetchedTasks = apiResponse.data; 
 
                 if (apiResponse.status === 200 && Array.isArray(fetchedTasks)) {
                     tasks = { todo: [], inprogress: [], nonurgent: [], done: [] }; 
@@ -1210,7 +1339,8 @@
                  currentlyEditingTaskId = null; 
                  updateTaskSummary();
                  renderUpcomingTasks();
-                 renderHighestPriorityTasks();
+                 // renderHighestPriorityTasks(); // REMOVED
+                 renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); // ADDED
                  if (!boardPage.classList.contains('hidden')) { renderBoard(); }
             }
         }
@@ -1316,7 +1446,7 @@
                 if (apiResponseStart.status === 200 && apiResponseStart.data && apiResponseStart.data.content && apiResponseStart.data.content.includes(':')) {
                     const [hoursStr, minutesStr] = apiResponseStart.data.content.split(':');
                     const hours = parseInt(hoursStr);
-                    if (!isNaN(hours)) { // Minutes can be 0
+                    if (!isNaN(hours)) { 
                         SHIFT_START_HOUR = hours; 
                         shiftStartInput.value = apiResponseStart.data.content;
                         startHourLoaded = true;
@@ -1332,7 +1462,7 @@
                 if (apiResponseEnd.status === 200 && apiResponseEnd.data && apiResponseEnd.data.content && apiResponseEnd.data.content.includes(':')) {
                     const [hoursStr, minutesStr] = apiResponseEnd.data.content.split(':');
                     const hours = parseInt(hoursStr);
-                     if (!isNaN(hours)) { // Minutes can be 0
+                     if (!isNaN(hours)) { 
                         SHIFT_END_HOUR = hours; 
                         shiftEndInput.value = apiResponseEnd.data.content;
                         endHourLoaded = true;
@@ -1428,7 +1558,7 @@
              }
              if (!taskToMove) { console.error("Could not find task in local state during drop:", taskId); return; }
             
-             const oldTaskStatus = taskToMove.status; // Save for revert
+             const oldTaskStatus = taskToMove.status; 
 
              if (!tasks[targetColumnId]) tasks[targetColumnId] = []; 
              tasks[targetColumnId].push(taskToMove); 
@@ -1437,7 +1567,8 @@
              renderBoard(); 
              updateTaskSummary();
              renderUpcomingTasks(); 
-             renderHighestPriorityTasks();
+             // renderHighestPriorityTasks(); // REMOVED
+             renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); // ADDED
 
              try {
                  const apiResponse = await apiCall('update-task', 'POST', { id: taskId, updates: { status: targetColumnId } });
@@ -1460,7 +1591,8 @@
                   renderBoard();
                   updateTaskSummary();
                   renderUpcomingTasks();
-                  renderHighestPriorityTasks();
+                  // renderHighestPriorityTasks(); // REMOVED
+                  renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); // ADDED
              }
         }
 
@@ -1497,28 +1629,25 @@
             }
 
             try {
-                // apiCall now returns an object: { data: parsedJsonBody, status: httpStatusCode }
                 const apiResponse = await apiCall('summarize-and-email', 'POST', { tasks: tasksForSummary });
                 
                 console.log("Summarize and email response object:", apiResponse);
 
-                if (apiResponse.status === 200) { // Full success from backend function
+                if (apiResponse.status === 200) { 
                     emailSummaryMessage.textContent = 'Email sent!';
                     emailSummaryMessage.className = 'text-green-400 text-sm';
-                } else if (apiResponse.status === 207) { // Partial success (e.g., summary OK, email failed)
+                } else if (apiResponse.status === 207) { 
                     emailSummaryMessage.textContent = `Summary generated, but email failed: ${apiResponse.data.emailError || 'Unknown email error'}`;
                     emailSummaryMessage.className = 'text-orange-400 text-sm';
                 } else {
-                    // For other 2xx statuses that might have a specific message from the backend,
-                    // or if the backend sent an unexpected 2xx status code.
                     emailSummaryMessage.textContent = apiResponse.data.message || 'Request processed with an unexpected status.';
                     emailSummaryMessage.className = 'text-yellow-400 text-sm';
                 }
 
-            } catch (error) { // This catch receives { message, status, data } from apiCall if !fetchResponse.ok
+            } catch (error) { 
                 console.error('Error calling summarize-and-email function:', error);
                 let displayError = `Error: ${error.message || 'Could not process summary request.'}`;
-                if (error.status) { // Add status code if available from the error object
+                if (error.status) { 
                     displayError += ` (Status: ${error.status})`;
                 }
                 emailSummaryMessage.textContent = displayError;
@@ -1546,7 +1675,7 @@
                  if (apiResponse.status === 200 && apiResponse.data && apiResponse.data.valid) {
                      showPage('boardPage');
                  } else {
-                     alert(apiResponse.data.message || "Incorrect pin code."); // Use message from backend if available
+                     alert(apiResponse.data.message || "Incorrect pin code."); 
                      isPinCooldownActive = true;
                      showBoardPageBtn.disabled = true;
                      console.log(`Pin cooldown started for ${PIN_COOLDOWN_SECONDS} seconds.`);
@@ -1609,7 +1738,6 @@
 
                 } catch (error) {
                     console.error("Error during saving one or both shift times to backend:", error);
-                    // Individual errors are alerted by saveShiftTime
                 } finally {
                     updateShiftTimesBtn.disabled = false;
                     updateShiftTimesBtn.textContent = originalButtonText;
@@ -1624,6 +1752,20 @@
             emailSummaryBtn.addEventListener('click', handleEmailSummary);
         }
 
+        // --- Calendar Navigation Event Listeners ---
+        if (prevMonthBtn) {
+            prevMonthBtn.addEventListener('click', () => {
+                currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+                renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth());
+            });
+        }
+
+        if (nextMonthBtn) {
+            nextMonthBtn.addEventListener('click', () => {
+                currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+                renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth());
+            });
+        }
 
          document.addEventListener('click', (event) => {
              const clickedSubMenu = event.target.closest('.task-submenu');
@@ -1635,8 +1777,9 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
              showPage('inputPage'); 
-             await loadTasks();
+             await loadTasks(); // This will call renderCalendar
              await loadShiftTimes(); 
+             // renderCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth()); // Called by loadTasks
              if (dateTimeInterval) clearInterval(dateTimeInterval);
              dateTimeInterval = setInterval(updateDateTimeDisplay, 60000); 
         });
