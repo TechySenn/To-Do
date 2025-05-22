@@ -79,10 +79,9 @@
             height: 250px; 
         }
         #highestPriorityContainer { /* Calendar container */
-             background-color: #e0f2fe; /* MODIFIED - sky-100 */
-             border: 1px solid #bae6fd; /* MODIFIED - sky-200 */
+             background-color: #e0f2fe; /* sky-100 */
+             border: 1px solid #bae6fd; /* sky-200 */
         }
-        /* Removed H3 style for calendar as H3 element is removed */
 
          #upcomingTasksList { 
              flex-grow: 1; overflow-y: auto; padding-right: 4px;
@@ -103,17 +102,17 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 0.5rem; 
-            padding-left: 0.25rem; /* Adjusted for potentially smaller buttons */
+            padding-left: 0.25rem; 
             padding-right: 0.25rem;
         }
-        #calendarControls button { /* Tailwind classes will primarily style this */
+        #calendarControls button { 
             font-size: 0.75rem; 
             padding: 0.25rem 0.5rem; 
         }
         #monthYearDisplay {
             font-weight: 600; 
             font-size: 0.875rem; 
-            color: #0c4a6e; /* MODIFIED - sky-800 for blue theme */
+            color: #0c4a6e; /* sky-800 for blue theme */
         }
         #calendarGrid {
             display: grid;
@@ -127,7 +126,7 @@
             font-size: 0.75rem; 
             padding-top: 0.25rem; 
             padding-bottom: 0.25rem; 
-            color: #075985; /* MODIFIED - sky-700 for blue theme */
+            color: #075985; /* sky-700 for blue theme */
         }
         .calendar-day-cell {
             min-height: 40px; 
@@ -136,17 +135,20 @@
             align-items: center;
             justify-content: flex-start; 
             font-size: 0.75rem; 
-            border: 1px solid #bae6fd; /* MODIFIED - sky-200 */
+            border: 1px solid #bae6fd; /* sky-200 */
             border-radius: 0.25rem; 
             padding: 0.125rem; 
-            background-color: #f0f9ff; /* MODIFIED - sky-50 */
+            background-color: #f0f9ff; /* sky-50 - Default for weekdays */
+        }
+        .calendar-day-cell.weekend-day { /* MODIFIED - For Sat/Sun styling */
+            background-color: #e5e7eb; /* Tailwind gray-200 */
         }
         .calendar-day-cell.other-month {
-            background-color: #e0f2fe; /* Slightly darker sky for other month */
+            background-color: #e0f2fe; 
             opacity: 0.6;
         }
          .calendar-day-cell.other-month .day-number {
-             color: #38bdf8; /* sky-400 for other month day numbers */
+             color: #38bdf8; 
          }
         .calendar-day-cell .day-number {
             margin-bottom: 0.125rem; 
@@ -154,16 +156,20 @@
         .calendar-day-cell .task-count {
             font-size: 0.7rem;
             font-weight: bold;
-            color: red; /* Kept red for high visibility */
+            color: red; 
             line-height: 1;
         }
         .calendar-day-cell.today {
-            background-color: #bfdbfe; /* MODIFIED - blue-200 */
-            border: 1.5px solid #3b82f6; /* MODIFIED - blue-500 */
+            background-color: #bfdbfe; /* blue-200 */
+            border: 1.5px solid #3b82f6; /* blue-500 */
             font-weight: bold;
         }
+        .calendar-day-cell.today.weekend-day { /* Ensure today on weekend still has today's distinct style if preferred */
+             background-color: #93c5fd; /* A slightly different blue for weekend today */
+             border-color: #2563eb;
+        }
         .calendar-day-cell.today .day-number{
-            color: #1e40af; /* MODIFIED - blue-700 */
+            color: #1e40af; /* blue-700 */
         }
 
         /* Overdue Task Styling */
@@ -400,15 +406,17 @@
                     </div>
                     <div id="highestPriorityContainer"> 
                         <div id="calendarControls">
-                            <button id="prevMonthBtn" class="nav-button bg-sky-500 hover:bg-sky-600 text-white">&lt;</button> <h4 id="monthYearDisplay">Loading...</h4>
-                            <button id="nextMonthBtn" class="nav-button bg-sky-500 hover:bg-sky-600 text-white">&gt;</button> </div>
+                            <button id="prevMonthBtn" class="nav-button bg-sky-500 hover:bg-sky-600 text-white">&lt;</button> 
+                            <h4 id="monthYearDisplay">Loading...</h4>
+                            <button id="nextMonthBtn" class="nav-button bg-sky-500 hover:bg-sky-600 text-white">&gt;</button> 
+                        </div>
                         <div id="calendarGrid">
-                            <div class="calendar-day-header">S</div>
                             <div class="calendar-day-header">M</div>
                             <div class="calendar-day-header">T</div>
                             <div class="calendar-day-header">W</div>
                             <div class="calendar-day-header">T</div>
                             <div class="calendar-day-header">F</div>
+                            <div class="calendar-day-header">S</div>
                             <div class="calendar-day-header">S</div>
                         </div>
                     </div>
@@ -1137,13 +1145,17 @@
             }
 
             const taskCounts = getTaskCountsForMonth(year, month_0_indexed);
-            const firstDayOfMonth = new Date(year, month_0_indexed, 1).getDay(); 
+            
+            let firstDayOfMonth_js = new Date(year, month_0_indexed, 1).getDay(); // 0=Sun, 1=Mon,...6=Sat
+            // Convert to Monday-first week (0=Mon, 1=Tue,...6=Sun)
+            const displayFirstDay = (firstDayOfMonth_js === 0) ? 6 : firstDayOfMonth_js - 1;
+
             const daysInMonth = new Date(year, month_0_indexed + 1, 0).getDate();
             
             const today = new Date();
             today.setHours(0,0,0,0); 
 
-            for (let i = 0; i < firstDayOfMonth; i++) {
+            for (let i = 0; i < displayFirstDay; i++) {
                 const emptyCell = document.createElement('div');
                 emptyCell.className = 'calendar-day-cell other-month'; 
                 calendarGrid.appendChild(emptyCell);
@@ -1153,12 +1165,20 @@
                 const dayCell = document.createElement('div');
                 dayCell.className = 'calendar-day-cell';
                 
+                const currentDateObject = new Date(year, month_0_indexed, day);
+                const dayOfWeek_js = currentDateObject.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+
+                // Apply weekend styling if it's Saturday (6) or Sunday (0)
+                if (dayOfWeek_js === 0 || dayOfWeek_js === 6) {
+                    dayCell.classList.add('weekend-day');
+                }
+                
                 const dayNumberSpan = document.createElement('span');
                 dayNumberSpan.className = 'day-number';
                 dayNumberSpan.textContent = day;
                 dayCell.appendChild(dayNumberSpan);
 
-                const currentDateOfCell = new Date(year, month_0_indexed, day);
+                const currentDateOfCell = new Date(year, month_0_indexed, day); // Use a new var to avoid confusion
                 currentDateOfCell.setHours(0,0,0,0);
                 if (currentDateOfCell.getTime() === today.getTime()) {
                     dayCell.classList.add('today');
@@ -1174,7 +1194,7 @@
                 calendarGrid.appendChild(dayCell);
             }
 
-            const totalCellsAfterHeaders = firstDayOfMonth + daysInMonth;
+            const totalCellsAfterHeaders = displayFirstDay + daysInMonth;
             const remainingCells = (7 - (totalCellsAfterHeaders % 7)) % 7; 
              for (let i = 0; i < remainingCells; i++) {
                 const emptyCell = document.createElement('div');
