@@ -506,10 +506,11 @@
             console.log("updateTaskSummary: Finished."); // DEBUG
         }
         
-        function showPage(pageToShowId) {
+        async function showPage(pageToShowId) { // Made async to await sticky note loads
             console.log("showPage called with:", pageToShowId);
             closeOpenSubMenu();
             if (emailSummaryMessageContainer) emailSummaryMessageContainer.classList.add('hidden');
+            
             if (pageToShowId === 'inputPage') {
                 if (inputPage) inputPage.classList.remove('hidden'); if (boardPage) boardPage.classList.add('hidden');
                 if (taskSummaryBoardContainer) taskSummaryBoardContainer.classList.add('hidden'); if (taskSummaryInputContainer) taskSummaryInputContainer.classList.remove('hidden');
@@ -518,22 +519,34 @@
                 if (showInputPageBtn) { showInputPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500'); showInputPageBtn.classList.replace('hover:bg-indigo-600', 'hover:bg-blue-600'); }
                 if (showBoardPageBtn) { showBoardPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500'); showBoardPageBtn.classList.replace('hover:bg-blue-600', 'hover:bg-indigo-600'); }
             } else if (pageToShowId === 'boardPage') {
-                if (inputPage) inputPage.classList.add('hidden'); if (boardPage) boardPage.classList.remove('hidden');
-                if (taskSummaryInputContainer) taskSummaryInputContainer.classList.add('hidden'); if (taskSummaryBoardContainer) taskSummaryBoardContainer.classList.remove('hidden');
-                if(shiftTimeControls) shiftTimeControls.classList.remove('hidden');
-                if(emailSummaryBtn) emailSummaryBtn.classList.remove('hidden');
-                console.log("showPage('boardPage'): Calling renderBoard..."); // DEBUG
-                renderBoard(); 
-                console.log("showPage('boardPage'): Calling updateTaskSummary..."); // DEBUG
-                updateTaskSummary(); 
-                console.log("showPage('boardPage'): Calling loadStickyNoteMain/AAT..."); // DEBUG
-                loadStickyNoteMain(); loadStickyNoteAAT();
-                console.log("showPage('boardPage'): Calling renderUpcomingTasks..."); // DEBUG
-                renderUpcomingTasks(); 
-                console.log("showPage('boardPage'): Calling renderCalendar..."); // DEBUG
-                renderCalendar(); 
-                if (showInputPageBtn) { showInputPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500'); showInputPageBtn.classList.replace('hover:bg-blue-600', 'hover:bg-indigo-600'); }
-                if (showBoardPageBtn) { showBoardPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500'); showBoardPageBtn.classList.replace('hover:bg-indigo-600', 'hover:bg-blue-600'); }
+                try { 
+                    console.log("showPage('boardPage'): Setting up board page visibility.");
+                    if (inputPage) inputPage.classList.add('hidden'); if (boardPage) boardPage.classList.remove('hidden');
+                    if (taskSummaryInputContainer) taskSummaryInputContainer.classList.add('hidden'); if (taskSummaryBoardContainer) taskSummaryBoardContainer.classList.remove('hidden');
+                    if(shiftTimeControls) shiftTimeControls.classList.remove('hidden');
+                    if(emailSummaryBtn) emailSummaryBtn.classList.remove('hidden');
+                    
+                    console.log("showPage('boardPage'): Calling renderBoard...");
+                    renderBoard(); 
+                    console.log("showPage('boardPage'): Calling updateTaskSummary...");
+                    updateTaskSummary(); 
+                    
+                    console.log("showPage('boardPage'): Calling and awaiting loadStickyNoteMain...");
+                    await loadStickyNoteMain(); 
+                    console.log("showPage('boardPage'): Calling and awaiting loadStickyNoteAAT...");
+                    await loadStickyNoteAAT();  
+                    
+                    console.log("showPage('boardPage'): Calling renderUpcomingTasks...");
+                    renderUpcomingTasks(); 
+                    console.log("showPage('boardPage'): Calling renderCalendar...");
+                    renderCalendar(); 
+
+                    if (showInputPageBtn) { showInputPageBtn.classList.replace('bg-blue-500', 'bg-indigo-500'); showInputPageBtn.classList.replace('hover:bg-blue-600', 'hover:bg-indigo-600'); }
+                    if (showBoardPageBtn) { showBoardPageBtn.classList.replace('bg-indigo-500', 'bg-blue-500'); showBoardPageBtn.classList.replace('hover:bg-indigo-600', 'hover:bg-blue-600'); }
+                    console.log("showPage('boardPage'): Board page setup complete.");
+                } catch (error) {
+                    console.error("!!!!!!!! ERROR IN showPage('boardPage') !!!!!!!!", error);
+                }
             }
         }
 
@@ -548,7 +561,7 @@
             const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
             dayHeaders.forEach(header => { const hc = document.createElement('div'); hc.className = 'calendar-day-header'; hc.textContent = header; calendarGrid.appendChild(hc); });
             const year = calendarDate.getFullYear(); const month = calendarDate.getMonth(); 
-            monthYearDisplay.textContent = `${calendarDate.toLocaleDateString('en-GB', { month: 'long' })} ${year}`;
+            if (monthYearDisplay) monthYearDisplay.textContent = `${calendarDate.toLocaleDateString('en-GB', { month: 'long' })} ${year}`;
             const firstDayOfMonth = new Date(year, month, 1); const lastDayOfMonth = new Date(year, month + 1, 0);
             const daysInMonth = lastDayOfMonth.getDate(); const startingDayOfWeek = firstDayOfMonth.getDay(); 
             const today = new Date(); today.setHours(0,0,0,0);
@@ -560,9 +573,9 @@
                 if (currentDateOfCell.getTime() === today.getTime()) dayCell.classList.add('current-day');
                 let tasksDueOnThisDay = 0; const calendarDayString = formatDateForInput(currentDateOfCell);
                 for (const status of ['todo', 'inprogress', 'nonurgent']) { 
-                    if (tasks[status] && Array.isArray(tasks[status])) { // Defensive check
+                    if (tasks[status] && Array.isArray(tasks[status])) { 
                         for (const task of tasks[status]) {
-                            if (task && task.due_date) { // Defensive check
+                            if (task && task.due_date) { 
                                 const taskDueDateString = formatDateForInput(task.due_date);
                                 if (taskDueDateString === calendarDayString) tasksDueOnThisDay++;
                             }
@@ -622,11 +635,10 @@
             let tasksRenderedCount = 0; // DEBUG
 
             for (const columnId in tasks) {
-                if (tasks.hasOwnProperty(columnId) && Array.isArray(tasks[columnId])) { // Ensure tasks[columnId] is an array
+                if (tasks.hasOwnProperty(columnId) && Array.isArray(tasks[columnId])) { 
                     const columnElement = document.getElementById(columnId)?.querySelector('.tasks-container');
                     if (columnElement) {
                         let columnTasks = [...tasks[columnId]];
-                        // Simplified sorting for brevity, ensure your original detailed sorting is here
                         if (['todo', 'inprogress', 'nonurgent'].includes(columnId)) {
                             columnTasks.sort((a,b) => (PRIORITY_VALUES[b.priority || DEFAULT_PRIORITY] || 0) - (PRIORITY_VALUES[a.priority || DEFAULT_PRIORITY] || 0) || (a.createdAt || 0) - (b.createdAt || 0) );
                         } else if (columnId === 'done') {
@@ -635,21 +647,21 @@
                         
                         console.log(`renderBoard: Processing column ${columnId}, ${columnTasks.length} tasks.`); // DEBUG
                         columnTasks.forEach(task => {
-                            if (task && task.id && task.text) { // Basic check for valid task object
+                            if (task && task.id && task.text) { 
                                 const taskElement = createTaskElement(task);
                                 if (taskElement) {
                                     columnElement.appendChild(taskElement);
-                                    tasksRenderedCount++; // DEBUG
+                                    tasksRenderedCount++; 
                                 } else {
-                                    console.error("renderBoard: createTaskElement returned null for task:", task); // DEBUG
+                                    console.error("renderBoard: createTaskElement returned null for task:", task); 
                                 }
                             } else {
-                                console.warn("renderBoard: Invalid task object in column", columnId, task); // DEBUG
+                                console.warn("renderBoard: Invalid task object in column", columnId, task); 
                             }
                         });
-                    } else { console.error(`renderBoard: Column element not found for ID: ${columnId}`); }
+                    } else { console.error(`renderBoard: Column element's .tasks-container not found for ID: ${columnId}`); } 
                 } else {
-                     console.warn(`renderBoard: tasks[${columnId}] is not an array or tasks does not own ${columnId}. Value:`, tasks[columnId]); // DEBUG
+                     console.warn(`renderBoard: tasks[${columnId}] is not an array or tasks does not own ${columnId}. Value:`, tasks[columnId]); 
                 }
             }
             console.log("renderBoard: Finished. Total tasks rendered:", tasksRenderedCount); // DEBUG
@@ -661,7 +673,7 @@
                 console.error("renderUpcomingTasks: upcomingTasksList element NOT FOUND");
                 return;
             }
-            upcomingTasksList.innerHTML = ''; // Clear previous content
+            upcomingTasksList.innerHTML = ''; 
             let allUpcoming = [];
             ['todo', 'inprogress', 'nonurgent'].forEach(status => {
                 if (tasks[status] && Array.isArray(tasks[status])) {
@@ -702,9 +714,9 @@
                 if (apiResponse.status === 200 && Array.isArray(fetchedTasks)) {
                     tasks = { todo: [], inprogress: [], nonurgent: [], done: [] }; 
                     fetchedTasks.forEach(task => {
-                        if (typeof task !== 'object' || task === null) { // ADDED: Check if task is an object
+                        if (typeof task !== 'object' || task === null) { 
                             console.warn("loadTasks: Encountered non-object in fetchedTasks array:", task);
-                            return; // Skip this iteration
+                            return; 
                         }
                         task.priority = task.priority || DEFAULT_PRIORITY; 
                         task.notes = task.notes || '';
@@ -744,22 +756,87 @@
             }
         }
 
-        async function loadStickyNoteMain() { /* ... from your working file, ensure apiResponse.data.content is checked ... */ }
+        async function loadStickyNoteMain() {
+            console.log("loadStickyNoteMain: Start");
+            if (!stickyNoteTextarea) { console.warn("loadStickyNoteMain: stickyNoteTextarea not found."); return; }
+            try {
+                const apiResponse = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_MAIN });
+                console.log("loadStickyNoteMain: Raw apiResponse:", JSON.stringify(apiResponse, null, 2));
+                if (apiResponse.status === 200 && apiResponse.data && typeof apiResponse.data.content === 'string') {
+                    stickyNoteTextarea.value = apiResponse.data.content;
+                } else {
+                    if (stickyNoteTextarea) stickyNoteTextarea.value = "Error loading note."; // Check again before setting
+                    console.warn("loadStickyNoteMain: Failed to load or invalid content. Status:", apiResponse.status, "Data:", apiResponse.data);
+                }
+            } catch (error) { if(stickyNoteTextarea) stickyNoteTextarea.value = "Error loading note."; console.error("loadStickyNoteMain: Error:", error); }
+        }
         async function saveStickyNoteMain() { /* ... from your working file ... */ }
-        async function loadStickyNoteAAT() { /* ... from your working file, ensure apiResponse.data.content is checked ... */ }
+        async function loadStickyNoteAAT() {
+            console.log("loadStickyNoteAAT: Start");
+            if (!stickyNoteTextareaAAT) { console.warn("loadStickyNoteAAT: stickyNoteTextareaAAT not found."); return; }
+            try {
+                const apiResponse = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_AAT });
+                console.log("loadStickyNoteAAT: Raw apiResponse:", JSON.stringify(apiResponse, null, 2));
+                if (apiResponse.status === 200 && apiResponse.data && typeof apiResponse.data.content === 'string') {
+                    stickyNoteTextareaAAT.value = apiResponse.data.content;
+                } else {
+                    if (stickyNoteTextareaAAT) stickyNoteTextareaAAT.value = "Error loading note."; // Check again
+                     console.warn("loadStickyNoteAAT: Failed to load or invalid content. Status:", apiResponse.status, "Data:", apiResponse.data);
+                }
+            } catch (error) { if(stickyNoteTextareaAAT) stickyNoteTextareaAAT.value = "Error loading note."; console.error("loadStickyNoteAAT: Error:", error); }
+        }
         async function saveStickyNoteAAT() { /* ... from your working file ... */ }
-        async function loadShiftTimes() { /* ... from your working file, ensure apiResponse.data.content is checked ... */ }
+        
+        async function loadShiftTimes() {
+            console.log("loadShiftTimes: Function start.");
+            let startHourLoaded = false; let endHourLoaded = false;
+            try {
+                console.log("loadShiftTimes: Calling apiCall for START time...");
+                const apiResponseStart = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_SHIFT_START });
+                console.log("loadShiftTimes: Raw apiResponse for START time:", JSON.stringify(apiResponseStart, null, 2));
+                if (apiResponseStart && apiResponseStart.status === 200 && apiResponseStart.data && typeof apiResponseStart.data.content === 'string' && apiResponseStart.data.content.includes(':')) {
+                    const [hoursStr] = apiResponseStart.data.content.split(':'); const hours = parseInt(hoursStr);
+                    if (!isNaN(hours)) { SHIFT_START_HOUR = hours; if(shiftStartInput) shiftStartInput.value = apiResponseStart.data.content; startHourLoaded = true; console.log("Shift start time loaded:", apiResponseStart.data.content); }
+                } else { console.warn("Could not load shift start or data invalid.", apiResponseStart); }
+            } catch (error) { console.warn("Error API call shift start:", error.message || error); }
+            try {
+                console.log("loadShiftTimes: Calling apiCall for END time...");
+                const apiResponseEnd = await apiCall('get-sticky-note', 'GET', { note_id: STICKY_NOTE_ID_SHIFT_END });
+                console.log("loadShiftTimes: Raw apiResponse for END time:", JSON.stringify(apiResponseEnd, null, 2));
+                if (apiResponseEnd && apiResponseEnd.status === 200 && apiResponseEnd.data && typeof apiResponseEnd.data.content === 'string' && apiResponseEnd.data.content.includes(':')) {
+                    const [hoursStr] = apiResponseEnd.data.content.split(':'); const hours = parseInt(hoursStr);
+                    if (!isNaN(hours)) { SHIFT_END_HOUR = hours; if(shiftEndInput) shiftEndInput.value = apiResponseEnd.data.content; endHourLoaded = true; console.log("Shift end time loaded:", apiResponseEnd.data.content); }
+                } else { console.warn("Could not load shift end or data invalid.", apiResponseEnd); }
+            } catch (error) { console.warn("Error API call shift end:", error.message || error); }
+            
+            if (!startHourLoaded && shiftStartInput) { shiftStartInput.value = formatTimeToHHMM(SHIFT_START_HOUR, 0); console.log("Default shift start set:", shiftStartInput.value); }
+            if (!endHourLoaded && shiftEndInput) { shiftEndInput.value = formatTimeToHHMM(SHIFT_END_HOUR, 0); console.log("Default shift end set:", shiftEndInput.value); }
+            
+            console.log("loadShiftTimes: Calling updateDateTimeDisplay.");
+            updateDateTimeDisplay();
+            console.log("loadShiftTimes: Function end.");
+        }
+        
         async function saveShiftTime(noteId, timeValueString) { /* ... from your working file ... */ }
         function dragStart(event) { /* ... from your working file ... */ }
         function dragEnd(event) { /* ... from your working file ... */ }
         function allowDrop(event) { /* ... from your working file ... */ }
         function drop(event) { /* ... from your working file ... */ }
-        async function handleDropLogic(targetColumnId, taskElement) { /* ... from your working file, ensure renderCalendar call ... */ }
+        async function handleDropLogic(targetColumnId, taskElement) {
+             /* ... existing logic from your working file ... */
+             renderUpcomingTasks(); 
+             if (boardPage && !boardPage.classList.contains('hidden')) renderCalendar(); 
+             /* ... */
+             try { /* ... */ } catch (error) {
+                  /* ... revert logic ... */
+                  renderUpcomingTasks();
+                  if (boardPage && !boardPage.classList.contains('hidden')) renderCalendar(); 
+            }
+        }
         function triggerConfetti() { /* ... from your working file ... */ }
         async function handleEmailSummary() { /* ... from your working file ... */ }
 
         // --- Initialization & Event Listeners ---
-        // Ensure all these are using the correct function names and logic from your working file
         if(addTaskBtn) addTaskBtn.addEventListener('click', addTask);
         if(showInputPageBtn) showInputPageBtn.addEventListener('click', () => showPage('inputPage'));
         if(showBoardPageBtn) { /* ... event listener from your working file ... */ }
